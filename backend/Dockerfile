@@ -1,20 +1,25 @@
-FROM node:20-alpine
-
-# Définir le répertoire de travail
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# Copier package.json et package-lock.json
 COPY package*.json ./
+RUN npm ci
 
-# Installer les dépendances
-RUN npm install
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json ./
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
+COPY src ./src
+# Compiler NestJS
+RUN npm run build
 
-# Copier le code source
-COPY ./src ./src
-COPY ./prisma ./prisma
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 
-# Exposer le port 3000
+COPY package*.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
 EXPOSE 3000
-
-# Commande pour lancer le backend en dev
-CMD ["npm", "run", "start:dev"]
+CMD ["node", "dist/main.js"]

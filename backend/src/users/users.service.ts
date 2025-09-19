@@ -1,30 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly repo: Repository<User>,
+  ) {}
 
-  async findAll() {
-    return this.prisma.user.findMany();
+  async findAll(): Promise<User[]> {
+    return this.repo.find();
   }
 
-  async findOne(id: number) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+  async findOne(id: number): Promise<User> {
+    const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  async create(data: Prisma.UserCreateInput) {
-    return this.prisma.user.create({ data });
+  async create(data: { email: string; role: string; password: string }): Promise<User> {
+    const user = this.repo.create(data);
+    return this.repo.save(user);
   }
 
-  async update(id: number, data: Prisma.UserUpdateInput) {
-    return this.prisma.user.update({ where: { id }, data });
+  async update(id: number, data: Partial<User>): Promise<User> {
+    await this.repo.update({ id }, data);
+    return this.findOne(id);
   }
 
-  async remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+  async remove(id: number): Promise<void> {
+    await this.repo.delete({ id });
   }
 }
