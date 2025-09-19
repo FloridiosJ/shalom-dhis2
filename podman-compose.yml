@@ -17,7 +17,11 @@ services:
     build: ./backend
     container_name: shalom_backend
     environment:
-      DATABASE_URL: "postgresql://user:password@postgres:5432/shalom_dhis2"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASS: password
+      DB_NAME: shalom_dhis2
     ports:
       - "3001:3000"
     depends_on:
