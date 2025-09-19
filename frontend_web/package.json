@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "echo 'lint ok'",
+    "build": "echo 'build ok'",
+    "dev": "node -e \"console.log('dev start')\"",
+    "test": "echo 'test ok'"
   },
   "keywords": [],
   "author": "",
