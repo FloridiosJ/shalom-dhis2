@@ -1,0 +1,52 @@
+stages:
+  - lint
+  - build
+  - test
+  - deploy
+
+lint:
+  stage: lint
+  image: node:20-alpine
+  script:
+    - cd backend && npm install && npm run lint
+    - cd frontend_web && npm install && npm run lint
+    - cd frontend_mobile && npm install && npm run lint
+  tags: [shell]
+
+build:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  script:
+    - docker build -t shalom-dhis2-backend ./backend
+    - docker build -t shalom-dhis2-web ./frontend_web
+    - docker build -t shalom-dhis2-mobile ./frontend_mobile
+  tags: [shell]
+  needs: ["lint"]
+
+test:
+  stage: test
+  image: node:20-alpine
+  script:
+    - cd backend && npm install && npm run test
+  tags: [shell]
+  needs: ["build"]
+
+deploy:
+  stage: deploy
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  script:
+    - podman stop shalom_backend || true
+    - podman rm shalom_backend || true
+    - podman run -d --name shalom_backend -p 3000:3000 shalom-dhis2-backend
+    - podman stop shalom_web || true
+    - podman rm shalom_web || true
+    - podman run -d --name shalom_web -p 5173:5173 shalom-dhis2-web
+    - podman stop shalom_mobile || true
+    - podman rm shalom_mobile || true
+    - podman run -d --name shalom_mobile -p 19000:19000 shalom-dhis2-mobile
+  tags: [shell]
+  needs: ["test"]
