@@ -11,6 +11,7 @@ RUN npm install
 
 # Copier le code source
 COPY ./src ./src
+COPY ./prisma ./prisma
 
 # Exposer le port 3000
 EXPOSE 3000
