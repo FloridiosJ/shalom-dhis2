@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: shalom_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: shalom_dhis2
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: shalom_backend
+    environment:
+      DATABASE_URL: "postgresql://user:password@postgres:5432/shalom_dhis2"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  frontend_web:
+    build: ./frontend_web
+    container_name: shalom_web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  frontend_mobile:
+    build: ./frontend_mobile
+    container_name: shalom_mobile
+    ports:
+      - "19000:19000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
