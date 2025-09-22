@@ -5,7 +5,9 @@ import { UsersResolver } from './users.resolver';
 import { User } from './user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [
+    TypeOrmModule.forFeature([User]), // <-- important pour injecter Repository<User>
+  ],
   providers: [UsersService, UsersResolver],
   exports: [UsersService],
 })

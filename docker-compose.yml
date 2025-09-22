@@ -1,4 +1,3 @@
-
 services:
   db:
     image: postgres:17
@@ -19,20 +18,22 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: admin
-      DB_PASS: password
+      DB_PASS: Root2205!
       DB_NAME: shalom_dhis2
+      JWT_SECRET: AkoryAlye12345!
+      JWT_EXPIRATION: 3600s
     ports:
       - "3000:3000"
 
-  frontend_web:
-    build: ./frontend_web
-    ports:
-      - "8080:80"
+  # frontend_web:
+  #   build: ./frontend_web
+  #   ports:
+  #     - "8080:80"
 
-  frontend_mobile:
-    build: ./frontend_mobile
-    ports:
-      - "8081:80"
+  # frontend_mobile:
+  #   build: ./frontend_mobile
+  #   ports:
+  #     - "8081:80"
 
 volumes:
   db_data:
