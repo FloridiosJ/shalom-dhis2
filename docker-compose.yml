@@ -1,0 +1,38 @@
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: Root2205!
+      POSTGRES_DB: shalom_dhis2
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASS: password
+      DB_NAME: shalom_dhis2
+    ports:
+      - "3000:3000"
+
+  frontend_web:
+    build: ./frontend_web
+    ports:
+      - "8080:80"
+
+  frontend_mobile:
+    build: ./frontend_mobile
+    ports:
+      - "8081:80"
+
+volumes:
+  db_data:

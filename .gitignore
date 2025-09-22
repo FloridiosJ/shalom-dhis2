@@ -1,0 +1,24 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+coverage/
+
+# React / React Native
+.expo/
+.expo-shared/
+web-build/
+android/
+ios/
+build/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Docker
+*.pid
+*.seed
+docker-compose.override.yml
