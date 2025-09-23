@@ -1,13 +1,19 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateUserInput } from './dto/create-user.input';
 
 @Resolver(() => User)
+@UseGuards(GqlAuthGuard, RolesGuard) // <-- protège toutes les queries/mutations
 export class UsersResolver {
   constructor(private usersService: UsersService) {}
 
   @Query(() => [User])
+  @Roles('admin') // <-- seulement admin peut lister tous les users
   users(): Promise<User[]> {
     return this.usersService.findAll();
   }
@@ -18,6 +24,7 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
+  @Roles('admin') // <-- seulement admin peut créer un user
   async createUser(@Args('input') input: CreateUserInput): Promise<User> {
     const { email, password, role } = input;
     return this.usersService.create(email, password, role);
