@@ -27,7 +27,8 @@ import { AuthModule } from './auth/auth.module';
       persistedQueries: false,
     }),
 
-    UsersModule, // <-- important
-    AuthModule,  ],
+    UsersModule,
+    AuthModule,
+  ],
 })
 export class AppModule {}
