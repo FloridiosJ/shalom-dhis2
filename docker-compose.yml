@@ -11,19 +11,24 @@ services:
       - "5432:5432"
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      target: development  # Changed from deps to development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
     depends_on:
       - db
     environment:
       DB_HOST: db
       DB_PORT: 5432
-      DB_USER: admin
+      DB_USER: admin 
       DB_PASS: Root2205!
       DB_NAME: shalom_dhis2
       JWT_SECRET: AkoryAlye12345!
       JWT_EXPIRATION: 3600s
-    ports:
-      - "3000:3000"
 
   # frontend_web:
   #   build: ./frontend_web

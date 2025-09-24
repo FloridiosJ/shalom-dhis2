@@ -44,4 +44,21 @@ export class UsersService {
     const result = await this.usersRepository.delete(id);
     if (result.affected === 0) throw new NotFoundException(`User #${id} not found`);
   }
+
+  async seedAdmin() {
+  const existingAdmin = await this.usersRepository.findOne({ where: { email: 'admin@shalom.local' } });
+  if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash('Admin123!', 10);
+    const admin = this.usersRepository.create({
+      email: 'admin@shalom.local',
+      password: hashedPassword,
+      role: 'admin',
+    });
+    await this.usersRepository.save(admin);
+    console.log('✅ Admin par défaut créé: admin@shalom.local / Admin123!');
+  } else {
+    console.log('ℹ️ Admin déjà existant, aucun seed nécessaire');
+  }
+}
+
 }

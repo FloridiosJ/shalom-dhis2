@@ -4,7 +4,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CreateUserInput } from './dto/create-user.input';
 
 @Resolver(() => User)
@@ -29,4 +29,12 @@ export class UsersResolver {
     const { email, password, role } = input;
     return this.usersService.create(email, password, role);
   }
+
+  @Query(() => User)
+  @UseGuards(GqlAuthGuard)
+  me(@Context() context): User {
+    console.log(":>> TEST",context.req.user);
+    return context.req.user;
+  }
+  
 }
