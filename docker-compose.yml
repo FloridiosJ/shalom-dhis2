@@ -30,15 +30,20 @@ services:
       JWT_SECRET: AkoryAlye12345!
       JWT_EXPIRATION: 3600s
 
-  # frontend_web:
-  #   build: ./frontend_web
-  #   ports:
-  #     - "8080:80"
-
-  # frontend_mobile:
-  #   build: ./frontend_mobile
-  #   ports:
-  #     - "8081:80"
+  frontend_web:
+    build: 
+      context: ./frontend-web
+      target: development
+    volumes:
+      - ./frontend-web:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    command: npm run dev -- --host
 
 volumes:
   db_data:
