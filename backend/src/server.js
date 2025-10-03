@@ -5,22 +5,18 @@ import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { loadSchemaSync } from '@graphql-tools/load';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { resolvers } from './graphql/resolvers/index.js';
+import { authMiddleware } from './middleware/auth.js';
 
 // Load environment variables
 dotenv.config();
 
-// Basic GraphQL Schema
-const typeDefs = `#graphql
-  type Query {
-    hello: String
-  }
-`;
-
-const resolvers = {
-  Query: {
-    hello: () => 'Hello World!'
-  }
-};
+// Load schema from file
+const typeDefs = loadSchemaSync('./src/graphql/schema.graphql', {
+  loaders: [new GraphQLFileLoader()]
+});
 
 // JWT Authentication middleware
 const authenticateUser = async (req) => {
@@ -55,11 +51,7 @@ async function startServer() {
   const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
-    context: async ({ req }) => {
-      // Inject authenticated user into context
-      const user = await authenticateUser(req);
-      return { user };
-    },
+    context: authMiddleware,
     introspection: true,
     playground: true
   });

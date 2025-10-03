@@ -1,0 +1,137 @@
+# Custom scalars
+scalar DateTime
+
+# User type and auth
+type User {
+  id: ID!
+  email: String!
+  role: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# Organisation type and hierarchy
+type Organisation {
+  id: ID!
+  name: String!
+  parentId: ID
+  type: OrganisationType!
+  parent: Organisation
+  children: [Organisation]
+  dispensaires: [Dispensaire]
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+enum OrganisationType {
+  SynodaLehibe
+  SynodamParitany
+  Fileovana
+  Fitandremana
+  Fiangonana
+}
+
+# Dispensaire type
+type Dispensaire {
+  id: ID!
+  name: String!
+  organisationId: ID!
+  organisation: Organisation!
+  dataEntries: [DataEntry]
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# Data entry type
+type DataEntry {
+  id: ID!
+  dispensaireId: ID!
+  dispensaire: Dispensaire!
+  indicator: String!
+  value: Int!
+  date: DateTime!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# Input types
+input CreateOrganisationInput {
+  name: String!
+  parentId: ID
+  type: OrganisationType!
+}
+
+input UpdateOrganisationInput {
+  name: String
+  parentId: ID
+  type: OrganisationType
+}
+
+input CreateDispensaireInput {
+  name: String!
+  organisationId: ID!
+}
+
+input UpdateDispensaireInput {
+  name: String
+  organisationId: ID
+}
+
+input DataEntryInput {
+  dispensaireId: ID!
+  indicator: String!
+  value: Int!
+  date: DateTime!
+}
+
+# Queries
+type Query {
+  # User queries
+  me: User
+  users: [User]!
+  user(id: ID!): User
+
+  # Organisation queries
+  organisations: [Organisation]!
+  organisation(id: ID!): Organisation
+  organisationsByType(type: OrganisationType!): [Organisation]!
+
+  # Dispensaire queries
+  dispensaires: [Dispensaire]!
+  dispensaire(id: ID!): Dispensaire
+  dispensairesByOrganisation(organisationId: ID!): [Dispensaire]!
+
+  # Data entry queries
+  dataEntries: [DataEntry]!
+  dataEntry(id: ID!): DataEntry
+  dataEntriesByDispensaire(dispensaireId: ID!): [DataEntry]!
+}
+
+# Mutations
+type Mutation {
+  # Auth mutations
+  register(email: String!, password: String!, role: String): User!
+  login(email: String!, password: String!): AuthPayload!
+
+  # Organisation mutations
+  createOrganisation(input: CreateOrganisationInput!): Organisation!
+  updateOrganisation(id: ID!, input: UpdateOrganisationInput!): Organisation!
+  deleteOrganisation(id: ID!): Boolean!
+
+  # Dispensaire mutations
+  createDispensaire(input: CreateDispensaireInput!): Dispensaire!
+  updateDispensaire(id: ID!, input: UpdateDispensaireInput!): Dispensaire!
+  deleteDispensaire(id: ID!): Boolean!
+
+  # Data entry mutations
+  createDataEntry(input: DataEntryInput!): DataEntry!
+  updateDataEntry(id: ID!, input: DataEntryInput!): DataEntry!
+  deleteDataEntry(id: ID!): Boolean!
+  syncDataEntries(entries: [DataEntryInput!]!): [DataEntry]!
+}
+
+# Auth payload type
+type AuthPayload {
+  token: String!
+  user: User!
+}

@@ -1,6 +1,6 @@
 import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
-import { User } from '../../models/index.js';
+import { User } from '../../../models/index.js';
 import { isAuthenticated, isAdmin } from '../../middleware/auth.js';
 
 export const authResolvers = {
@@ -32,6 +32,11 @@ export const authResolvers = {
     }),
 
     login: async (_, { email, password }) => {
+      // Verify JWT_SECRET exists
+      if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not configured');
+      }
+
       // Find user
       const user = await User.findOne({ where: { email } });
       if (!user) {
@@ -49,12 +54,13 @@ export const authResolvers = {
         { 
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role 
         },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
 
+      // Return AuthPayload
       return {
         token,
         user: {
@@ -63,11 +69,6 @@ export const authResolvers = {
           role: user.role
         }
       };
-    },
-
-    createOrganisation: isAuthenticated(async (_, args, context) => {
-      // L'utilisateur doit être connecté
-      // ...existing code...
-    })
+    }
   }
 };

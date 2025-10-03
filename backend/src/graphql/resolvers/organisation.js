@@ -1,4 +1,4 @@
-import { Organisation } from '../../models/index.js';
+import { Organisation } from '../../../models/index.js';
 import { checkRole } from '../../utils/auth-utils.js';
 
 export const organisationResolvers = {

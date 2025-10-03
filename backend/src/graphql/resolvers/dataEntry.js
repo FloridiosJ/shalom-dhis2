@@ -1,4 +1,4 @@
-import { DataEntry, Dispensaire } from '../../models/index.js';
+import { DataEntry, Dispensaire } from '../../../models/index.js';
 import { checkRole } from '../../utils/auth-utils.js';
 
 export const dataEntryResolvers = {

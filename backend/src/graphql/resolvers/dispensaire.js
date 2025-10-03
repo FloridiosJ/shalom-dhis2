@@ -1,4 +1,4 @@
-import { Dispensaire, Organisation } from '../../models/index.js';
+import { Dispensaire, Organisation } from '../../../models/index.js';
 import { checkRole } from '../../utils/auth-utils.js';
 
 export const dispensaireResolvers = {

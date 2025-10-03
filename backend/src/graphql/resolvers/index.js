@@ -1,3 +1,4 @@
+import { authResolvers } from './auth.js';
 import { userResolvers } from './user.js';
 import { organisationResolvers } from './organisation.js';
 import { dispensaireResolvers } from './dispensaire.js';
@@ -11,7 +12,7 @@ export const resolvers = {
     ...dataEntryResolvers.Query
   },
   Mutation: {
-    ...userResolvers.Mutation,
+    ...authResolvers.Mutation,      // Add auth mutations (login, register)
     ...organisationResolvers.Mutation,
     ...dispensaireResolvers.Mutation,
     ...dataEntryResolvers.Mutation
