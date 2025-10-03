@@ -1,10 +1,11 @@
 import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { User } from '../../models/index.js';
+import { isAuthenticated, isAdmin } from '../../middleware/auth.js';
 
 export const authResolvers = {
   Mutation: {
-    register: async (_, { email, password, role }, { user }) => {
+    register: isAdmin(async (_, { email, password, role }, { user }) => {
       // Check if requester is admin
       if (!user || user.role !== 'admin') {
         throw new ForbiddenError('Only admins can register new users');
@@ -28,7 +29,7 @@ export const authResolvers = {
         email: newUser.email,
         role: newUser.role
       };
-    },
+    }),
 
     login: async (_, { email, password }) => {
       // Find user
@@ -62,6 +63,11 @@ export const authResolvers = {
           role: user.role
         }
       };
-    }
+    },
+
+    createOrganisation: isAuthenticated(async (_, args, context) => {
+      // L'utilisateur doit être connecté
+      // ...existing code...
+    })
   }
 };
