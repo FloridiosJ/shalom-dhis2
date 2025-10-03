@@ -1,8 +1,8 @@
 node_modules
+npm-debug.log
 .env
-*.log
-dist
-coverage
 .git
 .gitignore
 README.md
+.dockerignore
+Dockerfile

@@ -1,19 +1,18 @@
-FROM node:18
+# Base image
+FROM node:18-alpine
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
 # Install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Copy source code
+# Bundle app source
 COPY . .
 
-# Expose port
+# Expose API port
 EXPOSE 4000
 
-# Start application
+# Start the server
 CMD ["node", "src/server.js"]

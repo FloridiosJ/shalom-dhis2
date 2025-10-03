@@ -1,51 +1,84 @@
-import 'reflect-metadata';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import cors from 'cors';
 import morgan from 'morgan';
+import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 
+// Load environment variables
 dotenv.config();
 
-const app = express();
+// Basic GraphQL Schema
+const typeDefs = `#graphql
+  type Query {
+    hello: String
+  }
+`;
 
-// Middlewares
-app.use(cors());
-app.use(morgan('dev'));
-app.use(express.json());
+const resolvers = {
+  Query: {
+    hello: () => 'Hello World!'
+  }
+};
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-async function startApolloServer() {
-  const typeDefs = `
-    type Query {
-      hello: String
+// JWT Authentication middleware
+const authenticateUser = async (req) => {
+  const authHeader = req.headers.authorization;
+  
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const user = jwt.verify(token, process.env.JWT_SECRET);
+      return user;
+    } catch (error) {
+      console.error('JWT verification failed:', error.message);
     }
-  `;
+  }
+  return null;
+};
 
-  const resolvers = {
-    Query: {
-      hello: () => 'Hello World!'
-    }
-  };
+async function startServer() {
+  const app = express();
 
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers
+  // Middleware
+  app.use(cors());
+  app.use(morgan('dev'));
+  app.use(bodyParser.json());
+
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
   });
 
-  await server.start();
-  server.applyMiddleware({ app });
+  // Apollo Server setup
+  const apolloServer = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: async ({ req }) => {
+      // Inject authenticated user into context
+      const user = await authenticateUser(req);
+      return { user };
+    },
+    introspection: true,
+    playground: true
+  });
+
+  await apolloServer.start();
+
+  // Apply Apollo GraphQL middleware
+  apolloServer.applyMiddleware({ 
+    app,
+    path: '/graphql',
+    cors: true
+  });
 
   const PORT = process.env.PORT || 4000;
   
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 GraphQL playground at http://localhost:${PORT}${server.graphqlPath}`);
+    console.log(`📊 GraphQL playground available at http://localhost:${PORT}/graphql`);
   });
 }
 
-startApolloServer().catch(console.error);
+startServer().catch(console.error);
