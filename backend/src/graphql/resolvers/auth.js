@@ -1,7 +1,7 @@
 import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { User } from '../../../models/index.js';
-import { isAuthenticated, isAdmin } from '../../middleware/auth.js';
+import {  isAdmin } from '../../middleware/auth.js';
 
 export const authResolvers = {
   Mutation: {
