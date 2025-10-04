@@ -4,6 +4,7 @@ import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
 import { Organisations } from '../pages/Organisations';
 import { Dispensaires } from '../pages/Dispensaires';
+import { DataEntries } from '../pages/DataEntries';
 
 export default function AppRoutes() {
   return (
@@ -31,6 +32,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Dispensaires />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/data-entries"
+        element={
+          <ProtectedRoute>
+            <DataEntries />
           </ProtectedRoute>
         }
       />
