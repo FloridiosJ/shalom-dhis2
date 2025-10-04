@@ -1,17 +1,18 @@
-import { Routes, Route } from 'react-router-dom';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Login } from '@/pages/Login';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from '../components/ProtectedRoute';
+import { Login } from '../pages/Login';
+import { Dashboard } from '../pages/Dashboard';
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<div>Home</div>} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<Login />} />
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <div>Dashboard</div>
+            <Dashboard />
           </ProtectedRoute>
         }
       />
