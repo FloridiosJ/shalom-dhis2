@@ -3,6 +3,7 @@ import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
 import { Organisations } from '../pages/Organisations';
+import { Dispensaires } from '../pages/Dispensaires';
 
 export default function AppRoutes() {
   return (
@@ -22,6 +23,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Organisations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dispensaires"
+        element={
+          <ProtectedRoute>
+            <Dispensaires />
           </ProtectedRoute>
         }
       />
