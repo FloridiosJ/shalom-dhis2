@@ -7,12 +7,12 @@ export const dataEntryResolvers = {
   },
 
   Mutation: {
-    createDataEntry: async (_, input, context) => {
+    createDataEntry: async (_, { input }, context) => {
       checkRole(context, ['admin', 'user']);
       return await DataEntry.create(input);
     },
 
-    updateDataEntry: async (_, { id, ...input }, context) => {
+    updateDataEntry: async (_, { id, input }, context) => {
       checkRole(context, ['admin', 'user']);
       const entry = await DataEntry.findByPk(id);
       if (!entry) throw new Error('Data entry not found');

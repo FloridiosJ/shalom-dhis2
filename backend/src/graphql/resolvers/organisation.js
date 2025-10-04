@@ -7,12 +7,12 @@ export const organisationResolvers = {
   },
 
   Mutation: {
-    createOrganisation: async (_, { name, parentId, type }, context) => {
+    createOrganisation: async (_, { input }, context) => {
       checkRole(context, ['admin']);
-      return await Organisation.create({ name, parentId, type });
+      return await Organisation.create(input);
     },
 
-    updateOrganisation: async (_, { id, ...input }, context) => {
+    updateOrganisation: async (_, { id, input }, context) => {
       checkRole(context, ['admin']);
       const org = await Organisation.findByPk(id);
       if (!org) throw new Error('Organisation not found');

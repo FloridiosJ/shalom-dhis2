@@ -9,6 +9,7 @@
   "dependencies": {
     "@graphql-tools/graphql-file-loader": "^8.1.2",
     "@graphql-tools/load": "^8.1.2",
+    "@graphql-tools/schema": "^10.0.25",
     "apollo-server-express": "^3.12.1",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",

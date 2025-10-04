@@ -1,16 +1,11 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
+import { AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { User } from '../../../models/index.js';
-import {  isAdmin } from '../../middleware/auth.js';
+import { isAdmin } from '../../middleware/auth.js';
 
 export const authResolvers = {
   Mutation: {
-    register: isAdmin(async (_, { email, password, role }, { user }) => {
-      // Check if requester is admin
-      if (!user || user.role !== 'admin') {
-        throw new ForbiddenError('Only admins can register new users');
-      }
-
+    register: isAdmin(async (_, { email, password, role }) => {
       // Check if user already exists
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {

@@ -7,12 +7,12 @@ export const dispensaireResolvers = {
   },
 
   Mutation: {
-    createDispensaire: async (_, { name, organisationId }, context) => {
+    createDispensaire: async (_, { input }, context) => {
       checkRole(context, ['admin']);
-      return await Dispensaire.create({ name, organisationId });
+      return await Dispensaire.create(input);
     },
 
-    updateDispensaire: async (_, { id, ...input }, context) => {
+    updateDispensaire: async (_, { id, input }, context) => {
       checkRole(context, ['admin']);
       const dispensaire = await Dispensaire.findByPk(id);
       if (!dispensaire) throw new Error('Dispensaire not found');
