@@ -279,55 +279,147 @@ export function DataEntries() {
           </button>
         </div>
 
-        {/* Filtres */}
+        {/* Filtres modernisés */}
         <div style={{
           backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '1.5rem',
+          borderRadius: '16px',
+          padding: '2rem',
           marginBottom: '2rem',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          border: '1px solid #f1f5f9'
         }}>
-          <h3 style={{
-            fontSize: '1.125rem',
-            fontWeight: '600',
-            color: '#1f2937',
-            marginBottom: '1rem'
+          {/* Header des filtres */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '2rem'
           }}>
-            Filtres
-          </h3>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <div style={{
+                padding: '0.5rem',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                color: '#0369a1'
+              }}>
+                <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
+                </svg>
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  color: '#1e293b',
+                  margin: 0,
+                  marginBottom: '0.25rem'
+                }}>
+                  Filtres de recherche
+                </h3>
+                <p style={{
+                  fontSize: '0.875rem',
+                  color: '#64748b',
+                  margin: 0
+                }}>
+                  Affinez vos résultats avec les critères ci-dessous
+                </p>
+              </div>
+            </div>
+
+            {/* Badge avec nombre de résultats */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <div style={{
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                padding: '0.5rem 1rem',
+                borderRadius: '50px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                {filteredEntries.length} résultat{filteredEntries.length > 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
           
+          {/* Grille des filtres */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem',
-            marginBottom: '1rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2rem'
           }}>
-            {/* Recherche */}
-            <div>
+            {/* Recherche globale - Prend plus d'espace */}
+            <div style={{ gridColumn: 'span 2' }}>
               <label style={{
                 display: 'block',
                 fontSize: '0.875rem',
-                fontWeight: '500',
+                fontWeight: '600',
                 color: '#374151',
-                marginBottom: '0.5rem'
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
-                Rechercher
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Recherche globale
               </label>
-              <input
-                type="text"
-                placeholder="Indicateur, dispensaire..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Rechercher par indicateur, dispensaire, valeur..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.875rem 1rem 0.875rem 3rem',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '12px',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    transition: 'all 0.2s ease',
+                    backgroundColor: '#fafafa'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.backgroundColor = '#ffffff';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e2e8f0';
+                    e.target.style.backgroundColor = '#fafafa';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  left: '1rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#9ca3af',
+                  pointerEvents: 'none'
+                }}>
+                  <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Organisation */}
@@ -335,10 +427,16 @@ export function DataEntries() {
               <label style={{
                 display: 'block',
                 fontSize: '0.875rem',
-                fontWeight: '500',
+                fontWeight: '600',
                 color: '#374151',
-                marginBottom: '0.5rem'
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
                 Organisation
               </label>
               <select
@@ -346,12 +444,25 @@ export function DataEntries() {
                 onChange={(e) => setFilters({ ...filters, organisationId: e.target.value, dispensaireId: '' })}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  padding: '0.875rem 1rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
                   fontSize: '0.875rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: '#fafafa',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.backgroundColor = '#ffffff';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.backgroundColor = '#fafafa';
+                  e.target.style.boxShadow = 'none';
                 }}
               >
                 <option value="">Toutes les organisations</option>
@@ -368,26 +479,60 @@ export function DataEntries() {
               <label style={{
                 display: 'block',
                 fontSize: '0.875rem',
-                fontWeight: '500',
+                fontWeight: '600',
                 color: '#374151',
-                marginBottom: '0.5rem'
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
                 Dispensaire
+                {filters.organisationId && (
+                  <span style={{
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    fontWeight: '400'
+                  }}>
+                    ({dispensaires.filter(d => d.organisationId === filters.organisationId).length} disponible{dispensaires.filter(d => d.organisationId === filters.organisationId).length > 1 ? 's' : ''})
+                  </span>
+                )}
               </label>
               <select
                 value={filters.dispensaireId}
                 onChange={(e) => setFilters({ ...filters, dispensaireId: e.target.value })}
+                disabled={!filters.organisationId}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  padding: '0.875rem 1rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
                   fontSize: '0.875rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: !filters.organisationId ? '#f1f5f9' : '#fafafa',
+                  transition: 'all 0.2s ease',
+                  cursor: !filters.organorganisationId ? 'not-allowed' : 'pointer',
+                  opacity: !filters.organisationId ? 0.6 : 1
+                }}
+                onFocus={(e) => {
+                  if (filters.organisationId) {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.backgroundColor = '#ffffff';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.backgroundColor = !filters.organisationId ? '#f1f5f9' : '#fafafa';
+                  e.target.style.boxShadow = 'none';
                 }}
               >
-                <option value="">Tous les dispensaires</option>
+                <option value="">
+                  {!filters.organisationId ? 'Choisir d\'abord une organisation' : 'Tous les dispensaires'}
+                </option>
                 {dispensaires
                   .filter(d => !filters.organisationId || d.organisationId === filters.organisationId)
                   .map(dispensaire => (
@@ -403,23 +548,49 @@ export function DataEntries() {
               <label style={{
                 display: 'block',
                 fontSize: '0.875rem',
-                fontWeight: '500',
+                fontWeight: '600',
                 color: '#374151',
-                marginBottom: '0.5rem'
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
                 Indicateur
+                <span style={{
+                  fontSize: '0.75rem',
+                  color: '#6b7280',
+                  fontWeight: '400'
+                }}>
+                  ({indicators.length} disponible{indicators.length > 1 ? 's' : ''})
+                </span>
               </label>
               <select
                 value={filters.indicator}
                 onChange={(e) => setFilters({ ...filters, indicator: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  padding: '0.875rem 1rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
                   fontSize: '0.875rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: '#fafafa',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.backgroundColor = '#ffffff';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.backgroundColor = '#fafafa';
+                  e.target.style.boxShadow = 'none';
                 }}
               >
                 <option value="">Tous les indicateurs</option>
@@ -431,16 +602,22 @@ export function DataEntries() {
               </select>
             </div>
 
-            {/* Date début */}
+            {/* Période - Date début */}
             <div>
               <label style={{
                 display: 'block',
                 fontSize: '0.875rem',
-                fontWeight: '500',
+                fontWeight: '600',
                 color: '#374151',
-                marginBottom: '0.5rem'
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
-                Date début
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Date de début
               </label>
               <input
                 type="date"
@@ -448,68 +625,280 @@ export function DataEntries() {
                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  padding: '0.875rem 1rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
                   fontSize: '0.875rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: '#fafafa',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.backgroundColor = '#ffffff';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.backgroundColor = '#fafafa';
+                  e.target.style.boxShadow = 'none';
                 }}
               />
             </div>
 
-            {/* Date fin */}
+            {/* Période - Date fin */}
             <div>
               <label style={{
                 display: 'block',
                 fontSize: '0.875rem',
-                fontWeight: '500',
+                fontWeight: '600',
                 color: '#374151',
-                marginBottom: '0.5rem'
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
-                Date fin
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Date de fin
               </label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                min={filters.startDate}
                 style={{
                   width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
+                  padding: '0.875rem 1rem',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
                   fontSize: '0.875rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: '#fafafa',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.backgroundColor = '#ffffff';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.backgroundColor = '#fafafa';
+                  e.target.style.boxShadow = 'none';
                 }}
               />
             </div>
           </div>
 
-          {/* Bouton reset filtres */}
-          <button
-            onClick={() => {
-              setFilters({
-                dispensaireId: '',
-                organisationId: '',
-                indicator: '',
-                startDate: '',
-                endDate: ''
-              });
-              setSearchTerm('');
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              fontSize: '0.875rem',
-              cursor: 'pointer'
-            }}
-          >
-            Réinitialiser les filtres
-          </button>
+          {/* Actions des filtres */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid #e2e8f0'
+          }}>
+            {/* Filtres actifs */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              flexWrap: 'wrap'
+            }}>
+              {(searchTerm || filters.organisationId || filters.dispensaireId || filters.indicator || filters.startDate || filters.endDate) && (
+                <>
+                  <span style={{
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    fontWeight: '500'
+                  }}>
+                    Filtres actifs:
+                  </span>
+                  {searchTerm && (
+                    <span style={{
+                      backgroundColor: '#dbeafe',
+                      color: '#1e40af',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '50px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      Recherche: "{searchTerm}"
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#1e40af',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  )}
+                  {filters.organisationId && (
+                    <span style={{
+                      backgroundColor: '#dcfce7',
+                      color: '#166534',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '50px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      Org: {organisations.find(o => o.id === filters.organisationId)?.name}
+                      <button
+                        onClick={() => setFilters({ ...filters, organisationId: '', dispensaireId: '' })}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#166534',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  )}
+                  {filters.indicator && (
+                    <span style={{
+                      backgroundColor: '#fef3c7',
+                      color: '#92400e',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '50px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      {filters.indicator}
+                      <button
+                        onClick={() => setFilters({ ...filters, indicator: '' })}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#92400e',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  )}
+                  {(filters.startDate || filters.endDate) && (
+                    <span style={{
+                      backgroundColor: '#e0e7ff',
+                      color: '#3730a3',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '50px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
+                      {filters.startDate && filters.endDate 
+                        ? `${filters.startDate} → ${filters.endDate}`
+                        : filters.startDate 
+                          ? `Depuis ${filters.startDate}`
+                          : `Jusqu'au ${filters.endDate}`
+                      }
+                      <button
+                        onClick={() => setFilters({ ...filters, startDate: '', endDate: '' })}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#3730a3',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Bouton reset */}
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem'
+            }}>
+              <button
+                onClick={() => {
+                  setFilters({
+                    dispensaireId: '',
+                    organisationId: '',
+                    indicator: '',
+                    startDate: '',
+                    endDate: ''
+                  });
+                  setSearchTerm('');
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#f8fafc',
+                  color: '#475569',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#f1f5f9';
+                  e.target.style.borderColor = '#cbd5e1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#f8fafc';
+                  e.target.style.borderColor = '#e2e8f0';
+                }}
+              >
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Réinitialiser
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Statistiques */}

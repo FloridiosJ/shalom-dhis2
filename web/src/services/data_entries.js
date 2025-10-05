@@ -93,7 +93,7 @@ export const dataEntryService = {
   // Create new data entry
   async create(dataEntryData) {
     const mutation = `
-      mutation CreateDataEntry($input: CreateDataEntryInput!) {
+      mutation CreateDataEntry($input: DataEntryInput!) {
         createDataEntry(input: $input) {
           id
           dispensaireId
@@ -128,7 +128,7 @@ export const dataEntryService = {
   // Update data entry
   async update(id, dataEntryData) {
     const mutation = `
-      mutation UpdateDataEntry($id: ID!, $input: UpdateDataEntryInput!) {
+      mutation UpdateDataEntry($id: ID!, $input: DataEntryInput!) {
         updateDataEntry(id: $id, input: $input) {
           id
           dispensaireId
@@ -488,7 +488,7 @@ export const dataEntryService = {
   // Bulk create data entries
   async bulkCreate(dataEntriesArray) {
     const mutation = `
-      mutation BulkCreateDataEntries($input: [CreateDataEntryInput!]!) {
+      mutation BulkCreateDataEntries($input: [DataEntryInput!]!) {
         bulkCreateDataEntries(input: $input) {
           id
           dispensaireId
