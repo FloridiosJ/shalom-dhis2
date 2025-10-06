@@ -7,36 +7,44 @@ const DataEntry = sequelize.define('DataEntry', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  value: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  dataElement: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  period: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  orgUnit: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false
+    // PAS DE REFERENCES pour l'instant
+  },
   dispensaireId: {
     type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'Dispensaires',
-      key: 'id'
-    }
-  },
-  indicator: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: true
-    }
-  },
-  value: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: {
-      min: 0
-    }
-  },
-  date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
+    allowNull: true
+    // PAS DE REFERENCES pour l'instant
   }
+}, {
+  tableName: 'dataentries',
+  timestamps: true
 });
 
-// Set up association with Dispensaire
+// Associations (sans contraintes DB pour l'instant)
 DataEntry.associate = (models) => {
+  DataEntry.belongsTo(models.User, {
+    foreignKey: 'userId',
+    as: 'user'
+  });
+  
   DataEntry.belongsTo(models.Dispensaire, {
     foreignKey: 'dispensaireId',
     as: 'dispensaire'

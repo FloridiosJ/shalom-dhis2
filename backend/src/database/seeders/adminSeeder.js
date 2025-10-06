@@ -1,23 +1,37 @@
-import { User } from '../../../models/index.js';
+import User from '../../../models/user.js';
 
-export const seedAdmin = async () => {
+export async function seedAdmin() {
   try {
-    // Check if admin exists
-    const adminExists = await User.findOne({
-      where: { email: 'admin@dhis2.org' }
+    const existingAdmin = await User.findOne({
+      where: { role: 'admin' }
     });
 
-    if (!adminExists) {
-      await User.create({
-        email: 'admin@dhis2.org',
-        password: 'Admin123!',
-        role: 'admin'
-      });
-      console.log('✅ Admin user created successfully');
-    } else {
-      console.log('ℹ️ Admin user already exists');
+    if (existingAdmin) {
+      console.log('✅ Admin already exists:', existingAdmin.email);
+      return existingAdmin;
     }
+
+    const adminData = {
+      email: 'admin@shalom-dhis2.org',
+      role: 'admin',
+      nom: 'Administrateur',
+      prenom: 'Système',
+      password: 'Admin123!'
+    };
+
+    const admin = await User.create(adminData);
+    
+    console.log('✅ Admin created successfully:', {
+      id: admin.id,
+      email: admin.email,
+      login: admin.login,
+      role: admin.role
+    });
+    
+    return admin;
+
   } catch (error) {
-    console.error('❌ Error seeding admin:', error);
+    console.error('❌ Error creating admin:', error);
+    throw error;
   }
-};
+}

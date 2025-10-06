@@ -3,10 +3,18 @@ import User from './user.js';
 import Dispensaire from './dispensaire.js';
 import DataEntry from './dataEntry.js';
 
-// Initialize associations
-Object.values([User, Dispensaire, DataEntry])
-  .filter(model => typeof model.associate === 'function')
-  .forEach(model => model.associate({ User, Dispensaire, DataEntry }));
+const models = {
+  User,
+  Dispensaire,
+  DataEntry
+};
+
+// TEMPORAIREMENT COMMENTÉ - associations sans contraintes DB
+// Object.keys(models).forEach(modelName => {
+//   if (models[modelName].associate) {
+//     models[modelName].associate(models);
+//   }
+// });
 
 export {
   sequelize,
@@ -14,3 +22,5 @@ export {
   Dispensaire,
   DataEntry
 };
+
+export default models;

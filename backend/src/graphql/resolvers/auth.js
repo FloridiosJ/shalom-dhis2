@@ -1,54 +1,44 @@
 import { AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
-import { User } from '../../../models/index.js';
+import User from '../../../models/user.js';
 
 const authResolvers = {
   Mutation: {
-    // CORRECTION: Utiliser le paramètre 'login' au lieu de 'email'
     login: async (_, { login, password }) => {
       console.log('🔍 Login attempt with:', login);
       
-      // Verify JWT_SECRET exists
       if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not configured');
       }
 
-      // Find user by login OR email
+      // CORRECTION : Chercher sans include d'abord
       const user = await User.findOne({ 
         where: { 
           [Op.or]: [
             { email: login },
             { login: login }
           ]
-        },
-        include: ['dispensaire']
+        }
+        // Temporairement sans include: ['dispensaire']
       });
       
-      if (!user) {
-        console.log('❌ User not found');
+      if (!user || !user.isActive) {
+        console.log('❌ User not found or inactive');
         throw new AuthenticationError('Invalid credentials');
       }
 
-      if (!user.isActive) {
-        console.log('❌ User inactive');
-        throw new AuthenticationError('Account is disabled');
-      }
-
-      // Verify password
       const valid = await user.comparePassword(password);
       if (!valid) {
         console.log('❌ Invalid password');
         throw new AuthenticationError('Invalid credentials');
       }
 
-      // Update last login
-      await user.update({ lastLoginAt: new Date() });
+      await user.updateLastLogin();
 
-      // Generate JWT token
       const token = jwt.sign(
         { 
-          userId: user.id,  // CORRECTION: userId au lieu de id
+          userId: user.id,
           email: user.email,
           role: user.role 
         },
@@ -58,10 +48,26 @@ const authResolvers = {
 
       console.log('✅ Login successful');
 
-      // Return complete user object
-      return {
-        token,
-        user
+      // Récupérer le dispensaire séparément si nécessaire
+      let dispensaire = null;
+      if (user.dispensaireId) {
+        try {
+          const Dispensaire = (await import('../../../models/dispensaire.js')).default;
+          dispensaire = await Dispensaire.findByPk(user.dispensaireId);
+        } catch (error) {
+          console.log('Warning: Could not load dispensaire', error.message);
+        }
+      }
+
+      // Retourner l'utilisateur avec le dispensaire
+      const userWithDispensaire = {
+        ...user.toJSON(),
+        dispensaire
+      };
+
+      return { 
+        token, 
+        user: userWithDispensaire 
       };
     },
 
@@ -71,5 +77,4 @@ const authResolvers = {
   }
 };
 
-// CORRECTION: Export par défaut
 export default authResolvers;
