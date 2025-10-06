@@ -2,31 +2,9 @@ import { AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 import { User } from '../../../models/index.js';
-import { isAdmin } from '../../middleware/auth.js';
 
 const authResolvers = {
   Mutation: {
-    register: isAdmin(async (_, { email, password, role }) => {
-      // Check if user already exists
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-        throw new AuthenticationError('User already exists');
-      }
-
-      // Create new user
-      const newUser = await User.create({
-        email,
-        password, // Will be hashed by User model hooks
-        role
-      });
-
-      return {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role
-      };
-    }),
-
     // CORRECTION: Utiliser le paramètre 'login' au lieu de 'email'
     login: async (_, { login, password }) => {
       console.log('🔍 Login attempt with:', login);
