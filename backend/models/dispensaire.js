@@ -11,47 +11,126 @@ const Dispensaire = sequelize.define('Dispensaire', {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      notEmpty: true
+      notEmpty: {
+        msg: 'Le nom du site ne peut pas être vide'
+      },
+      len: {
+        args: [2, 100],
+        msg: 'Le nom doit contenir entre 2 et 100 caractères'
+      }
     }
   },
-  code: {
+  fileovana: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
     validate: {
-      notEmpty: true
+      notEmpty: {
+        msg: 'Le fileovana ne peut pas être vide'
+      },
+      len: {
+        args: [2, 100],
+        msg: 'Le fileovana doit contenir entre 2 et 100 caractères'
+      }
     }
   },
-  address: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  phone: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: true,
+  synoda: {
+    type: DataTypes.ENUM('SPA', 'SPSofia', 'SPBM', 'SPMel'),
+    allowNull: false,
     validate: {
-      isEmail: true
+      notNull: {
+        msg: 'Le synoda est obligatoire'
+      },
+      isIn: {
+        args: [['SPA', 'SPSofia', 'SPBM', 'SPMel']],
+        msg: 'Le synoda doit être SPA, SPSofia, SPBM ou SPMel'
+      }
     }
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false
   }
 }, {
   tableName: 'dispensaires',
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    {
+      fields: ['name']
+    },
+    {
+      fields: ['synoda']
+    },
+    {
+      fields: ['isActive']
+    },
+    {
+      fields: ['fileovana']
+    }
+  ],
+  hooks: {
+    beforeValidate: (dispensaire) => {
+      // Normaliser le nom
+      if (dispensaire.name) {
+        dispensaire.name = dispensaire.name.trim();
+      }
+      
+      // Normaliser le fileovana
+      if (dispensaire.fileovana) {
+        dispensaire.fileovana = dispensaire.fileovana.trim();
+      }
+    }
+  }
 });
 
-// Associations
+/**
+ * Retourne le nom complet avec fileovana
+ * @returns {string} Nom complet
+ */
+Dispensaire.prototype.getFullName = function() {
+  return `${this.name} - ${this.fileovana}`;
+};
+
+/**
+ * Retourne les statistiques du dispensaire
+ * @returns {Promise<Object>} Statistiques
+ */
+Dispensaire.prototype.getStats = async function() {
+  const { User, DataEntry } = await import('./index.js');
+  
+  const [
+    totalUsers,
+    activeUsers,
+    totalDataEntries
+  ] = await Promise.all([
+    User.count({ where: { dispensaireId: this.id } }),
+    User.count({ where: { dispensaireId: this.id, isActive: true } }),
+    DataEntry.count({ where: { dispensaireId: this.id } })
+  ]);
+  
+  return {
+    totalUsers,
+    activeUsers,
+    totalDataEntries
+  };
+};
+
+// Définition des associations
 Dispensaire.associate = (models) => {
+  // Relation avec User
   Dispensaire.hasMany(models.User, {
     foreignKey: 'dispensaireId',
-    as: 'users'
+    as: 'users',
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE'
   });
   
+  // Relation avec DataEntry
   Dispensaire.hasMany(models.DataEntry, {
     foreignKey: 'dispensaireId',
-    as: 'dataEntries'
+    as: 'dataEntries',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
   });
 };
 

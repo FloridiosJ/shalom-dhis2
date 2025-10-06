@@ -9,12 +9,12 @@ const models = {
   DataEntry
 };
 
-// TEMPORAIREMENT COMMENTÉ - associations sans contraintes DB
-// Object.keys(models).forEach(modelName => {
-//   if (models[modelName].associate) {
-//     models[modelName].associate(models);
-//   }
-// });
+// Configuration des associations
+Object.keys(models).forEach(modelName => {
+  if (models[modelName].associate) {
+    models[modelName].associate(models);
+  }
+});
 
 export {
   sequelize,
