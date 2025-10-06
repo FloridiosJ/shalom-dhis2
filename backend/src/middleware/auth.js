@@ -1,54 +1,175 @@
 import jwt from 'jsonwebtoken';
-import { AuthenticationError } from 'apollo-server-express';
+import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
 
-const authMiddleware = async ({ req }) => {
-  // Get the auth token from headers
-  const authHeader = req.headers.authorization;
-  
-  // Initialize context
-  const context = {};
+const JWT_SECRET = process.env.JWT_SECRET;
 
-  // If no token, return empty context (for public queries/mutations)
-  if (!authHeader) {
-    return context;
+/**
+ * Vérifie qu'un utilisateur est authentifié
+ * @param {Object} user - Utilisateur du contexte
+ * @throws {AuthenticationError} Si l'utilisateur n'est pas connecté
+ */
+export const requireAuth = (user) => {
+  if (!user) {
+    throw new AuthenticationError('Vous devez être connecté pour effectuer cette action');
   }
+};
 
+/**
+ * Vérifie qu'un utilisateur a l'un des rôles requis
+ * @param {Object} user - Utilisateur du contexte
+ * @param {Array<string>} allowedRoles - Rôles autorisés
+ * @throws {ForbiddenError} Si l'utilisateur n'a pas les permissions
+ */
+export const requireRole = (user, allowedRoles) => {
+  if (!user) {
+    throw new AuthenticationError('Vous devez être connecté');
+  }
+  
+  if (!allowedRoles.includes(user.role)) {
+    throw new ForbiddenError(`Permissions insuffisantes. Rôles requis: ${allowedRoles.join(', ')}`);
+  }
+};
+
+/**
+ * Middleware pour extraire l'utilisateur du token JWT
+ * @param {Object} req - Requête Express
+ * @returns {Object|null} Utilisateur décodé ou null
+ */
+export const getUser = async (req) => {
   try {
-    // Extract token from "Bearer <token>"
-    const token = authHeader.split(' ')[1];
+    // Récupérer le token depuis l'en-tête Authorization
+    const authHeader = req.headers.authorization;
     
-    if (token) {
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Add user info to context
-      context.userId = decoded.id;
-      context.role = decoded.role;
+    if (!authHeader) {
+      return null;
     }
     
+    // Format: "Bearer TOKEN"
+    const token = authHeader.split(' ')[1];
+    
+    if (!token) {
+      return null;
+    }
+    
+    // Vérifier et décoder le token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Récupérer l'utilisateur complet depuis la base de données
+    const { User, Dispensaire } = await import('../models/index.js');
+    
+    const user = await User.findByPk(decoded.userId, {
+      include: [
+        {
+          model: Dispensaire,
+          as: 'dispensaire'
+        }
+      ]
+    });
+    
+    if (!user || !user.isActive) {
+      console.log('⚠️ Utilisateur non trouvé ou inactif:', decoded.userId);
+      return null;
+    }
+    
+    return user;
+    
   } catch (error) {
-    console.error('Token verification failed:', error.message);
-    // Don't throw error, just return empty context
-    // This allows public operations to proceed
+    console.log('⚠️ Erreur authentification:', error.message);
+    return null;
   }
-
-  return context;
 };
 
-// Middleware pour protéger les resolvers qui nécessitent une authentification
-export const isAuthenticated = (next) => (root, args, context, info) => {
-  if (!context.userId) {
-    throw new AuthenticationError('You must be logged in');
+/**
+ * Vérifie si un utilisateur peut accéder à un dispensaire
+ * @param {Object} user - Utilisateur
+ * @param {string} dispensaireId - ID du dispensaire
+ * @returns {boolean} True si l'accès est autorisé
+ */
+export const canAccessDispensaire = (user, dispensaireId) => {
+  if (!user) return false;
+  
+  // Les admins peuvent tout voir
+  if (user.role === 'admin') return true;
+  
+  // Les managers peuvent voir tous les dispensaires
+  if (user.role === 'manager') return true;
+  
+  // Les agents ne peuvent voir que leur dispensaire
+  if (user.role === 'agent') {
+    return user.dispensaireId === dispensaireId;
   }
-  return next(root, args, context, info);
+  
+  return false;
 };
 
-// Middleware pour vérifier le rôle admin
-export const isAdmin = (next) => (root, args, context, info) => {
-  if (context.role !== 'admin') {
-    throw new AuthenticationError('Admin access required');
+/**
+ * Vérifie si un utilisateur peut modifier un autre utilisateur
+ * @param {Object} currentUser - Utilisateur connecté
+ * @param {Object} targetUser - Utilisateur à modifier
+ * @returns {boolean} True si la modification est autorisée
+ */
+export const canModifyUser = (currentUser, targetUser) => {
+  if (!currentUser || !targetUser) return false;
+  
+  // Un utilisateur peut se modifier lui-même (partiellement)
+  if (currentUser.id === targetUser.id) return true;
+  
+  // Les admins peuvent modifier tout le monde
+  if (currentUser.role === 'admin') return true;
+  
+  // Les managers peuvent modifier les agents et autres managers (mais pas les admins)
+  if (currentUser.role === 'manager' && targetUser.role !== 'admin') {
+    return true;
   }
-  return next(root, args, context, info);
+  
+  return false;
 };
 
-export default authMiddleware;
+/**
+ * Filtre les champs modifiables selon les permissions
+ * @param {Object} currentUser - Utilisateur connecté
+ * @param {Object} targetUser - Utilisateur à modifier
+ * @param {Object} input - Données à modifier
+ * @returns {Object} Champs autorisés
+ */
+export const filterAllowedFields = (currentUser, targetUser, input) => {
+  if (!currentUser || !targetUser) return {};
+  
+  // Si l'utilisateur se modifie lui-même
+  if (currentUser.id === targetUser.id) {
+    const allowedFields = ['nom', 'prenom', 'password'];
+    return Object.keys(input)
+      .filter(key => allowedFields.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = input[key];
+        return obj;
+      }, {});
+  }
+  
+  // Les admins peuvent tout modifier
+  if (currentUser.role === 'admin') {
+    return input;
+  }
+  
+  // Les managers peuvent modifier certains champs (pas le rôle admin)
+  if (currentUser.role === 'manager') {
+    const restrictedFields = targetUser.role === 'admin' ? Object.keys(input) : [];
+    return Object.keys(input)
+      .filter(key => !restrictedFields.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = input[key];
+        return obj;
+      }, {});
+  }
+  
+  return {};
+};
+
+export default {
+  requireAuth,
+  requireRole,
+  getUser,
+  canAccessDispensaire,
+  canModifyUser,
+  filterAllowedFields
+};

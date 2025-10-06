@@ -3,7 +3,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { readFileSync } from 'fs';
 import { resolvers } from './graphql/resolvers/index.js';
 import { initDatabase } from './database/init.js';
-import authMiddleware from './middleware/auth.js'; // <-- IMPORT PAR DÉFAUT
+import authMiddleware, { getUser } from './middleware/auth.js'; // <-- IMPORT PAR DÉFAUT
 
 async function startServer() {
   try {
@@ -19,7 +19,19 @@ async function startServer() {
     const server = new ApolloServer({
       typeDefs,
       resolvers,
-      context: authMiddleware,
+      context: async ({ req }) => {
+        // Extraire l'utilisateur du token JWT
+        const user = await getUser(req);
+        
+        return {
+          user,
+          // Ajouter des dataloaders ici si nécessaire
+          dataloaders: {
+            // userLoader: new DataLoader(...),
+            // dispensaireLoader: new DataLoader(...),
+          }
+        };
+      },
       introspection: true,
       playground: true
     });
