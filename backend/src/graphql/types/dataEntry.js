@@ -1,29 +1,157 @@
-export const dataEntryTypeDefs = `#graphql
-  type DataEntry {
-    id: ID!
-    dispensaireId: ID!
-    indicator: String!
-    value: Int!
-    date: String!
-    createdAt: String
-    updatedAt: String
+import { gql } from 'apollo-server-express';
+
+export const dataEntryTypes = gql`
+  # Enums
+  enum ConsultationStatus {
+    en_cours
+    termine
+    suivi_requis
   }
 
-  input DataEntryInput {
+  # Type principal DataEntry
+  type DataEntry {
+    id: ID!
+    patientId: ID!
+    diagnostic: String!
+    prescription: String!
+    userId: ID!
     dispensaireId: ID!
-    indicator: String!
-    value: Int!
-    date: String!
+    dateConsultation: DateTime!
+    status: ConsultationStatus!
+    notes: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    
+    # Relations
+    patient: Patient!
+    user: User!
+    dispensaire: Dispensaire!
+    
+    # Champs calculés
+    summary: String!
+  }
+
+  # Input pour création d'entrée de données
+  input CreateDataEntryInput {
+    patientId: ID!
+    diagnostic: String!
+    prescription: String!
+    dispensaireId: ID!
+    dateConsultation: DateTime
+    notes: String
+  }
+
+  # Input pour modification d'entrée de données
+  input UpdateDataEntryInput {
+    diagnostic: String
+    prescription: String
+    dateConsultation: DateTime
+    status: ConsultationStatus
+    notes: String
+  }
+
+  # Réponse de création/modification d'entrée de données
+  type DataEntryResponse {
+    dataEntry: DataEntry
+    success: Boolean!
+    message: String!
+    errors: [String!]
+  }
+
+  # Input pour filtrer les entrées de données
+  input DataEntryFilterInput {
+    patientId: ID
+    userId: ID
+    dispensaireId: ID
+    status: ConsultationStatus
+    dateFrom: DateTime
+    dateTo: DateTime
+    search: String
+  }
+
+  # Input pour tri des entrées de données
+  input DataEntrySortInput {
+    field: DataEntrySortField!
+    direction: SortDirection!
+  }
+
+  enum DataEntrySortField {
+    dateConsultation
+    createdAt
+    updatedAt
+  }
+
+  # Résultat paginé pour les entrées de données
+  type DataEntryConnection {
+    dataEntries: [DataEntry!]!
+    totalCount: Int!
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+  }
+
+  # Statistiques des consultations
+  type ConsultationStats {
+    totalConsultations: Int!
+    consultationsByStatus: [StatusCount!]!
+    consultationsThisMonth: Int!
+    consultationsToday: Int!
+    patientsSeen: Int!
+  }
+
+  type StatusCount {
+    status: ConsultationStatus!
+    count: Int!
   }
 
   extend type Query {
-    dataEntries: [DataEntry]
+    # Récupérer une entrée de données par ID
+    dataEntry(id: ID!): DataEntry
+
+    # Liste des entrées de données avec filtres et pagination
+    dataEntries(
+      filter: DataEntryFilterInput
+      sort: DataEntrySortInput
+      pagination: PaginationInput
+    ): DataEntryConnection!
+
+    # Consultations d'un patient
+    patientConsultations(
+      patientId: ID!
+      limit: Int = 10
+    ): [DataEntry!]!
+
+    # Statistiques des consultations
+    consultationStats(
+      dispensaireId: ID
+      userId: ID
+    ): ConsultationStats!
+
+    # Consultations récentes
+    recentConsultations(
+      dispensaireId: ID
+      limit: Int = 10
+    ): [DataEntry!]!
   }
 
   extend type Mutation {
-    createDataEntry(dispensaireId: ID!, indicator: String!, value: Int!, date: String!): DataEntry
-    updateDataEntry(id: ID!, indicator: String, value: Int, date: String): DataEntry
-    deleteDataEntry(id: ID!): Boolean
-    syncDataEntries(entries: [DataEntryInput!]!): [DataEntry]
+    # Créer une entrée de données
+    createDataEntry(input: CreateDataEntryInput!): DataEntryResponse!
+
+    # Modifier une entrée de données
+    updateDataEntry(id: ID!, input: UpdateDataEntryInput!): DataEntryResponse!
+
+    # Supprimer une entrée de données
+    deleteDataEntry(id: ID!): DataEntryResponse!
+
+    # Marquer une consultation comme terminée
+    completeConsultation(id: ID!): DataEntryResponse!
+
+    # Marquer une consultation comme nécessitant un suivi
+    requireFollowUp(id: ID!, notes: String): DataEntryResponse!
   }
+
+  # Type DateTime custom
+  scalar DateTime
 `;
+
+export default dataEntryTypes;
