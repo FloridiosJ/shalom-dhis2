@@ -1,5 +1,4 @@
 import { userTypeDefs } from './user.js';
-import { organisationTypeDefs } from './organisation.js';
 import { dispensaireTypeDefs } from './dispensaire.js';
 import { dataEntryTypeDefs } from './dataEntry.js';
 
@@ -13,7 +12,6 @@ export const typeDefs = `#graphql
   }
 
   ${userTypeDefs}
-  ${organisationTypeDefs}
   ${dispensaireTypeDefs}
   ${dataEntryTypeDefs}
 `;

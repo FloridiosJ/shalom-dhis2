@@ -1,7 +1,7 @@
 import { DataEntry, Dispensaire } from '../../../models/index.js';
 import { checkRole } from '../../utils/auth-utils.js';
 
-export const dataEntryResolvers = {
+const dataEntryResolvers = {
   Query: {
     dataEntries: async () => await DataEntry.findAll()
   },
@@ -42,3 +42,5 @@ export const dataEntryResolvers = {
     }
   }
 };
+
+export default dataEntryResolvers;

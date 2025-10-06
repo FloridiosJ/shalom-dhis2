@@ -14,22 +14,8 @@ const Dispensaire = sequelize.define('Dispensaire', {
       notEmpty: true
     }
   },
-  organisationId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'Organisations',
-      key: 'id'
-    }
-  }
 });
 
-// Set up association with Organisation
-Dispensaire.associate = (models) => {
-  Dispensaire.belongsTo(models.Organisation, {
-    foreignKey: 'organisationId',
-    as: 'organisation'
-  });
-};
+
 
 export default Dispensaire;

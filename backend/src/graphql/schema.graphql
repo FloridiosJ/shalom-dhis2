@@ -14,13 +14,6 @@ enum AgentSpecialite {
   infirmiere
 }
 
-enum OrganisationType {
-  SynodaLehibe
-  SynodamParitany
-  Fileovana
-  Fitandremana
-  Fiangonana
-}
 
 # User type and auth
 type User {
@@ -39,20 +32,6 @@ type User {
   updatedAt: DateTime!
 }
 
-# Organisation type and hierarchy
-type Organisation {
-  id: ID!
-  name: String!
-  code: String!
-  level: Int!
-  parentId: ID
-  parent: Organisation
-  children: [Organisation!]!
-  dispensaires: [Dispensaire!]!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
 # Dispensaire type
 type Dispensaire {
   id: ID!
@@ -61,8 +40,6 @@ type Dispensaire {
   address: String
   phone: String
   email: String
-  organisationId: ID
-  organisation: Organisation
   users: [User!]!
   dataEntries: [DataEntry!]!
   createdAt: DateTime!
@@ -132,19 +109,6 @@ input ChangePasswordInput {
   newPassword: String!
 }
 
-input CreateOrganisationInput {
-  name: String!
-  code: String!
-  level: Int!
-  parentId: ID
-}
-
-input UpdateOrganisationInput {
-  name: String
-  code: String
-  level: Int
-  parentId: ID
-}
 
 input CreateDispensaireInput {
   name: String!
@@ -152,7 +116,6 @@ input CreateDispensaireInput {
   address: String
   phone: String
   email: String
-  organisationId: ID
 }
 
 input UpdateDispensaireInput {
@@ -161,7 +124,6 @@ input UpdateDispensaireInput {
   address: String
   phone: String
   email: String
-  organisationId: ID
 }
 
 input CreateDataEntryInput {
@@ -188,10 +150,6 @@ type Query {
   user(id: ID!): User
   searchUsers(query: String!, role: UserRole): [User!]!
 
-  # Organisation queries
-  organisations: [Organisation!]!
-  organisation(id: ID!): Organisation
-
   # Dispensaire queries
   dispensaires: [Dispensaire!]!
   dispensaire(id: ID!): Dispensaire
@@ -216,11 +174,6 @@ type Mutation {
   changePassword(input: ChangePasswordInput!): Boolean!
   resetUserPassword(userId: ID!): PasswordResetPayload!
   toggleUserStatus(userId: ID!): User!
-
-  # Organisation mutations
-  createOrganisation(input: CreateOrganisationInput!): Organisation!
-  updateOrganisation(id: ID!, input: UpdateOrganisationInput!): Organisation!
-  deleteOrganisation(id: ID!): Boolean!
 
   # Dispensaire mutations
   createDispensaire(input: CreateDispensaireInput!): Dispensaire!

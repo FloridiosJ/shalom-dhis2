@@ -1,7 +1,7 @@
-import { Dispensaire, Organisation } from '../../../models/index.js';
+import { Dispensaire } from '../../../models/index.js';
 import { checkRole } from '../../utils/auth-utils.js';
 
-export const dispensaireResolvers = {
+const dispensaireResolvers = {
   Query: {
     dispensaires: async () => await Dispensaire.findAll()
   },
@@ -28,9 +28,6 @@ export const dispensaireResolvers = {
     }
   },
 
-  Dispensaire: {
-    organisation: async (dispensaire) => {
-      return await Organisation.findByPk(dispensaire.organisationId);
-    }
-  }
 };
+
+export default dispensaireResolvers;

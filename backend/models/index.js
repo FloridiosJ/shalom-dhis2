@@ -1,18 +1,16 @@
 import sequelize from '../config/db.js';
 import User from './user.js';
-import Organisation from './organisation.js';
 import Dispensaire from './dispensaire.js';
-import DataEntry from './data_entry.js';
+import DataEntry from './dataEntry.js';
 
 // Initialize associations
-Object.values([User, Organisation, Dispensaire, DataEntry])
+Object.values([User, Dispensaire, DataEntry])
   .filter(model => typeof model.associate === 'function')
-  .forEach(model => model.associate({ User, Organisation, Dispensaire, DataEntry }));
+  .forEach(model => model.associate({ User, Dispensaire, DataEntry }));
 
 export {
   sequelize,
   User,
-  Organisation,
   Dispensaire,
   DataEntry
 };

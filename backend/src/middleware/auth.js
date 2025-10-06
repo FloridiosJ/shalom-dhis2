@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { AuthenticationError } from 'apollo-server-express';
 
-export const authMiddleware = async ({ req }) => {
+const authMiddleware = async ({ req }) => {
   // Get the auth token from headers
   const authHeader = req.headers.authorization;
   
@@ -50,3 +50,5 @@ export const isAdmin = (next) => (root, args, context, info) => {
   }
   return next(root, args, context, info);
 };
+
+export default authMiddleware;
