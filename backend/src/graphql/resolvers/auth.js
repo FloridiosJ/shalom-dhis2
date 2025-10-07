@@ -4,7 +4,6 @@ import { Op } from 'sequelize';
 
 const authResolvers = {
   Mutation: {
-    // ✅ CORRIGER pour utiliser input au lieu de login/password séparés
     login: async (_, { input }) => {
       console.log('🔍 Login attempt with:', input.login);
       
@@ -12,17 +11,24 @@ const authResolvers = {
         throw new Error('JWT_SECRET is not configured');
       }
 
-      // Importer User dynamiquement
-      const { User } = await import('../../models/index.js');
+      // ✅ Import correct du modèle User
+      const { User, Dispensaire } = await import('../../../models/index.js');
 
       // Chercher l'utilisateur
       const user = await User.findOne({ 
         where: { 
           [Op.or]: [
-            { email: input.login },
-            { login: input.login }
+            { login: input.login },
+            // Ajouter login seulement si le champ existe dans votre modèle
+            // { login: input.login }
           ]
-        }
+        },
+        include: [
+          {
+            model: Dispensaire,
+            as: 'dispensaire'
+          }
+        ]
       });
       
       if (!user || !user.isActive) {
@@ -30,18 +36,25 @@ const authResolvers = {
         throw new AuthenticationError('Invalid credentials');
       }
 
-      const valid = await user.comparePassword(input.password);
+      // ✅ Vérifier le mot de passe (adapter selon votre méthode)
+      const valid = await user.comparePassword ? 
+        await user.comparePassword(input.password) :
+        await user.validPassword(input.password); // ou la méthode que vous utilisez
+        
       if (!valid) {
         console.log('❌ Invalid password');
         throw new AuthenticationError('Invalid credentials');
       }
 
-      await user.updateLastLogin();
+      // Mettre à jour la dernière connexion si la méthode existe
+      if (user.updateLastLogin) {
+        await user.updateLastLogin();
+      }
 
       const token = jwt.sign(
         { 
           userId: user.id,
-          email: user.email,
+          login: user.login,
           role: user.role 
         },
         process.env.JWT_SECRET,
@@ -50,26 +63,9 @@ const authResolvers = {
 
       console.log('✅ Login successful');
 
-      // Récupérer le dispensaire séparément si nécessaire
-      let dispensaire = null;
-      if (user.dispensaireId) {
-        try {
-          const { Dispensaire } = await import('../../models/index.js');
-          dispensaire = await Dispensaire.findByPk(user.dispensaireId);
-        } catch (error) {
-          console.log('Warning: Could not load dispensaire', error.message);
-        }
-      }
-
-      // Retourner l'utilisateur avec le dispensaire
-      const userWithDispensaire = {
-        ...user.toJSON(),
-        dispensaire
-      };
-
       return { 
         token, 
-        user: userWithDispensaire 
+        user 
       };
     },
 
