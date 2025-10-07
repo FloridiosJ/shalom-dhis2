@@ -37,7 +37,6 @@ export const requireRole = (user, allowedRoles) => {
  */
 export const getUser = async (req) => {
   try {
-    // Récupérer le token depuis l'en-tête Authorization
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
@@ -45,17 +44,26 @@ export const getUser = async (req) => {
     }
     
     // Format: "Bearer TOKEN"
-    const token = authHeader.split(' ')[1];
+    let token = authHeader.split(' ')[1];
     
     if (!token) {
       return null;
     }
     
-    // Vérifier et décoder le token
-    const decoded = jwt.verify(token, JWT_SECRET);
+    // ✅ CORRIGER - Si le token a plus de 3 parties, prendre seulement les 3 premières
+    const tokenParts = token.split('.');  
+    if (tokenParts.length > 3) {
+      token = tokenParts.slice(0, 3).join('.');
+    }
+    if (!JWT_SECRET) {
+      return null;
+    }
     
+    // Vérifier et décoder le token corrigé
+    const decoded = jwt.verify(token, JWT_SECRET);
+
     // Récupérer l'utilisateur complet depuis la base de données
-    const { User, Dispensaire } = await import('../models/index.js');
+    const { User, Dispensaire } = await import('../../models/index.js'); // CORRIGER le chemin
     
     const user = await User.findByPk(decoded.userId, {
       include: [
@@ -67,14 +75,17 @@ export const getUser = async (req) => {
     });
     
     if (!user || !user.isActive) {
-      console.log('⚠️ Utilisateur non trouvé ou inactif:', decoded.userId);
       return null;
     }
     
     return user;
     
   } catch (error) {
-    console.log('⚠️ Erreur authentification:', error.message);
+    console.log('❌ JWT Error details:', {
+      name: error.name,
+      message: error.message,
+      tokenLength: req.headers.authorization?.split(' ')[1]?.length
+    });
     return null;
   }
 };

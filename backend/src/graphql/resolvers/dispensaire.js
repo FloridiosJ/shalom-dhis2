@@ -118,9 +118,8 @@ export const dispensaireResolvers = {
       requireRole(user, ['admin', 'manager']);
       
       try {
-        console.log('🔄 Création dispensaire:', { name: input.name, synoda: input.synoda });
 
-        const { Dispensaire } = await import('../../models/index.js');
+        const { Dispensaire } = await import('../../../models/index.js');
         
         // Vérifier si un dispensaire avec le même nom existe déjà
         const existingName = await Dispensaire.findOne({
