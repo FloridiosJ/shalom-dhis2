@@ -5,10 +5,32 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 export const eventResolvers = {
   // Resolvers de champs
   Event: {
-    fullTitle: (event) => event.getFullTitle(),
-    isToday: (event) => event.isToday(),
-    isUpcoming: (event) => event.isUpcoming(),
+    // Champs calculés
+    fullTitle: (event) => {
+      if (event.getFullTitle && typeof event.getFullTitle === 'function') {
+        return event.getFullTitle();
+      }
+      return `${event.type_event} - ${event.participant}`;
+    },
 
+    isToday: (event) => {
+      if (event.isToday && typeof event.isToday === 'function') {
+        return event.isToday();
+      }
+      const today = new Date();
+      const eventDate = new Date(event.date);
+      return today.toDateString() === eventDate.toDateString();
+    },
+
+    isUpcoming: (event) => {
+      if (event.isUpcoming && typeof event.isUpcoming === 'function') {
+        return event.isUpcoming();
+      }
+      const now = new Date();
+      return new Date(event.date) > now;
+    },
+
+    // Relations
     organisateur: async (event, args, { dataloaders }) => {
       if (dataloaders && dataloaders.userLoader) {
         return await dataloaders.userLoader.load(event.userId);
@@ -91,7 +113,7 @@ export const eventResolvers = {
       if (user.role === 'agent') {
         whereClause[Op.or] = [
           { dispensaireId: user.dispensaireId },
-          { userId: user.id } // Événements créés par l'agent
+          { userId: user.id } // Ou les événements qu'ils ont créés
         ];
       }
       
@@ -125,73 +147,6 @@ export const eventResolvers = {
         hasNextPage: offset + limit < totalCount,
         hasPreviousPage: page > 1
       };
-    },
-
-    upcomingEvents: async (parent, { dispensaireId, limit }, { user }) => {
-      requireAuth(user);
-      
-      const { Event, User, Dispensaire } = await import('../../models/index.js');
-      
-      const whereClause = {
-        date: { [Op.gt]: new Date() },
-        status: ['planifie', 'en_cours'],
-        isActive: true
-      };
-      
-      if (dispensaireId && (user.role !== 'agent' || user.dispensaireId === dispensaireId)) {
-        whereClause.dispensaireId = dispensaireId;
-      } else if (user.role === 'agent') {
-        whereClause[Op.or] = [
-          { dispensaireId: user.dispensaireId },
-          { userId: user.id }
-        ];
-      }
-      
-      return await Event.findAll({
-        where: whereClause,
-        include: [
-          { model: User, as: 'organisateur' },
-          { model: Dispensaire, as: 'dispensaire' }
-        ],
-        order: [['date', 'ASC']],
-        limit
-      });
-    },
-
-    todayEvents: async (parent, { dispensaireId }, { user }) => {
-      requireAuth(user);
-      
-      const { Event, User, Dispensaire } = await import('../../models/index.js');
-      
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      
-      const whereClause = {
-        date: {
-          [Op.gte]: today.setHours(0, 0, 0, 0),
-          [Op.lt]: tomorrow.setHours(0, 0, 0, 0)
-        },
-        isActive: true
-      };
-      
-      if (dispensaireId && (user.role !== 'agent' || user.dispensaireId === dispensaireId)) {
-        whereClause.dispensaireId = dispensaireId;
-      } else if (user.role === 'agent') {
-        whereClause[Op.or] = [
-          { dispensaireId: user.dispensaireId },
-          { userId: user.id }
-        ];
-      }
-      
-      return await Event.findAll({
-        where: whereClause,
-        include: [
-          { model: User, as: 'organisateur' },
-          { model: Dispensaire, as: 'dispensaire' }
-        ],
-        order: [['date', 'ASC']]
-      });
     }
   },
 
@@ -202,13 +157,12 @@ export const eventResolvers = {
       try {
         console.log('🔄 Création événement:', { 
           type_event: input.type_event, 
-          date: input.date,
-          outils: input.outils 
+          date: input.date 
         });
 
         const { Event, Dispensaire } = await import('../../models/index.js');
         
-        // Vérifier que le dispensaire existe (si spécifié)
+        // Vérifier que le dispensaire existe si fourni
         if (input.dispensaireId) {
           const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
           if (!dispensaire) {
@@ -218,15 +172,15 @@ export const eventResolvers = {
               errors: ['DISPENSAIRE_NOT_FOUND']
             };
           }
-        }
-        
-        // Vérification des permissions pour dispensaire
-        if (input.dispensaireId && user.role === 'agent' && user.dispensaireId !== input.dispensaireId) {
-          return {
-            success: false,
-            message: 'Vous ne pouvez créer des événements que pour votre dispensaire',
-            errors: ['UNAUTHORIZED_DISPENSAIRE']
-          };
+          
+          // Vérification des permissions
+          if (user.role === 'agent' && user.dispensaireId !== input.dispensaireId) {
+            return {
+              success: false,
+              message: 'Vous ne pouvez créer des événements que pour votre dispensaire',
+              errors: ['UNAUTHORIZED_DISPENSAIRE']
+            };
+          }
         }
         
         // Créer l'événement
@@ -246,8 +200,7 @@ export const eventResolvers = {
         console.log('✅ Événement créé avec succès:', {
           id: event.id,
           type_event: event.type_event,
-          date: event.date,
-          outils: event.outils
+          date: event.date
         });
         
         return {
@@ -308,7 +261,7 @@ export const eventResolvers = {
         
         await event.update(input);
         
-        // Récupérer l'événement mis à jour
+        // Récupérer l'événement mis à jour avec ses relations
         const updatedEvent = await Event.findByPk(id, {
           include: [
             { model: User, as: 'organisateur' },
@@ -328,114 +281,6 @@ export const eventResolvers = {
         return {
           success: false,
           message: 'Erreur lors de la modification',
-          errors: [error.message]
-        };
-      }
-    },
-
-    startEvent: async (parent, { id }, { user }) => {
-      requireAuth(user);
-      
-      try {
-        const { Event } = await import('../../models/index.js');
-        
-        const event = await Event.findByPk(id);
-        if (!event) {
-          return {
-            success: false,
-            message: 'Événement non trouvé',
-            errors: ['EVENT_NOT_FOUND']
-          };
-        }
-        
-        // Vérification des permissions
-        const canStart = (
-          user.role === 'admin' ||
-          user.role === 'manager' ||
-          (user.role === 'agent' && event.userId === user.id)
-        );
-        
-        if (!canStart) {
-          return {
-            success: false,
-            message: 'Permissions insuffisantes',
-            errors: ['UNAUTHORIZED_START']
-          };
-        }
-        
-        await event.start();
-        
-        return {
-          event: await Event.findByPk(id, {
-            include: [
-              { model: (await import('../../models/index.js')).User, as: 'organisateur' },
-              { model: (await import('../../models/index.js')).Dispensaire, as: 'dispensaire' }
-            ]
-          }),
-          success: true,
-          message: 'Événement démarré avec succès',
-          errors: []
-        };
-        
-      } catch (error) {
-        console.error('❌ Erreur démarrage événement:', error);
-        return {
-          success: false,
-          message: 'Erreur lors du démarrage',
-          errors: [error.message]
-        };
-      }
-    },
-
-    completeEvent: async (parent, { id, nombreParticipants }, { user }) => {
-      requireAuth(user);
-      
-      try {
-        const { Event } = await import('../../models/index.js');
-        
-        const event = await Event.findByPk(id);
-        if (!event) {
-          return {
-            success: false,
-            message: 'Événement non trouvé',
-            errors: ['EVENT_NOT_FOUND']
-          };
-        }
-        
-        // Vérification des permissions
-        const canComplete = (
-          user.role === 'admin' ||
-          user.role === 'manager' ||
-          (user.role === 'agent' && event.userId === user.id)
-        );
-        
-        if (!canComplete) {
-          return {
-            success: false,
-            message: 'Permissions insuffisantes',
-            errors: ['UNAUTHORIZED_COMPLETE']
-          };
-        }
-        
-        await event.complete(nombreParticipants);
-        
-        return {
-          event: await Event.findByPk(id, {
-            include: [
-              { model: (await import('../../models/index.js')).User, as: 'organisateur' },
-              { model: (await import('../../models/index.js')).Dispensaire, as: 'dispensaire' }
-            ]
-          }),
-          success: true,
-          message: 'Événement terminé avec succès',
-          errors: []
-        };
-        
-      } catch (error) {
-        console.error('❌ Erreur completion événement:', error);
-        return {
-          success: false,
-          message: 'Erreur lors de la completion',
           errors: [error.message]
         };
       }

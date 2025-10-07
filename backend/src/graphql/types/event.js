@@ -1,9 +1,9 @@
 import { gql } from 'apollo-server-express';
 
 export const eventTypes = gql`
-  # Enums
+  # ✅ CORRIGER les valeurs d'enum - supprimer les accents
   enum OutilsEvent {
-    présentiel
+    presentiel  # ✅ au lieu de "présentiel"
     visio
   }
 
@@ -12,6 +12,13 @@ export const eventTypes = gql`
     en_cours
     termine
     annule
+  }
+
+  enum EventSortField {
+    date
+    type_event
+    createdAt
+    nombreParticipants
   }
 
   # Type principal Event
@@ -94,45 +101,12 @@ export const eventTypes = gql`
     direction: SortDirection!
   }
 
-  enum EventSortField {
-    date
-    type_event
-    createdAt
-    nombreParticipants
-  }
-
   # Résultat paginé pour les événements
   type EventConnection {
     events: [Event!]!
     totalCount: Int!
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
-  }
-
-  # Statistiques des événements
-  type EventStats {
-    totalEvents: Int!
-    eventsByType: [TypeEventCount!]!
-    eventsByOutils: [OutilsEventCount!]!
-    eventsByStatus: [StatusEventCount!]!
-    eventsThisMonth: Int!
-    eventsToday: Int!
-    upcomingEvents: Int!
-  }
-
-  type TypeEventCount {
-    type_event: String!
-    count: Int!
-  }
-
-  type OutilsEventCount {
-    outils: OutilsEvent!
-    count: Int!
-  }
-
-  type StatusEventCount {
-    status: EventStatus!
-    count: Int!
   }
 
   extend type Query {
@@ -145,28 +119,6 @@ export const eventTypes = gql`
       sort: EventSortInput
       pagination: PaginationInput
     ): EventConnection!
-
-    # Événements à venir
-    upcomingEvents(
-      dispensaireId: ID
-      limit: Int = 10
-    ): [Event!]!
-
-    # Événements du jour
-    todayEvents(dispensaireId: ID): [Event!]!
-
-    # Statistiques des événements
-    eventStats(
-      dispensaireId: ID
-      userId: ID
-    ): EventStats!
-
-    # Recherche d'événements
-    searchEvents(
-      query: String!
-      dispensaireId: ID
-      limit: Int = 10
-    ): [Event!]!
   }
 
   extend type Mutation {
@@ -175,22 +127,7 @@ export const eventTypes = gql`
 
     # Modifier un événement
     updateEvent(id: ID!, input: UpdateEventInput!): EventResponse!
-
-    # Supprimer un événement (soft delete)
-    deleteEvent(id: ID!): EventResponse!
-
-    # Démarrer un événement
-    startEvent(id: ID!): EventResponse!
-
-    # Terminer un événement
-    completeEvent(id: ID!, nombreParticipants: Int): EventResponse!
-
-    # Annuler un événement
-    cancelEvent(id: ID!, raison: String): EventResponse!
   }
-
-  # Type DateTime custom
-  scalar DateTime
 `;
 
 export default eventTypes;

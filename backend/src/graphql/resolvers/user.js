@@ -5,8 +5,8 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 export const userResolvers = {
   // Resolvers de champs
   User: {
-    // ❌ Supprimer cette ligne car fullName est déjà dans le schéma
-    // fullName: (user) => user.getFullName(),
+    // ✅ AJOUTER le champ fullName requis par le schéma
+    fullName: (user) => `${user.prenom} ${user.nom}`,
     
     // Résoudre la relation dispensaire
     dispensaire: async (user, args, { dataloaders }) => {

@@ -1,9 +1,65 @@
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
-import { readFileSync } from 'fs';
 import { resolvers } from './graphql/resolvers/index.js';
 import { initDatabase } from './database/init.js';
-import authMiddleware, { getUser } from './middleware/auth.js'; // <-- IMPORT PAR DÉFAUT
+import authMiddleware, { getUser } from './middleware/auth.js';
+
+// ✅ IMPORT des types au lieu de readFileSync
+import { userTypes } from './graphql/types/user.js';
+import { dispensaireTypes } from './graphql/types/dispensaire.js';
+import { patientTypes } from './graphql/types/patient.js';
+import { dataEntryTypes } from './graphql/types/dataEntry.js';
+import { eventTypes } from './graphql/types/event.js';
+import { gql } from 'apollo-server-express';
+
+// ✅ Types de base
+const baseTypes = gql`
+  scalar DateTime
+
+  enum SortDirection {
+    ASC
+    DESC
+  }
+
+  input PaginationInput {
+    page: Int = 1
+    limit: Int = 10
+  }
+
+  type Query {
+    _empty: String
+  }
+
+  type Mutation {
+    _empty: String
+  }
+
+  # Type pour l'authentification
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  input LoginInput {
+    login: String!
+    password: String!
+  }
+
+  extend type Mutation {
+    login(input: LoginInput!): AuthPayload!
+    logout: Boolean
+  }
+`;
+
+// ✅ Combiner tous les types
+const typeDefs = [
+  baseTypes,
+  userTypes,
+  dispensaireTypes,
+  patientTypes,
+  dataEntryTypes,
+  eventTypes
+];
 
 async function startServer() {
   try {
@@ -14,8 +70,6 @@ async function startServer() {
     const app = express();
     
     // 3. Setup GraphQL
-    const typeDefs = readFileSync('./src/graphql/schema.graphql', 'utf-8');
-    
     const server = new ApolloServer({
       typeDefs,
       resolvers,

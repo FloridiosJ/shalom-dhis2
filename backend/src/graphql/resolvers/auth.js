@@ -1,26 +1,28 @@
 import { AuthenticationError } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
-import User from '../../../models/user.js';
 
 const authResolvers = {
   Mutation: {
-    login: async (_, { login, password }) => {
-      console.log('🔍 Login attempt with:', login);
+    // ✅ CORRIGER pour utiliser input au lieu de login/password séparés
+    login: async (_, { input }) => {
+      console.log('🔍 Login attempt with:', input.login);
       
       if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not configured');
       }
 
-      // CORRECTION : Chercher sans include d'abord
+      // Importer User dynamiquement
+      const { User } = await import('../../models/index.js');
+
+      // Chercher l'utilisateur
       const user = await User.findOne({ 
         where: { 
           [Op.or]: [
-            { email: login },
-            { login: login }
+            { email: input.login },
+            { login: input.login }
           ]
         }
-        // Temporairement sans include: ['dispensaire']
       });
       
       if (!user || !user.isActive) {
@@ -28,7 +30,7 @@ const authResolvers = {
         throw new AuthenticationError('Invalid credentials');
       }
 
-      const valid = await user.comparePassword(password);
+      const valid = await user.comparePassword(input.password);
       if (!valid) {
         console.log('❌ Invalid password');
         throw new AuthenticationError('Invalid credentials');
@@ -52,7 +54,7 @@ const authResolvers = {
       let dispensaire = null;
       if (user.dispensaireId) {
         try {
-          const Dispensaire = (await import('../../../models/dispensaire.js')).default;
+          const { Dispensaire } = await import('../../models/index.js');
           dispensaire = await Dispensaire.findByPk(user.dispensaireId);
         } catch (error) {
           console.log('Warning: Could not load dispensaire', error.message);

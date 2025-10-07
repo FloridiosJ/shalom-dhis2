@@ -109,24 +109,6 @@ export const dispensaireResolvers = {
         hasNextPage: offset + limit < totalCount,
         hasPreviousPage: page > 1
       };
-    },
-
-    dispensairesBySynoda: async (parent, { synoda }, { user }) => {
-      requireAuth(user);
-      
-      const { Dispensaire } = await import('../../models/index.js');
-      
-      const whereClause = { synoda, isActive: true };
-      
-      // Pour les agents, limiter à leur dispensaire
-      if (user.role === 'agent') {
-        whereClause.id = user.dispensaireId;
-      }
-      
-      return await Dispensaire.findAll({
-        where: whereClause,
-        order: [['name', 'ASC']]
-      });
     }
   },
 

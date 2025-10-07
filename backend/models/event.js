@@ -11,59 +11,35 @@ const Event = sequelize.define('Event', {
     type: DataTypes.DATE,
     allowNull: false,
     validate: {
-      notNull: {
-        msg: 'La date est obligatoire'
-      },
-      isDate: {
-        msg: 'Format de date invalide'
-      },
-      isValidEventDate(value) {
-        const eventDate = new Date(value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (eventDate < today) {
-          throw new Error('La date de l\'événement ne peut pas être dans le passé');
-        }
-      }
+      notNull: { msg: 'La date est obligatoire' },
+      isDate: { msg: 'Format de date invalide' }
     }
   },
   type_event: {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      notEmpty: {
-        msg: 'Le type d\'événement ne peut pas être vide'
-      },
-      len: {
-        args: [3, 100],
-        msg: 'Le type d\'événement doit contenir entre 3 et 100 caractères'
-      }
+      notEmpty: { msg: 'Le type d\'événement ne peut pas être vide' },
+      len: { args: [2, 100], msg: 'Le type d\'événement doit contenir entre 2 et 100 caractères' }
     }
   },
   participant: {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      notEmpty: {
-        msg: 'Le participant ne peut pas être vide'
-      },
-      len: {
-        args: [2, 200],
-        msg: 'Le participant doit contenir entre 2 et 200 caractères'
-      }
+      notEmpty: { msg: 'Le participant ne peut pas être vide' },
+      len: { args: [2, 200], msg: 'Le participant doit contenir entre 2 et 200 caractères' }
     }
   },
   outils: {
-    type: DataTypes.ENUM('présentiel', 'visio'),
+    // ✅ CORRIGER l'enum pour supprimer l'accent
+    type: DataTypes.ENUM('presentiel', 'visio'), // ✅ "presentiel" au lieu de "présentiel"
     allowNull: false,
     validate: {
-      notNull: {
-        msg: 'L\'outil est obligatoire'
-      },
-      isIn: {
-        args: [['présentiel', 'visio']],
-        msg: 'L\'outil doit être présentiel ou visio'
+      notNull: { msg: 'L\'outil est obligatoire' },
+      isIn: { 
+        args: [['presentiel', 'visio']], // ✅ Corriger ici aussi
+        msg: 'L\'outil doit être "presentiel" ou "visio"' 
       }
     }
   },
@@ -71,43 +47,29 @@ const Event = sequelize.define('Event', {
     type: DataTypes.TEXT,
     allowNull: true,
     validate: {
-      len: {
-        args: [0, 500],
-        msg: 'La description ne peut pas dépasser 500 caractères'
-      }
+      len: { args: [0, 500], msg: 'La description ne peut pas dépasser 500 caractères' }
     }
   },
   lieu: {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      len: {
-        args: [0, 200],
-        msg: 'Le lieu ne peut pas dépasser 200 caractères'
-      }
+      len: { args: [0, 200], msg: 'Le lieu ne peut pas dépasser 200 caractères' }
     }
   },
   userId: {
     type: DataTypes.UUID,
     allowNull: false,
     validate: {
-      notNull: {
-        msg: 'L\'utilisateur organisateur est obligatoire'
-      },
-      isUUID: {
-        args: 4,
-        msg: 'Format UUID invalide pour l\'utilisateur'
-      }
+      notNull: { msg: 'L\'organisateur est obligatoire' },
+      isUUID: { args: 4, msg: 'Format UUID invalide pour l\'organisateur' }
     }
   },
   dispensaireId: {
     type: DataTypes.UUID,
     allowNull: true,
     validate: {
-      isUUID: {
-        args: 4,
-        msg: 'Format UUID invalide pour le dispensaire'
-      }
+      isUUID: { args: 4, msg: 'Format UUID invalide pour le dispensaire' }
     }
   },
   status: {
@@ -117,16 +79,11 @@ const Event = sequelize.define('Event', {
   },
   nombreParticipants: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,
+    defaultValue: 1,
+    allowNull: false,
     validate: {
-      min: {
-        args: [0],
-        msg: 'Le nombre de participants ne peut pas être négatif'
-      },
-      max: {
-        args: [1000],
-        msg: 'Le nombre de participants ne peut pas dépasser 1000'
-      }
+      min: { args: [1], msg: 'Le nombre de participants doit être au moins 1' },
+      max: { args: [1000], msg: 'Le nombre de participants ne peut pas dépasser 1000' }
     }
   },
   isActive: {
@@ -136,55 +93,7 @@ const Event = sequelize.define('Event', {
   }
 }, {
   tableName: 'events',
-  timestamps: true,
-  indexes: [
-    {
-      fields: ['date']
-    },
-    {
-      fields: ['type_event']
-    },
-    {
-      fields: ['outils']
-    },
-    {
-      fields: ['status']
-    },
-    {
-      fields: ['userId']
-    },
-    {
-      fields: ['dispensaireId']
-    },
-    {
-      fields: ['isActive']
-    }
-  ],
-  hooks: {
-    beforeValidate: (event) => {
-      // Normaliser les textes
-      if (event.type_event) {
-        event.type_event = event.type_event.trim();
-      }
-      
-      if (event.participant) {
-        event.participant = event.participant.trim();
-      }
-      
-      if (event.description) {
-        event.description = event.description.trim();
-      }
-      
-      if (event.lieu) {
-        event.lieu = event.lieu.trim();
-      }
-      
-      // Si visio, pas besoin de lieu physique spécifique
-      if (event.outils === 'visio' && !event.lieu) {
-        event.lieu = 'Visioconférence';
-      }
-    }
-  }
+  timestamps: true
 });
 
 /**
@@ -192,8 +101,7 @@ const Event = sequelize.define('Event', {
  * @returns {string} Titre complet
  */
 Event.prototype.getFullTitle = function() {
-  const dateStr = this.date.toLocaleDateString('fr-FR');
-  return `${this.type_event} - ${dateStr} (${this.outils})`;
+  return `${this.type_event} - ${this.participant}`;
 };
 
 /**
@@ -203,7 +111,6 @@ Event.prototype.getFullTitle = function() {
 Event.prototype.isToday = function() {
   const today = new Date();
   const eventDate = new Date(this.date);
-  
   return today.toDateString() === eventDate.toDateString();
 };
 
@@ -213,44 +120,7 @@ Event.prototype.isToday = function() {
  */
 Event.prototype.isUpcoming = function() {
   const now = new Date();
-  const eventDate = new Date(this.date);
-  
-  return eventDate > now;
-};
-
-/**
- * Marque l'événement comme en cours
- * @returns {Promise<void>}
- */
-Event.prototype.start = async function() {
-  this.status = 'en_cours';
-  await this.save();
-};
-
-/**
- * Marque l'événement comme terminé
- * @param {number} nombreParticipants - Nombre final de participants
- * @returns {Promise<void>}
- */
-Event.prototype.complete = async function(nombreParticipants) {
-  this.status = 'termine';
-  if (nombreParticipants !== undefined) {
-    this.nombreParticipants = nombreParticipants;
-  }
-  await this.save();
-};
-
-/**
- * Annule l'événement
- * @param {string} raison - Raison de l'annulation
- * @returns {Promise<void>}
- */
-Event.prototype.cancel = async function(raison) {
-  this.status = 'annule';
-  if (raison) {
-    this.description = (this.description || '') + `\nAnnulé: ${raison}`;
-  }
-  await this.save();
+  return new Date(this.date) > now;
 };
 
 // Définition des associations
