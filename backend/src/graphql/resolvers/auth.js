@@ -11,16 +11,19 @@ const authResolvers = {
         throw new Error('JWT_SECRET is not configured');
       }
 
-      // ✅ Import correct du modèle User
       const { User, Dispensaire } = await import('../../../models/index.js');
 
-      // Chercher l'utilisateur
+      // ✅ CHERCHER par login OU email
       const user = await User.findOne({ 
         where: { 
-          [Op.or]: [
-            { login: input.login },
-            // Ajouter login seulement si le champ existe dans votre modèle
-            // { login: input.login }
+          [Op.and]: [
+            {
+              [Op.or]: [
+                { login: input.login },
+                { email: input.login } // ✅ Ajouter la recherche par email
+              ]
+            },
+            { isActive: true } // ✅ S'assurer que l'utilisateur est actif
           ]
         },
         include: [
@@ -31,37 +34,34 @@ const authResolvers = {
         ]
       });
       
-      if (!user || !user.isActive) {
+      if (!user) {
         console.log('❌ User not found or inactive');
-        throw new AuthenticationError('Invalid credentials');
+        throw new AuthenticationError('Identifiants invalides');
       }
 
-      // ✅ Vérifier le mot de passe (adapter selon votre méthode)
-      const valid = await user.comparePassword ? 
-        await user.comparePassword(input.password) :
-        await user.validPassword(input.password); // ou la méthode que vous utilisez
+      // ✅ Vérifier le mot de passe
+      const valid = await user.comparePassword(input.password);
         
       if (!valid) {
-        console.log('❌ Invalid password');
-        throw new AuthenticationError('Invalid credentials');
+        console.log('❌ Invalid password for user:', user.login);
+        throw new AuthenticationError('Identifiants invalides');
       }
 
-      // Mettre à jour la dernière connexion si la méthode existe
-      if (user.updateLastLogin) {
-        await user.updateLastLogin();
-      }
+      // Mettre à jour la dernière connexion
+      await user.updateLastLogin();
 
       const token = jwt.sign(
         { 
           userId: user.id,
           login: user.login,
+          email: user.email,
           role: user.role 
         },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
 
-      console.log('✅ Login successful');
+      console.log('✅ Login successful for:', user.login);
 
       return { 
         token, 

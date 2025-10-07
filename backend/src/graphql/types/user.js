@@ -19,6 +19,7 @@ export const userTypes = gql`
     id: ID!
     nom: String!
     prenom: String!
+    email: String # ✅ Ajouter le champ email
     login: String!
     role: UserRole!
     specialite: AgentSpecialite
@@ -29,7 +30,7 @@ export const userTypes = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     
-    # ✅ Ajouter le champ fullName
+    # Champ calculé
     fullName: String!
   }
 
@@ -37,6 +38,7 @@ export const userTypes = gql`
   input CreateUserInput {
     nom: String!
     prenom: String!
+    email: String # ✅ Ajouter le champ email
     login: String
     password: String
     role: UserRole!
@@ -48,6 +50,7 @@ export const userTypes = gql`
   input UpdateUserInput {
     nom: String
     prenom: String
+    email: String # ✅ Ajouter le champ email
     login: String
     password: String
     role: UserRole
