@@ -6,25 +6,21 @@ export async function initDatabase() {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
     
-    // Import models dans l'ordre de dépendance
-    console.log('📦 Importing models...');
-    const Dispensaire = (await import('../models/dispensaire.js')).default;
-    const User = (await import('../models/user.js')).default;
-    const DataEntry = (await import('../models/dataEntry.js')).default;
-
-    console.log('🔄 Synchronizing database in correct order...');
+    // ✅ Import du fichier index qui charge tous les modèles et associations
+    console.log('📦 Loading all models...');
+    await import('../models/index.js');
     
-    // Créer les tables sans associations d'abord
-    await Dispensaire.sync({ force: true, logging: console.log });
-    console.log('✅ Dispensaire table created');
+    console.log('🔄 Synchronizing database...');
     
-    await User.sync({ force: true, logging: console.log });
-    console.log('✅ User table created');
-    
-    await DataEntry.sync({ force: true, logging: console.log });
-    console.log('✅ DataEntry table created');
+    // ✅ Synchroniser tous les modèles avec leurs associations
+    await sequelize.sync({ 
+      force: process.env.NODE_ENV === 'development', // Force seulement en dev
+      alter: process.env.NODE_ENV !== 'production',  // Alter sauf en production
+      logging: console.log 
+    });
     
     console.log('✅ Database synchronized successfully.');
+    console.log('🔍 Tables created:', Object.keys(sequelize.models));
     
     console.log('🔄 Running seeders...');
     const { seedAdmin } = await import('./seeders/adminSeeder.js');
