@@ -119,7 +119,7 @@ export const dispensaireResolvers = {
       
       try {
 
-        const { Dispensaire } = await import('../../../models/index.js');
+        const { Dispensaire } = await import('../../models/index.js');
         
         // Vérifier si un dispensaire avec le même nom existe déjà
         const existingName = await Dispensaire.findOne({

@@ -11,7 +11,7 @@ const authResolvers = {
         throw new Error('JWT_SECRET is not configured');
       }
 
-      const { User, Dispensaire } = await import('../../../models/index.js');
+      const { User, Dispensaire } = await import('../../models/index.js');
 
       // ✅ CHERCHER par login OU email
       const user = await User.findOne({ 

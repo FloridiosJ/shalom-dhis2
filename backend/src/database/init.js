@@ -1,4 +1,4 @@
-import sequelize from '../../config/db.js';
+import sequelize from '../config/db.js';
 
 export async function initDatabase() {
   try {
@@ -8,9 +8,9 @@ export async function initDatabase() {
     
     // Import models dans l'ordre de dépendance
     console.log('📦 Importing models...');
-    const Dispensaire = (await import('../../models/dispensaire.js')).default;
-    const User = (await import('../../models/user.js')).default;
-    const DataEntry = (await import('../../models/dataEntry.js')).default;
+    const Dispensaire = (await import('../models/dispensaire.js')).default;
+    const User = (await import('../models/user.js')).default;
+    const DataEntry = (await import('../models/dataEntry.js')).default;
 
     console.log('🔄 Synchronizing database in correct order...');
     

@@ -63,7 +63,7 @@ export const getUser = async (req) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Récupérer l'utilisateur complet depuis la base de données
-    const { User, Dispensaire } = await import('../../models/index.js'); // CORRIGER le chemin
+    const { User, Dispensaire } = await import('../models/index.js'); // CORRIGER le chemin
     
     const user = await User.findByPk(decoded.userId, {
       include: [
