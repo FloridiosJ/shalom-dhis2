@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { UserInputError, ForbiddenError } from 'apollo-server-express';
 import { Op } from 'sequelize';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
@@ -295,8 +296,143 @@ export const userResolvers = {
           errors: [error.message]
         };
       }
+    },
+
+    changeUserPassword: async (parent, { id, newPassword, generateNew }, { user }) => {
+      console.log('🔍 changeUserPassword called:', { id, hasNewPassword: !!newPassword, generateNew });
+      
+      try {
+        // Vérifications d'authentification
+        requireAuth(user);
+        
+        // Seul admin/manager peut changer le mot de passe d'autres utilisateurs
+        // Ou l'utilisateur peut changer son propre mot de passe
+        if (user.id !== id) {
+          requireRole(user, ['admin', 'manager']);
+        }
+
+        const { User } = await import('../../models/index.js');
+        
+        // Récupérer l'utilisateur cible
+        const targetUser = await User.findByPk(id);
+        
+        if (!targetUser) {
+          console.log('❌ User not found:', id);
+          return {
+            success: false,
+            message: 'Utilisateur non trouvé',
+            errors: ['USER_NOT_FOUND'],
+            user: null
+          };
+        }
+
+        console.log('✅ Target user found:', targetUser.login);
+
+        let finalPassword = newPassword;
+        let generatedPassword = null;
+
+        // Générer un nouveau mot de passe si demandé
+        if (generateNew || !newPassword) {
+          generatedPassword = generateRandomPassword();
+          finalPassword = generatedPassword;
+          console.log('🔄 Generated new password');
+        }
+
+        // Valider le mot de passe
+        if (!finalPassword || finalPassword.length < 6) {
+          return {
+            success: false,
+            message: 'Le mot de passe doit contenir au moins 6 caractères',
+            errors: ['PASSWORD_TOO_SHORT'],
+            user: null
+          };
+        }
+
+        // Hasher le nouveau mot de passe
+        console.log('🔄 Hashing password...');
+        const hashedPassword = await bcrypt.hash(finalPassword, 12);
+
+        // Mettre à jour le mot de passe
+        await targetUser.update({
+          password: hashedPassword,
+          updatedAt: new Date()
+        });
+
+        console.log('✅ Password updated successfully for user:', targetUser.login);
+
+        // Récupérer l'utilisateur mis à jour avec ses relations
+        const updatedUser = await User.findByPk(id, {
+          include: [
+            {
+              model: (await import('../../models/index.js')).Dispensaire,
+              as: 'dispensaire'
+            }
+          ]
+        });
+
+        return {
+          success: true,
+          message: `Mot de passe ${generateNew ? 'généré et ' : ''}modifié avec succès`,
+          errors: [],
+          user: updatedUser,
+          generatedPassword: generatedPassword // Seulement retourné si généré
+        };
+
+      } catch (error) {
+        console.error('❌ Error in changeUserPassword:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack?.split('\n').slice(0, 3)
+        });
+
+        // Gestion des erreurs spécifiques
+        if (error.message.includes('AUTH_REQUIRED')) {
+          return {
+            success: false,
+            message: 'Authentification requise',
+            errors: ['AUTH_REQUIRED'],
+            user: null
+          };
+        }
+
+        if (error.message.includes('INSUFFICIENT_ROLE')) {
+          return {
+            success: false,
+            message: 'Permissions insuffisantes',
+            errors: ['INSUFFICIENT_PERMISSIONS'],
+            user: null
+          };
+        }
+
+        return {
+          success: false,
+          message: 'Erreur lors du changement de mot de passe',
+          errors: [error.message],
+          user: null
+        };
+      }
     }
   }
 };
+
+// ✅ Fonction utilitaire pour générer un mot de passe aléatoire
+function generateRandomPassword(length = 8) {
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  let password = '';
+  
+  // Assurer au moins un caractère de chaque type
+  password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Majuscule
+  password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Minuscule
+  password += '0123456789'[Math.floor(Math.random() * 10)]; // Chiffre
+  password += '!@#$%^&*'[Math.floor(Math.random() * 8)]; // Symbole
+  
+  // Compléter avec des caractères aléatoires
+  for (let i = password.length; i < length; i++) {
+    password += charset[Math.floor(Math.random() * charset.length)];
+  }
+  
+  // Mélanger les caractères
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
 
 export default userResolvers;
