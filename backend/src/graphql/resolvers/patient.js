@@ -189,12 +189,12 @@ export const patientResolvers = {
       requireAuth(user);
       
       try {
-        console.log('🔄 Création patient:', { nom: input.nom, age: input.age, village: input.village });
 
         const { Patient, Dispensaire } = await import('../../models/index.js');
         
         // Vérifier que le dispensaire existe
         const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
+
         if (!dispensaire) {
           return {
             success: false,
@@ -217,20 +217,12 @@ export const patientResolvers = {
           ...input,
           userId: user.id
         });
-        
         // Récupérer le patient créé avec ses relations
         const createdPatient = await Patient.findByPk(patient.id, {
           include: [
             { model: (await import('../../models/index.js')).User, as: 'createdBy' },
             { model: Dispensaire, as: 'dispensaire' }
           ]
-        });
-        
-        console.log('✅ Patient créé avec succès:', {
-          id: patient.id,
-          nom: patient.nom,
-          numeroPatient: patient.numeroPatient,
-          village: patient.village
         });
         
         return {

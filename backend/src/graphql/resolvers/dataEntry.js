@@ -158,98 +158,136 @@ export const dataEntryResolvers = {
 
   Mutation: {
     createDataEntry: async (parent, { input }, { user }) => {
-      requireAuth(user);
       
       try {
-        console.log('🔄 Création consultation:', { 
-          patientId: input.patientId, 
-          diagnostic: input.diagnostic.substring(0, 50) + '...' 
-        });
+        // Vérifications d'authentification
+        requireAuth(user);
+        
+        
+        const { DataEntry, Patient, Dispensaire } = await import('../../models/index.js');
+        
+        // ✅ Vérifier que le patient existe
+        if (input.patientId) {
 
-        const { DataEntry, Patient, Dispensaire, User } = await import('../../models/index.js');
-        
-        // Vérifier que le patient existe
-        const patient = await Patient.findByPk(input.patientId);
-        if (!patient) {
-          return {
-            success: false,
-            message: 'Patient non trouvé',
-            errors: ['PATIENT_NOT_FOUND']
-          };
+          console.log('🔍 AGNATINY patienID:', input.patientId);
+          const patient = await Patient.findByPk(input.patientId);
+          console.log('🔍 Patient check:', patient ? `✅ ${patient.nom}` : '❌ NULL');
+          
+          if (!patient) {
+            return {
+              success: false,
+              message: 'Patient non trouvé',
+              errors: ['PATIENT_NOT_FOUND'],
+              dataEntry: null
+            };
+          }
         }
         
-        // Vérifier que le dispensaire existe
-        const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
-        if (!dispensaire) {
-          return {
-            success: false,
-            message: 'Dispensaire non trouvé',
-            errors: ['DISPENSAIRE_NOT_FOUND']
-          };
+        // ✅ Vérifier que le dispensaire existe
+        if (input.dispensaireId) {
+          const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
+          console.log('🔍 Dispensaire check:', dispensaire ? `✅ ${dispensaire.name}` : '❌ NULL');
+          
+          if (!dispensaire) {
+            return {
+              success: false,
+              message: 'Dispensaire non trouvé',
+              errors: ['DISPENSAIRE_NOT_FOUND'],
+              dataEntry: null
+            };
+          }
         }
         
-        // Vérification des permissions
-        if (user.role === 'agent' && user.dispensaireId !== input.dispensaireId) {
-          return {
-            success: false,
-            message: 'Vous ne pouvez créer des consultations que pour votre dispensaire',
-            errors: ['UNAUTHORIZED_DISPENSAIRE']
-          };
-        }
+        // ✅ Préparer les données pour la création
+        const dataEntryData = {
+          patientId: input.patientId,
+          diagnostic: input.diagnostic,
+          prescription: input.prescription,
+          notes: input.notes,
+          dateConsultation: input.dateConsultation ? new Date(input.dateConsultation) : new Date(),
+          dispensaireId: input.dispensaireId,
+          userId: user.id, // ✅ IMPORTANT: Ajouter l'utilisateur créateur
+          status: 'active', // Valeur par défaut
+          isActive: true
+        };
         
-        // Vérifier que le patient appartient au dispensaire
-        if (patient.dispensaireId !== input.dispensaireId) {
-          return {
-            success: false,
-            message: 'Le patient n\'appartient pas à ce dispensaire',
-            errors: ['PATIENT_DISPENSAIRE_MISMATCH']
-          };
-        }
+        console.log('🔄 Creating DataEntry with data:', dataEntryData);
         
-        // Créer la consultation
-        const dataEntry = await DataEntry.create({
-          ...input,
-          userId: user.id,
-          dateConsultation: input.dateConsultation || new Date()
+        // ✅ Créer l'entrée de données
+        const dataEntry = await DataEntry.create(dataEntryData);
+        
+        console.log('✅ DataEntry created successfully:', {
+          id: dataEntry.id,
+          patientId: dataEntry.patientId,
+          diagnostic: dataEntry.diagnostic?.substring(0, 50) + '...'
         });
         
-        // Récupérer la consultation créée avec ses relations
+        // ✅ Récupérer l'entrée créée avec ses relations
         const createdDataEntry = await DataEntry.findByPk(dataEntry.id, {
           include: [
-            { model: Patient, as: 'patient' },
-            { model: User, as: 'user' },
-            { model: Dispensaire, as: 'dispensaire' }
+            {
+              model: Patient,
+              as: 'patient'
+            },
+            {
+              model: Dispensaire,
+              as: 'dispensaire'
+            },
+            {
+              model: (await import('../../models/index.js')).User,
+              as: 'createdBy'
+            }
           ]
         });
         
-        console.log('✅ Consultation créée avec succès:', {
-          id: dataEntry.id,
-          patient: patient.nom,
-          diagnostic: dataEntry.diagnostic.substring(0, 50) + '...'
-        });
+        console.log('✅ DataEntry retrieved with relations:', createdDataEntry ? 'SUCCESS' : 'NULL');
         
-        return {
-          dataEntry: createdDataEntry,
+        // ✅ Retourner la structure correcte
+        const response = {
           success: true,
           message: 'Consultation créée avec succès',
-          errors: []
+          errors: [],
+          dataEntry: createdDataEntry // ✅ IMPORTANT: Retourner l'objet complet
         };
         
-      } catch (error) {
-        console.error('❌ Erreur création consultation:', error);
+        console.log('🚀 Returning response:', { 
+          success: response.success, 
+          dataEntryId: response.dataEntry?.id 
+        });
         
+        return response;
+        
+      } catch (error) {
+        console.error('❌ Error in createDataEntry:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack?.split('\n').slice(0, 3)
+        });
+        
+        // ✅ Gestion d'erreurs spécifiques
         if (error.name === 'SequelizeValidationError') {
           return {
             success: false,
-            message: 'Données invalides',
-            errors: error.errors.map(err => err.message)
+            message: 'Données de validation invalides',
+            errors: error.errors.map(err => `${err.path}: ${err.message}`),
+            dataEntry: null
+          };
+        }
+        
+        if (error.name === 'SequelizeForeignKeyConstraintError') {
+          return {
+            success: false,
+            message: 'Référence invalide (patient ou dispensaire inexistant)',
+            errors: ['FOREIGN_KEY_CONSTRAINT'],
+            dataEntry: null
           };
         }
         
         return {
           success: false,
           message: 'Erreur lors de la création de la consultation',
-          errors: [error.message]
+          errors: [error.message],
+          dataEntry: null
         };
       }
     },
