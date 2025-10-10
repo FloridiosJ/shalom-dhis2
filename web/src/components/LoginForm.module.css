@@ -1,0 +1,298 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* ✅ Prendre toute la hauteur disponible */
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.formCard {
+  background: white;
+  padding: 2rem; /* ✅ Padding réduit */
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 420px; /* ✅ Largeur réduite */
+  max-height: 90vh; /* ✅ Hauteur maximale */
+  overflow-y: auto; /* ✅ Scroll interne si nécessaire */
+  box-sizing: border-box;
+}
+
+.iconContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem; /* ✅ Marge réduite */
+}
+
+.securityIcon {
+  width: 56px; /* ✅ Taille réduite */
+  height: 56px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem; /* ✅ Taille réduite */
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1.5rem; /* ✅ Marge réduite */
+}
+
+.title {
+  font-size: 1.625rem; /* ✅ Taille réduite */
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.875rem; /* ✅ Taille réduite */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem; /* ✅ Gap réduit */
+  margin-bottom: 1.5rem; /* ✅ Marge réduite */
+}
+
+.inputGroup {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1rem; /* ✅ Taille réduite */
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  padding: 0.875rem 0.875rem 0.875rem 2.75rem; /* ✅ Padding réduit */
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.95rem; /* ✅ Taille réduite */
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.button {
+  width: 100%;
+  padding: 0.875rem; /* ✅ Padding réduit */
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.95rem; /* ✅ Taille réduite */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 14px; /* ✅ Taille réduite */
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.demoBlock {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.75rem;
+  padding: 1.25rem; /* ✅ Padding réduit */
+  margin-top: 1.25rem; /* ✅ Marge réduite */
+}
+
+.demoHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem; /* ✅ Marge réduite */
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 0.8rem; /* ✅ Taille réduite */
+}
+
+.demoCredentials {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.credentialItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem; /* ✅ Taille réduite */
+}
+
+.credentialLabel {
+  color: #374151;
+  font-weight: 500;
+}
+
+.credentialValue {
+  color: #1f2937;
+  font-family: 'Courier New', monospace;
+  background: white;
+  padding: 0.2rem 0.4rem; /* ✅ Padding réduit */
+  border-radius: 0.375rem;
+  font-size: 0.75rem; /* ✅ Taille réduite */
+}
+
+.errorContainer {
+  min-height: 60px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.errorMessage {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+}
+
+.errorIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Animation pour l'apparition du message */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .formCard {
+    padding: 1.5rem;
+    max-width: 100%;
+    max-height: 85vh;
+  }
+  
+  .title {
+    font-size: 1.375rem;
+  }
+  
+  .subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .form {
+    gap: 1rem;
+  }
+  
+  .demoBlock {
+    padding: 1rem;
+  }
+  
+  .errorContainer {
+    min-height: 50px;
+    margin-bottom: 1.25rem;
+  }
+  
+  .errorMessage {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .errorIcon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .formCard {
+    padding: 1.25rem;
+    max-height: 80vh;
+  }
+  
+  .iconContainer {
+    margin-bottom: 1rem;
+  }
+  
+  .securityIcon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .errorContainer {
+    min-height: 45px;
+    margin-bottom: 1rem;
+  }
+}

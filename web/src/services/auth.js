@@ -23,7 +23,6 @@ const LOGIN_MUTATION = gql`
         dispensaire {
           id
           name
-          code
         }
       }
     }
@@ -50,7 +49,6 @@ const GET_CURRENT_USER = gql`
       dispensaire {
         id
         name
-        code
       }
     }
   }

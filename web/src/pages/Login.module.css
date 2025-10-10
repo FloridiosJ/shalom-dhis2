@@ -1,0 +1,83 @@
+.container {
+  display: flex;
+  height: 100vh; /* ✅ Hauteur fixe au lieu de min-height */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden; /* ✅ Empêcher le scroll */
+}
+
+.logo {
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  color: white;
+  font-size: 1.25rem; /* ✅ Réduire légèrement */
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.leftPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem; /* ✅ Padding réduit */
+  overflow: auto; /* ✅ Scroll interne si nécessaire */
+}
+
+.rightPanel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: auto; /* ✅ Scroll interne si nécessaire */
+}
+
+/* 📱 Responsive Design */
+@media (max-width: 1024px) {
+  .logo {
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .logo {
+    position: relative;
+    top: 0;
+    right: 0;
+    text-align: center;
+    padding: 0.75rem;
+    margin: 0;
+    font-size: 1rem;
+  }
+  
+  .leftPanel {
+    flex: 1;
+    padding: 0.5rem;
+  }
+  
+  .rightPanel {
+    flex: 0 0 auto;
+    height: 40vh; /* ✅ Hauteur fixe pour mobile */
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+@media (max-width: 480px) {
+  .leftPanel {
+    padding: 0.25rem;
+  }
+  
+  .rightPanel {
+    height: 35vh;
+  }
+}

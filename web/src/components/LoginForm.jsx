@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import useAuth from '../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
+import { useErrorMessage } from '../hooks/useErrorMessage';
+import styles from './LoginForm.module.css';
 
 const LoginForm = () => {
-  const [loginValue, setLoginValue] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { login, isAuthenticated } = useAuth();
+  const { error, showError, clearError } = useErrorMessage();
 
   // Rediriger si déjà connecté
   if (isAuthenticated) {
@@ -17,172 +19,151 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    clearError();
     setLoading(true);
 
     try {
-      const result = await login(loginValue, password);
+      const result = await login(email, password);
       
       if (!result.success) {
-        setError(result.error || 'Erreur de connexion');
+        showError(result.error || 'Erreur de connexion');
       }
-      // La redirection sera gérée par le hook useAuth
     } catch (error) {
-      setError(error.message || 'Erreur de connexion');
+      showError(error.message || 'Erreur de connexion');
     } finally {
       setLoading(false);
     }
   };
 
+  const fillDemoCredentials = () => {
+    setEmail('admin@shalom-dhis2.org');
+    setPassword('Admin123!');
+    clearError();
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Connexion</h2>
-        <p style={styles.subtitle}>SHALOM - DHIS2</p>
-        
-        {error && (
-          <div style={styles.error}>
-            {error}
+    <div className={styles.container}>
+      <div className={styles.formCard}>
+        {/* Icône de sécurité */}
+        <div className={styles.iconContainer}>
+          <div className={styles.securityIcon}>
+            🛡️
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label htmlFor="login" style={styles.label}>Login:</label>
+        </div>
+
+        {/* En-tête */}
+        <div className={styles.header}>
+          <h1 className={styles.title}>Connexion</h1>
+          <p className={styles.subtitle}>Accédez à votre espace DHIS2 Shalom</p>
+        </div>
+
+        {/* ✅ Zone d'erreur avec hauteur fixe réservée */}
+        <div className={styles.errorContainer}>
+          {error && (
+            <div className={styles.errorMessage}>
+              <svg 
+                className={styles.errorIcon}
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" 
+                  clipRule="evenodd" 
+                />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Formulaire */}
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {/* Champ Email */}
+          <div className={styles.inputGroup}>
+            <div className={styles.inputIcon}>👤</div>
             <input
-              id="login"
-              type="text"
-              value={loginValue}
-              onChange={(e) => setLoginValue(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="votre@email.com"
               required
               disabled={loading}
-              style={styles.input}
-              placeholder="Entrez votre login"
+              className={styles.input}
+              autoComplete="email"
             />
           </div>
-          
-          <div style={styles.formGroup}>
-            <label htmlFor="password" style={styles.label}>Mot de passe:</label>
+
+          {/* Champ Mot de passe */}
+          <div className={styles.inputGroup}>
+            <div className={styles.inputIcon}>🔒</div>
             <input
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Votre mot de passe"
               required
               disabled={loading}
-              style={styles.input}
-              placeholder="Entrez votre mot de passe"
+              className={styles.input}
+              autoComplete="current-password"
             />
+          </div>
+
+          {/* Bouton de connexion */}
+          <button 
+            type="submit" 
+            disabled={loading || !email.trim() || !password}
+            className={styles.button}
+          >
+            {loading ? (
+              <>
+                <span className={styles.spinner}></span>
+                Connexion...
+              </>
+            ) : (
+              'Se connecter'
+            )}
+          </button>
+        </form>
+
+        {/* Bloc compte de démonstration */}
+        <div className={styles.demoBlock}>
+          <div className={styles.demoHeader}>
+            <span>🧪</span>
+            <span>Compte de démonstration</span>
+          </div>
+          
+          <div className={styles.demoCredentials}>
+            <div className={styles.credentialItem}>
+              <span className={styles.credentialLabel}>Email:</span>
+              <span className={styles.credentialValue}>admin@shalom-dhis2.org</span>
+            </div>
+            <div className={styles.credentialItem}>
+              <span className={styles.credentialLabel}>Mot de passe:</span>
+              <span className={styles.credentialValue}>Admin123!</span>
+            </div>
           </div>
           
           <button 
-            type="submit" 
-            disabled={loading || !loginValue || !password}
-            style={loading || !loginValue || !password ? styles.buttonDisabled : styles.button}
+            type="button"
+            onClick={fillDemoCredentials}
+            disabled={loading}
+            className={styles.button}
+            style={{ 
+              marginTop: '1rem', 
+              background: loading ? '#94a3b8' : '#10b981',
+              fontSize: '0.875rem',
+              padding: '0.75rem',
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
           >
-            {loading ? 'Connexion...' : 'Se connecter'}
+            Utiliser ces identifiants
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );
 };
 
-// ✅ Styles pour le formulaire
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f3f4f6',
-    padding: '1rem'
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '0.5rem',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    width: '100%',
-    maxWidth: '400px'
-  },
-  title: {
-    fontSize: '1.875rem',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: '0.5rem',
-    color: '#111827'
-  },
-  subtitle: {
-    textAlign: 'center',
-    color: '#6b7280',
-    marginBottom: '2rem',
-    fontSize: '0.875rem'
-  },
-  error: {
-    backgroundColor: '#fee2e2',
-    border: '1px solid #fecaca',
-    color: '#dc2626',
-    padding: '0.75rem',
-    borderRadius: '0.375rem',
-    marginBottom: '1rem',
-    fontSize: '0.875rem'
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem'
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem'
-  },
-  label: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: '#374151'
-  },
-  input: {
-    padding: '0.75rem',
-    border: '1px solid #d1d5db',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    outline: 'none',
-    transition: 'border-color 0.15s ease-in-out',
-    ':focus': {
-      borderColor: '#3b82f6',
-      boxShadow: '0 0 0 1px #3b82f6'
-    }
-  },
-  button: {
-    padding: '0.75rem',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background-color 0.15s ease-in-out',
-    ':hover': {
-      backgroundColor: '#2563eb'
-    }
-  },
-  buttonDisabled: {
-    padding: '0.75rem',
-    backgroundColor: '#9ca3af',
-    color: 'white',
-    border: 'none',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'not-allowed'
-  }
-};
-
-// ✅ Export par défaut
 export default LoginForm;
-
-// ✅ Export nommé aussi (pour plus de flexibilité)
-export { LoginForm };
