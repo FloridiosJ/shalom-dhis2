@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LoginForm } from '../components/LoginForm';
+import LoginForm from '../components/LoginForm'; // ✅ Import par défaut
 import { LoginRightPanel } from '../components/LoginRightPanel';
 
-export function Login() {
+const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -63,4 +63,7 @@ export function Login() {
       </style>
     </div>
   );
-}
+};
+
+// ✅ Export par défaut
+export default Login;

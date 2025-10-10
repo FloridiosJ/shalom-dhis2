@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-export function Unauthorized() {
+const  Unauthorized = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -109,3 +109,5 @@ export function Unauthorized() {
     </div>
   );
 }
+
+export default Unauthorized;

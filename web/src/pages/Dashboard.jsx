@@ -1,7 +1,7 @@
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-export function Dashboard() {
+const Dashboard = () =>  {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -434,3 +434,5 @@ export function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;

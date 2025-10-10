@@ -4,7 +4,7 @@ import { dataEntryService } from '../services/data_entries';
 import { dispensaireService } from '../services/dispensaires';
 import { organisationService } from '../services/organisations';
 
-export function DataEntries() {
+const DataEntries = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -365,7 +365,6 @@ export function DataEntries() {
             {/* Recherche globale - Prend plus d'espace */}
             <div style={{ gridColumn: 'span 2' }}>
               <label style={{
-                display: 'block',
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 color: '#374151',
@@ -425,7 +424,6 @@ export function DataEntries() {
             {/* Organisation */}
             <div>
               <label style={{
-                display: 'block',
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 color: '#374151',
@@ -477,7 +475,6 @@ export function DataEntries() {
             {/* Dispensaire */}
             <div>
               <label style={{
-                display: 'block',
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 color: '#374151',
@@ -546,7 +543,6 @@ export function DataEntries() {
             {/* Indicateur */}
             <div>
               <label style={{
-                display: 'block',
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 color: '#374151',
@@ -605,7 +601,6 @@ export function DataEntries() {
             {/* Période - Date début */}
             <div>
               <label style={{
-                display: 'block',
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 color: '#374151',
@@ -651,7 +646,6 @@ export function DataEntries() {
             {/* Période - Date fin */}
             <div>
               <label style={{
-                display: 'block',
                 fontSize: '0.875rem',
                 fontWeight: '600',
                 color: '#374151',
@@ -1406,3 +1400,5 @@ export function DataEntries() {
     </div>
   );
 }
+
+export default DataEntries;

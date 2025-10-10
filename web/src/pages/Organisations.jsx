@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { organisationService } from '../services/organisations';
 
-export function Organisations() {
+const Organisations = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [formData, setFormData] = useState({
@@ -640,3 +640,5 @@ export function Organisations() {
     </div>
   );
 }
+
+export default Organisations;

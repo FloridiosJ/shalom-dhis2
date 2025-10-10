@@ -2,12 +2,14 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { Login } from "./pages/Login";
-import { Dashboard } from "./pages/Dashboard";
-import { Organisations } from "./pages/Organisations";
-import { Unauthorized } from "./components/Unauthorized";
-import { DataEntries } from "./pages/DataEntries";
-import { Dispensaires } from "./pages/Dispensaires";
+
+// ✅ Changer les imports nommés en imports par défaut
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Organisations from "./pages/Organisations";
+import Unauthorized from "./components/Unauthorized";
+import DataEntries from "./pages/DataEntries";
+import Dispensaires from "./pages/Dispensaires";
 
 const queryClient = new QueryClient();
 
@@ -50,28 +52,6 @@ function App() {
               }
             />
 
-            {/* Routes temporairement désactivées - en attente des composants */}
-            {/*
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute roles={["admin"]}>
-                  <UserManagement />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/data-entries"
-              element={
-                <ProtectedRoute roles={["admin", "manager", "user"]}>
-                  <DataEntry />
-                </ProtectedRoute>
-              }
-            />
-            */}
-
-            {/* Routes temporaires - rediriger vers dashboard */}
             <Route
               path="/users"
               element={

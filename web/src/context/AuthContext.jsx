@@ -1,53 +1,78 @@
-import { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/auth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import authService from '../services/auth';
 
-const AuthContext = createContext(null);
+// ✅ Créer le contexte
+export const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const storedUser = authService.getCurrentUser();
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedToken && storedUser) {
-      setUser(storedUser);
-      setToken(storedToken);
-    }
-    
-    setIsLoading(false);
+    initializeAuth();
   }, []);
 
-  const login = async (email, password) => {
+  const initializeAuth = async () => {
     try {
-      setIsLoading(true);
-      const { user: newUser, token: newToken } = await authService.login(email, password);
-      setUser(newUser);
-      setToken(newToken);
-      return newUser;
+      setLoading(true);
+      const currentUser = await authService.initialize();
+      
+      if (currentUser) {
+        setUser(currentUser);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } catch (error) {
-      throw error;
+      console.error('❌ Erreur initialisation auth:', error);
+      setUser(null);
+      setIsAuthenticated(false);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-    setToken(null);
+  const login = async (login, password) => {
+    try {
+      const result = await authService.login(login, password);
+      
+      if (result.success) {
+        setUser(result.user);
+        setIsAuthenticated(true);
+        return { success: true, user: result.user };
+      }
+      
+      return { success: false, error: 'Connexion échouée' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   const value = {
     user,
-    token,
-    isLoading,
+    isAuthenticated,
+    loading,
     login,
     logout,
-    isAuthenticated: !!token
+    
+    // Helpers
+    isAdmin: () => authService.isAdmin(),
+    isManager: () => authService.isManager(),
+    isAgent: () => authService.isAgent(),
+    getUserDisplayName: () => authService.getUserDisplayName(),
+    getUserInitials: () => authService.getUserInitials(),
+    getDispensaire: () => authService.getDispensaire(),
   };
 
   return (
@@ -55,6 +80,7 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export { AuthContext };
+// ✅ Export par défaut aussi (optionnel)
+export default AuthContext;

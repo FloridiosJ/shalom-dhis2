@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dispensaireService } from '../services/dispensaires';
 import { organisationService } from '../services/organisations';
 
-export function Dispensaires() {
+const Dispensaires = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingDispensaire, setEditingDispensaire] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -675,3 +675,5 @@ export function Dispensaires() {
     </div>
   );
 }
+
+export default Dispensaires;
