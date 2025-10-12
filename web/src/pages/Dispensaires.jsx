@@ -121,47 +121,16 @@ const Dispensaires = () => {
 
   if (dispensairesLoading || organisationsLoading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%)'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #e5e7eb',
-            borderTop: '4px solid #3b82f6',
-            borderRadius: '50%',
-            margin: '0 auto 1rem',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p style={{ color: '#6b7280' }}>Chargement des dispensaires...</p>
-        </div>
+      <div className={styles.pageBg}>
+        <div className={styles.loading}>Chargement des dispensaires...</div>
       </div>
     );
   }
 
   if (dispensairesError) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%)'
-      }}>
-        <div style={{
-          backgroundColor: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '8px',
-          padding: '1rem',
-          color: '#dc2626'
-        }}>
-          Erreur: {dispensairesError.message}
-        </div>
+      <div className={styles.pageBg}>
+        <div className={styles.errorMsg}>Erreur: {dispensairesError.message}</div>
       </div>
     );
   }
@@ -201,32 +170,13 @@ const Dispensaires = () => {
         </div>
 
         {/* Statistiques */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1.2rem',
-          marginBottom: '2rem'
-        }}>
+        <div className={styles.statsGrid}>
           {stats.map((stat, index) => (
-            <div key={index} style={{
-              background: '#fff',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(59,130,246,0.07)',
-              padding: '1.5rem',
-              textAlign: 'center'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                fontWeight: 'bold',
-                color: stat.color,
-                marginBottom: '0.5rem'
-              }}>
+            <div key={index} className={styles.statCard}>
+              <div className={styles.statValue} style={{ color: stat.color }}>
                 {stat.value}
               </div>
-              <div style={{
-                fontSize: '0.95rem',
-                color: '#64748b'
-              }}>
+              <div className={styles.statLabel}>
                 {stat.label}
               </div>
             </div>
@@ -235,14 +185,7 @@ const Dispensaires = () => {
 
         {/* Recherche + Tableau */}
         <div className={styles.tableWrapper}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            marginBottom: '1.2rem',
-            gap: '1rem',
-            flexWrap: 'wrap'
-          }}>
+          <div className={styles.tableTopBar}>
             <div className={styles.searchWrapper}>
               <span className={styles.searchIcon}>
                 <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,21 +218,13 @@ const Dispensaires = () => {
                   </td>
                 </tr>
               ) : (
-                filteredDispensaires.map((dispensaire, index) => (
+                filteredDispensaires.map((dispensaire) => (
                   <tr key={dispensaire.id} className={styles.tr}>
                     <td className={styles.td}>{dispensaire.name}</td>
                     <td className={styles.td}>{dispensaire.organisation?.name || 'Non assigné'}</td>
                     <td className={styles.td}>
                       {dispensaire.organisation?.type && (
-                        <span style={{
-                          display: 'inline-block',
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: '500'
-                        }}>
+                        <span className={styles.orgTypeBadge}>
                           {dispensaire.organisation.type}
                         </span>
                       )}
@@ -324,14 +259,6 @@ const Dispensaires = () => {
           </table>
         </div>
       </div>
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}
-      </style>
     </div>
   );
 };
