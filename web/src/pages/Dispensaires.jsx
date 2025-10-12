@@ -5,7 +5,10 @@ import styles from './Dispensaires.module.css';
 
 const Dispensaires = () => {
   const [dispensaires, setDispensaires] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredRow, setHoveredRow] = useState(null);
   const navigate = useNavigate();
 
   // Récupère la liste des dispensaires (même logique que Users.jsx)
@@ -27,6 +30,12 @@ const Dispensaires = () => {
     fetchDispensaires();
   }, []);
 
+  // Filtrer selon le nom, synoda ou fileovana
+  const filteredDispensaires = dispensaires.filter(d =>
+    d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (d.synoda || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (d.fileovana || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className={styles.pageBg}>
