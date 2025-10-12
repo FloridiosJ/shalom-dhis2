@@ -62,7 +62,9 @@ const CreateUserModal = ({
   }, [open]);
 
   const handleGenerateLogin = () => {
-    setForm(f => ({ ...f, login: 'user' + randomString(5) }));
+    // Génère un login du type user1234 (4 chiffres)
+    const digits = Math.floor(1000 + Math.random() * 9000); // 4 chiffres
+    setForm(f => ({ ...f, login: digits }));
   };
 
   const handleGeneratePassword = () => {
