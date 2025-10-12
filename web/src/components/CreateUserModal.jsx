@@ -35,6 +35,8 @@ const CreateUserModal = ({
     dispensaireId: '',
     isActive: true,
   });
+
+  console.log('CreateUserModal dispensaires:', dispensaires);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);

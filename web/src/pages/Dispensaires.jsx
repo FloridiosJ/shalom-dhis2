@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dispensaireService } from '../services/dispensaires';
+import  dispensaireService  from '../services/dispensaires';
 import { organisationService } from '../services/organisations';
 
 const Dispensaires = () => {

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import usersService from '../services/usersService';
+import React, { useEffect, useState } from 'react';import usersService from '../services/usersService';
+import dispensaireService from '../services/dispensaires'; // Import du service dispensaire
 import styles from './Users.module.css';
 import CreateUserModal from '../components/CreateUserModal';
 
@@ -29,13 +29,15 @@ const Users = () => {
       .finally(() => setLoading(false));
   };
 
-  // Récupère la liste des dispensaires (à adapter selon ton service)
+  // Récupère la liste des dispensaires
   const fetchDispensaires = async () => {
-    // Remplace par ton vrai service si besoin
-    if (usersService.getDispensaires) {
-      const list = await usersService.getDispensaires();
+    console.log('Fetching dispensaires...');
+    try {
+      const list = await dispensaireService.getAll();
       setDispensaires(list);
-    } else {
+      console.log('Fetched dispensaires:', list);
+    } catch (e) {
+      console.error('Error fetching dispensaires:', e);
       setDispensaires([]);
     }
   };
