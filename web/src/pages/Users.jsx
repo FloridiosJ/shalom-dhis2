@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import usersService from '../services/usersService';
 import styles from './Users.module.css';
+import CreateUserModal from '../components/CreateUserModal';
 
 const UserIcon = ({ size = 32, color = "#2563eb" }) => (
   <svg width={size} height={size} fill="none" viewBox="0 0 24 24">
@@ -13,16 +14,42 @@ const UserIcon = ({ size = 32, color = "#2563eb" }) => (
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const [dispensaires, setDispensaires] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [hoveredRow, setHoveredRow] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
 
-  useEffect(() => {
+  // Récupère la liste des utilisateurs
+  const fetchUsers = () => {
+    setLoading(true);
     usersService.getAll()
       .then(setUsers)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
+  };
+
+  // Récupère la liste des dispensaires (à adapter selon ton service)
+  const fetchDispensaires = async () => {
+    // Remplace par ton vrai service si besoin
+    if (usersService.getDispensaires) {
+      const list = await usersService.getDispensaires();
+      setDispensaires(list);
+    } else {
+      setDispensaires([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchDispensaires();
+    // eslint-disable-next-line
   }, []);
+
+  // Rafraîchir la liste après création
+  const handleUserCreated = () => {
+    fetchUsers();
+  };
 
   return (
     <div className={styles.pageBg}>
@@ -38,7 +65,11 @@ const Users = () => {
               </div>
             </div>
           </div>
-          <button className={styles.createBtn}>
+          <button
+            className={styles.createBtn}
+            onClick={() => setShowCreate(true)}
+            type="button"
+          >
             + Créer un utilisateur
           </button>
         </div>
@@ -109,6 +140,13 @@ const Users = () => {
           </table>
         </div>
       </div>
+      {/* Modale création utilisateur */}
+      <CreateUserModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={handleUserCreated}
+        dispensaires={dispensaires}
+      />
     </div>
   );
 };
