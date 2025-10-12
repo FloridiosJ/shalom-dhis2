@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Ajout de l'import
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import usersService from '../services/usersService';
 import dispensaireService from '../services/dispensaires'; // Import du service dispensaire
@@ -26,6 +27,7 @@ const Users = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const navigate = useNavigate();
 
   // Récupère la liste des utilisateurs
   const fetchUsers = () => {
@@ -84,20 +86,25 @@ const Users = () => {
 
   return (
     <div className={styles.pageBg}>
+      {/* Espacement sous le bouton */}
+      <div style={{ marginBottom: '1.5rem' }} />
       <div className={styles.card}>
-        {/* Header */}
         <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            <UserIcon size={36} />
-            <div>
-              <h1 className={styles.title}>Gestion des utilisateurs</h1>
-              <div className={styles.subtitle}>
-                Gérez les comptes de votre système DHIS2 Shalom
-              </div>
-            </div>
+          <button
+            className={styles.actionBtn}
+            type="button"
+            onClick={() => navigate('/dashboard')}
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Retour au dashboard
+          </button>
+          <div className={styles.headerCenter}>
+            <h1 className={styles.title}>Gestion des utilisateurs</h1>
           </div>
           <button
-            className={styles.createBtn}
+            className={styles.actionBtn}
             onClick={() => { setEditingUser(null); setModalOpen(true); }}
             type="button"
           >
