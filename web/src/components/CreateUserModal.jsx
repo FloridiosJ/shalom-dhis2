@@ -153,7 +153,7 @@ const CreateUserModal = ({
       onClick={onClose}
     >
       <div
-        className={styles.modal}
+        className={`${styles.modal} ${form.role === 'agent' ? styles.modalScrollable : ''}`}
         onClick={e => e.stopPropagation()}
       >
         <h2 className={styles.title}>

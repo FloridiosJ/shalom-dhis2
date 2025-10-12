@@ -216,6 +216,24 @@
   box-shadow: 0 0 0 2px #2563eb33;
 }
 
+.modalScrollable {
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 18px;           /* <-- Ajoute ceci */
+  scrollbar-gutter: stable both-edges; /* Optionnel pour garder l'espace du scroll */
+}
+
+/* Pour un rendu parfait sur Webkit (Chrome/Safari) */
+.modalScrollable::-webkit-scrollbar {
+  border-radius: 18px;
+  background: transparent;
+  width: 10px;
+}
+.modalScrollable::-webkit-scrollbar-thumb {
+  background: #e0e7ef;
+  border-radius: 18px;
+}
+
 
 @media (max-width: 600px) {
   .modal {
