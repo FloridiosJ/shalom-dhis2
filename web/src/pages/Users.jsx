@@ -6,15 +6,6 @@ import dispensaireService from '../services/dispensaires'; // Import du service 
 import styles from './Users.module.css';
 import CreateOrEditUserModal from '../components/CreateOrEditUserModal';
 
-const UserIcon = ({ size = 32, color = "#2563eb" }) => (
-  <svg width={size} height={size} fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="7" r="5" fill={color} opacity="0.15"/>
-    <circle cx="12" cy="7" r="4" fill={color}/>
-    <rect x="4" y="15" width="16" height="6" rx="3" fill={color} opacity="0.15"/>
-    <rect x="6" y="16" width="12" height="4" rx="2" fill={color}/>
-  </svg>
-);
-
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [dispensaires, setDispensaires] = useState([]);

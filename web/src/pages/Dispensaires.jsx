@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import  dispensaireService  from '../services/dispensaires';
+import dispensaireService from '../services/dispensaires';
 import { organisationService } from '../services/organisations';
 import styles from './Dispensaires.module.css';
 
@@ -13,6 +14,7 @@ const Dispensaires = () => {
     organisationId: ''
   });
 
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // Query pour récupérer les dispensaires
@@ -81,7 +83,6 @@ const Dispensaires = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (editingDispensaire) {
       updateMutation.mutate({ id: editingDispensaire.id, data: formData });
     } else {
@@ -110,6 +111,14 @@ const Dispensaires = () => {
     dispensaire.organisation?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Statistiques
+  const stats = [
+    { label: 'Total Dispensaires', value: dispensaires.length, color: '#3b82f6' },
+    { label: 'Organisations', value: new Set(dispensaires.map(d => d.organisationId)).size, color: '#10b981' },
+    { label: 'Synode', value: dispensaires.filter(d => d.organisation?.type === 'Synode').length, color: '#f59e0b' },
+    { label: 'Sampana', value: dispensaires.filter(d => d.organisation?.type === 'Sampana').length, color: '#8b5cf6' }
+  ];
+
   if (dispensairesLoading || organisationsLoading) {
     return (
       <div style={{
@@ -117,7 +126,7 @@ const Dispensaires = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f9fafb'
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%)'
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
@@ -142,7 +151,7 @@ const Dispensaires = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f9fafb'
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%)'
       }}>
         <div style={{
           backgroundColor: '#fef2f2',
@@ -159,20 +168,81 @@ const Dispensaires = () => {
 
   return (
     <div className={styles.pageBg}>
-      <div className={styles.container}>
-        {/* Header */}
+      <div className={styles.card}>
+        {/* Header harmonisé */}
         <div className={styles.header}>
-          <div>
-            <h1 className={styles.headerTitle}>
-              Dispensaires
-            </h1>
-            <p className={styles.headerSubtitle}>
-              Gérer les dispensaires et centres de santé
-            </p>
+          <button
+            className={styles.actionBtn}
+            type="button"
+            onClick={() => navigate('/dashboard')}
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Retour au dashboard
+          </button>
+          <div className={styles.headerCenter}>
+            <h1 className={styles.title}>Dispensaires</h1>
+            <div className={styles.subtitle}>Gérer les dispensaires et centres de santé</div>
           </div>
+          <button
+            className={styles.actionBtn}
+            onClick={() => {
+              resetForm();
+              setShowModal(true);
+            }}
+            type="button"
+          >
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Ajouter un dispensaire
+          </button>
+        </div>
 
-          <div className={styles.headerActions}>
-            {/* Barre de recherche */}
+        {/* Statistiques */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1.2rem',
+          marginBottom: '2rem'
+        }}>
+          {stats.map((stat, index) => (
+            <div key={index} style={{
+              background: '#fff',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(59,130,246,0.07)',
+              padding: '1.5rem',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: stat.color,
+                marginBottom: '0.5rem'
+              }}>
+                {stat.value}
+              </div>
+              <div style={{
+                fontSize: '0.95rem',
+                color: '#64748b'
+              }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recherche + Tableau */}
+        <div className={styles.tableWrapper}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            marginBottom: '1.2rem',
+            gap: '1rem',
+            flexWrap: 'wrap'
+          }}>
             <div className={styles.searchWrapper}>
               <span className={styles.searchIcon}>
                 <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,229 +257,73 @@ const Dispensaires = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
-            <button
-              onClick={() => {
-                resetForm();
-                setShowModal(true);
-              }}
-              className={styles.addBtn}
-            >
-              <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Ajouter
-            </button>
           </div>
-        </div>
-
-        {/* Statistiques rapides */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-          marginBottom: '2rem'
-        }}>
-          {[
-            { label: 'Total Dispensaires', value: dispensaires.length, color: '#3b82f6' },
-            { label: 'Organisations', value: new Set(dispensaires.map(d => d.organisationId)).size, color: '#10b981' },
-            { label: 'Synode', value: dispensaires.filter(d => d.organisation?.type === 'Synode').length, color: '#f59e0b' },
-            { label: 'Sampana', value: dispensaires.filter(d => d.organisation?.type === 'Sampana').length, color: '#8b5cf6' }
-          ].map((stat, index) => (
-            <div key={index} style={{
-              backgroundColor: 'white',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              textAlign: 'center'
-            }}>
-              <div style={{
-                fontSize: '2rem',
-                fontWeight: 'bold',
-                color: stat.color,
-                marginBottom: '0.5rem'
-              }}>
-                {stat.value}
-              </div>
-              <div style={{
-                fontSize: '0.875rem',
-                color: '#6b7280'
-              }}>
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tableau */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden'
-        }}>
-          {filteredDispensaires.length === 0 ? (
-            <div style={{
-              textAlign: 'center',
-              padding: '4rem',
-              color: '#6b7280'
-            }}>
-              <svg style={{
-                width: '48px',
-                height: '48px',
-                margin: '0 auto 1rem',
-                color: '#d1d5db'
-              }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <p>{searchTerm ? 'Aucun dispensaire trouvé pour cette recherche' : 'Aucun dispensaire trouvé'}</p>
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{
-                      padding: '1rem',
-                      textAlign: 'left',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Nom
-                    </th>
-                    <th style={{
-                      padding: '1rem',
-                      textAlign: 'left',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Organisation
-                    </th>
-                    <th style={{
-                      padding: '1rem',
-                      textAlign: 'left',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Type Organisation
-                    </th>
-                    <th style={{
-                      padding: '1rem',
-                      textAlign: 'right',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDispensaires.map((dispensaire, index) => (
-                    <tr
-                      key={dispensaire.id}
-                      style={{
-                        borderBottom: index < filteredDispensaires.length - 1 ? '1px solid #e5e7eb' : 'none'
-                      }}
-                    >
-                      <td style={{
-                        padding: '1rem',
-                        color: '#1f2937',
-                        fontWeight: '500'
-                      }}>
-                        {dispensaire.name}
-                      </td>
-                      <td style={{
-                        padding: '1rem',
-                        color: '#6b7280'
-                      }}>
-                        {dispensaire.organisation?.name || 'Non assigné'}
-                      </td>
-                      <td style={{
-                        padding: '1rem'
-                      }}>
-                        {dispensaire.organisation?.type && (
-                          <span style={{
-                            display: 'inline-block',
-                            backgroundColor: '#3b82f6',
-                            color: 'white',
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.75rem',
-                            fontWeight: '500'
-                          }}>
-                            {dispensaire.organisation.type}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{
-                        padding: '1rem',
-                        textAlign: 'right'
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          justifyContent: 'flex-end'
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Nom</th>
+                <th className={styles.th}>Organisation</th>
+                <th className={styles.th}>Type Organisation</th>
+                <th className={styles.th} style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDispensaires.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className={styles.td} style={{ textAlign: 'center', color: '#64748b', background: '#f9fafb', padding: '2.5rem 0' }}>
+                    Aucun dispensaire trouvé
+                  </td>
+                </tr>
+              ) : (
+                filteredDispensaires.map((dispensaire, index) => (
+                  <tr key={dispensaire.id} className={styles.tr}>
+                    <td className={styles.td}>{dispensaire.name}</td>
+                    <td className={styles.td}>{dispensaire.organisation?.name || 'Non assigné'}</td>
+                    <td className={styles.td}>
+                      {dispensaire.organisation?.type && (
+                        <span style={{
+                          display: 'inline-block',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          fontSize: '0.75rem',
+                          fontWeight: '500'
                         }}>
-                          <button
-                            onClick={() => handleEdit(dispensaire)}
-                            style={{
-                              padding: '0.5rem',
-                              backgroundColor: '#f3f4f6',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              color: '#374151',
-                              transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                          >
-                            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDelete(dispensaire)}
-                            disabled={deleteMutation.isLoading}
-                            style={{
-                              padding: '0.5rem',
-                              backgroundColor: '#fef2f2',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              color: '#dc2626',
-                              transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#fee2e2'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = '#fef2f2'}
-                          >
-                            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                          {dispensaire.organisation.type}
+                        </span>
+                      )}
+                    </td>
+                    <td className={styles.td} style={{ textAlign: 'right' }}>
+                      <button
+                        className={styles.iconBtnEdit}
+                        aria-label="Modifier"
+                        onClick={() => handleEdit(dispensaire)}
+                        type="button"
+                      >
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 0 0 .707-.293l9.414-9.414a2 2 0 0 0 0-2.828l-3.172-3.172a2 2 0 0 0-2.828 0L4.293 14.879A1 1 0 0 0 4 15.586V20z"/>
+                        </svg>
+                      </button>
+                      <button
+                        className={styles.iconBtnDelete}
+                        aria-label="Supprimer"
+                        onClick={() => handleDelete(dispensaire)}
+                        type="button"
+                        disabled={deleteMutation.isLoading}
+                      >
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m5 0H4"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-
-
       <style>
         {`
           @keyframes spin {
@@ -420,6 +334,6 @@ const Dispensaires = () => {
       </style>
     </div>
   );
-}
+};
 
 export default Dispensaires;
