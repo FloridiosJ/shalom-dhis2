@@ -114,6 +114,7 @@ async function remove(id) {
       deleteUser(id: $id) {
         success
         errors
+        message
       }
     }
   `;

@@ -82,7 +82,7 @@ const CreateOrEditUserModal = ({
   // Génération login (création uniquement)
   const handleGenerateLogin = () => {
     const digits = Math.floor(1000 + Math.random() * 9000); // 4 chiffres
-    setForm(f => ({ ...f, login: 'user' + digits }));
+    setForm(f => ({ ...f, login: '' + digits }));
   };
 
   // Génération mot de passe (création uniquement)
@@ -156,6 +156,10 @@ const CreateOrEditUserModal = ({
         dispensaireId: form.role === 'agent' ? form.dispensaireId : undefined,
         specialite: form.role === 'agent' ? form.specialite : undefined,
       };
+      // En création, retire isActive du payload
+      if (!isEdit) {
+        delete payload.isActive;
+      }
       // En édition, retire password si vide
       if (isEdit && !form.password) {
         delete payload.password;

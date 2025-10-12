@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import usersService from '../services/usersService';
 import dispensaireService from '../services/dispensaires'; // Import du service dispensaire
 import styles from './Users.module.css';
@@ -21,6 +22,10 @@ const Users = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   // Récupère la liste des utilisateurs
   const fetchUsers = () => {
@@ -53,6 +58,28 @@ const Users = () => {
   // Rafraîchir la liste après création ou modification
   const handleUserSaved = () => {
     fetchUsers();
+  };
+
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+    setDeleteError('');
+  };
+
+  const handleConfirmDelete = async () => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await usersService.remove(userToDelete.id);
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+      // Rafraîchir la liste
+      usersService.getAll().then(setUsers);
+    } catch (e) {
+      setDeleteError(e.message || 'Erreur lors de la suppression');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
@@ -137,7 +164,10 @@ const Users = () => {
                     >
                       Modifier
                     </button>
-                    <button className={`${styles.btn} ${styles.btnDelete}`}>
+                    <button
+                      className={`${styles.btn} ${styles.btnDelete}`}
+                      onClick={() => handleDeleteClick(u)}
+                    >
                       Supprimer
                     </button>
                   </td>
@@ -154,6 +184,15 @@ const Users = () => {
         onSaved={handleUserSaved}
         dispensaires={dispensaires}
         user={editingUser}
+      />
+      {/* Modale de confirmation de suppression */}
+      <ConfirmDeleteModal
+        open={deleteModalOpen}
+        onClose={() => { setDeleteModalOpen(false); setUserToDelete(null); }}
+        onConfirm={handleConfirmDelete}
+        user={userToDelete}
+        loading={deleteLoading}
+        error={deleteError}
       />
     </div>
   );

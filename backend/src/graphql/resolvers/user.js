@@ -411,6 +411,28 @@ export const userResolvers = {
           user: null
         };
       }
+    },
+
+    deleteUser: async (parent, { id }, { user }) => {
+      requireAuth(user);
+      requireRole(user, ['admin', 'manager']);
+      const { User } = await import('../../models/index.js');
+      const targetUser = await User.findByPk(id);
+      if (!targetUser) {
+        return {
+          success: false,
+          message: 'Utilisateur non trouvé',
+          errors: ['USER_NOT_FOUND'],
+          user: null
+        };
+      }
+      await targetUser.destroy();
+      return {
+        success: true,
+        message: 'Utilisateur supprimé avec succès',
+        errors: [],
+        user: null
+      };
     }
   }
 };
