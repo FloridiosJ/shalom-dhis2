@@ -10,6 +10,7 @@ import Organisations from "./pages/Organisations";
 import Unauthorized from "./components/Unauthorized";
 import DataEntries from "./pages/DataEntries";
 import Dispensaires from "./pages/Dispensaires";
+import Users from "./pages/Users";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +57,7 @@ function App() {
               path="/users"
               element={
                 <ProtectedRoute roles={["admin"]}>
-                  <Dashboard />
+                  <Users />
                 </ProtectedRoute>
               }
             />

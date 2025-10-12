@@ -74,7 +74,7 @@ const Dashboard = () => {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>
-            DHIS2 Shalom - Tableau de bord
+            DHIS2 Shalom
           </h1>
           
           <button
