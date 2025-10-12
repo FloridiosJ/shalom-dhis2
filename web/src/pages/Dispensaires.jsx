@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
+import CreateDispensaireModal from '../components/CreateDispensaireModal';
 
 const Dispensaires = () => {
   const [dispensaires, setDispensaires] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const navigate = useNavigate();
 
   // Récupère la liste des dispensaires (même logique que Users.jsx)
@@ -57,7 +58,7 @@ const Dispensaires = () => {
           </div>
           <button
             className={styles.actionBtn}
-            onClick={() => {/* ouvrir modal ajout */}}
+            onClick={() => setShowCreateModal(true)}
             type="button"
           >
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
@@ -134,6 +135,16 @@ const Dispensaires = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Affiche le modal si showCreateModal est true */}
+        <CreateDispensaireModal
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false);
+            fetchDispensaires(); // pour rafraîchir la liste après création
+          }}
+        />
       </div>
     </div>
   );

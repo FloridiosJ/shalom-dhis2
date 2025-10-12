@@ -60,20 +60,18 @@ async function create(dispensaireData) {
   const mutation = `
     mutation CreateDispensaire($input: CreateDispensaireInput!) {
       createDispensaire(input: $input) {
-        id
-        name
-        organisationId
-        organisation {
+        dispensaire {
           id
-          name
-          type
+          fullName
+          fileovana
+          synoda
         }
       }
     }
   `;
   const { data } = await api.post('/graphql', { query: mutation, variables: { input: dispensaireData } });
   if (data.errors) throw new Error(data.errors[0].message);
-  return data.data.createDispensaire;
+  return data.data.createDispensaire.dispensaire;
 }
 
 async function update(id, dispensaireData) {

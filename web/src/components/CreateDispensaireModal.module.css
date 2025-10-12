@@ -1,0 +1,138 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30,41,59,0.13);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(30,41,59,0.13);
+  padding: 2.2rem 2rem 2rem 2rem;
+  min-width: 320px;
+  max-width: 95vw;
+  width: 440px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  text-align: center;
+  color: #2563eb;
+}
+
+.errorMsg {
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 7px;
+  padding: 0.7em 1em;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  font-size: 1rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.input,
+select {
+  width: 100%;
+  padding: 0.85em 1em;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: #1e293b;
+  transition: border 0.18s;
+}
+.input:focus,
+select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.btnRow {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.2rem;
+}
+
+.cancelBtn {
+  background: #f1f5f9;
+  color: #334155;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 0.7em 1.5em;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-weight: 600;
+}
+.cancelBtn:hover,
+.cancelBtn:focus {
+  background: #e0e7ef;
+}
+
+.submitBtn {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.7em 1.5em;
+  cursor: pointer;
+  transition: background 0.18s;
+  min-width: 170px;
+}
+.submitBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+.submitBtn:hover,
+.submitBtn:focus {
+  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+}
+
+@media (max-width: 600px) {
+  .modal {
+    width: 98vw;
+    min-width: 0;
+    padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+  }
+  .btnRow {
+    flex-direction: column-reverse;
+    gap: 0.7rem;
+  }
+  .submitBtn, .cancelBtn {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+}
