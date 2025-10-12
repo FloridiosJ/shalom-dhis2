@@ -7,7 +7,9 @@ const SYNODA_OPTIONS = ["SPBM", "SPA", "SPMel", "SPSofia"];
 const CreateDispensaireModal = ({
   open,
   onClose,
-  onCreated,
+  onSaved,
+  dispensaire, // objet à éditer ou undefined pour création
+  isEdit = false,
 }) => {
   const [form, setForm] = useState({
     name: '',
@@ -21,13 +23,17 @@ const CreateDispensaireModal = ({
 
   useEffect(() => {
     if (open) {
-      setForm({ name: '', fileovana: '', synoda: '' });
+      setForm({
+        name: dispensaire?.name || '',
+        fileovana: dispensaire?.fileovana || '',
+        synoda: dispensaire?.synoda || '',
+      });
       setErrors({});
       setServerError('');
       setLoading(false);
       setTimeout(() => firstInputRef.current?.focus(), 100);
     }
-  }, [open]);
+  }, [open, dispensaire]);
 
   // Validation
   const validate = () => {
@@ -54,19 +60,33 @@ const CreateDispensaireModal = ({
     }
     setLoading(true);
     try {
-      // Prépare le payload pour la création
-      const payload = {
-        name: form.name,
-        fileovana: form.fileovana,
-        synoda: form.synoda,
-      };
-      // Appel du service
-      const res = await dispensaireService.create(payload);
-      if (res && res.id) {
-        onCreated && onCreated(res);
+      let res;
+      if (isEdit && dispensaire?.id) {
+        // Edition
+        const res = await dispensaireService.update(dispensaire.id, {
+          name: form.name,
+          fileovana: form.fileovana,
+          synoda: form.synoda,
+        });
+        if (res.success) {
+          onSaved && onSaved();
+          onClose && onClose();
+        } else {
+          setServerError(res.errors?.join(', ') || res.message || "Erreur lors de la modification");
+        }
+      } else {
+        // Création
+        res = await dispensaireService.create({
+          name: form.name,
+          fileovana: form.fileovana,
+          synoda: form.synoda,
+        });
+      }
+      if (res && (res.id || res.name)) {
+        onSaved && onSaved(res);
         onClose && onClose();
       } else {
-        setServerError("Erreur lors de la création du dispensaire");
+        setServerError("Erreur lors de l'enregistrement du dispensaire");
       }
     } catch (err) {
       setServerError(err.message || "Erreur serveur");
@@ -100,14 +120,13 @@ const CreateDispensaireModal = ({
         onClick={e => e.stopPropagation()}
       >
         <h2 className={styles.title}>
-          <svg width={26} height={26} fill="none" viewBox="0 0 24 24">
-            <rect x="4" y="4" width="16" height="16" rx="8" fill="#2563eb" opacity="0.15"/>
-            <rect x="6" y="6" width="12" height="12" rx="6" fill="#2563eb"/>
-          </svg>
-          Créer un dispensaire
+          {/* ...icône... */}
+          {isEdit ? "Modifier le dispensaire" : "Créer un dispensaire"}
         </h2>
         <div className={styles.subtitle}>
-          Remplissez les informations pour ajouter un dispensaire.
+          {isEdit
+            ? "Modifiez les informations du dispensaire."
+            : "Remplissez les informations pour ajouter un dispensaire."}
         </div>
         <div aria-live="polite" className={styles.errorZone}>
           {serverError && (
@@ -195,10 +214,12 @@ const CreateDispensaireModal = ({
               type="submit"
               disabled={loading}
               tabIndex={0}
-              aria-label="Créer le dispensaire"
+              aria-label={isEdit ? "Enregistrer les modifications" : "Créer le dispensaire"}
               className={styles.submitBtn}
             >
-              {loading ? 'Création...' : 'Créer le dispensaire'}
+              {loading
+                ? (isEdit ? "Enregistrement..." : "Création...")
+                : (isEdit ? "Enregistrer" : "Créer le dispensaire")}
             </button>
           </div>
         </form>

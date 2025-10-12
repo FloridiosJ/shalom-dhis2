@@ -74,22 +74,20 @@ async function create(dispensaireData) {
   return data.data.createDispensaire.dispensaire;
 }
 
-async function update(id, dispensaireData) {
+async function update(id, input) {
   const mutation = `
     mutation UpdateDispensaire($id: ID!, $input: UpdateDispensaireInput!) {
       updateDispensaire(id: $id, input: $input) {
-        id
-        name
-        organisationId
-        organisation {
-          id
-          name
-          type
-        }
+        success
+        errors
+        message
       }
     }
   `;
-  const { data } = await api.post('/graphql', { query: mutation, variables: { id, input: dispensaireData } });
+  const { data } = await api.post('/graphql', {
+    query: mutation,
+    variables: { id, input }
+  });
   if (data.errors) throw new Error(data.errors[0].message);
   return data.data.updateDispensaire;
 }

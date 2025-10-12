@@ -10,6 +10,8 @@ const Dispensaires = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [dispensaireToEdit, setDispensaireToEdit] = useState(null);
   const navigate = useNavigate();
 
   // Récupère la liste des dispensaires (même logique que Users.jsx)
@@ -37,6 +39,12 @@ const Dispensaires = () => {
     (d.synoda || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (d.fileovana || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Fonction pour ouvrir le modal d'édition avec les données du dispensaire sélectionné
+  const openEditModal = (dispensaire) => {
+    setDispensaireToEdit(dispensaire);
+    setShowEditModal(true);
+  };
 
   return (
     <div className={styles.pageBg}>
@@ -111,7 +119,10 @@ const Dispensaires = () => {
                       <button
                         className={styles.iconBtnEdit}
                         aria-label="Modifier"
-                        onClick={() => {/* ouvrir modal édition */}}
+                        onClick={() => {
+                          setDispensaireToEdit(dispensaire);
+                          setShowEditModal(true);
+                        }}
                         type="button"
                       >
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -136,14 +147,20 @@ const Dispensaires = () => {
           </table>
         </div>
 
-        {/* Affiche le modal si showCreateModal est true */}
+        {/* Affiche le modal de création si showCreateModal est true */}
         <CreateDispensaireModal
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-          onCreated={() => {
-            setShowCreateModal(false);
-            fetchDispensaires(); // pour rafraîchir la liste après création
-          }}
+          onSaved={fetchDispensaires}
+        />
+
+        {/* Affiche le modal d'édition si showEditModal est true */}
+        <CreateDispensaireModal
+          open={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSaved={fetchDispensaires}
+          dispensaire={dispensaireToEdit}
+          isEdit={true}
         />
       </div>
     </div>
