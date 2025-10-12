@@ -213,7 +213,6 @@ const CreateUserModal = ({
                 type="text"
                 value={form.login}
                 onChange={handleChange}
-                disabled={loading || form.role === 'agent'}
                 aria-label="Login"
                 tabIndex={0}
                 placeholder="Auto-généré ou personnalisé"
@@ -225,7 +224,6 @@ const CreateUserModal = ({
                 tabIndex={-1}
                 aria-label="Générer login"
                 onClick={handleGenerateLogin}
-                disabled={loading || form.role === 'agent'}
                 className={styles.genBtn}
               >Générer</button>
             </div>
