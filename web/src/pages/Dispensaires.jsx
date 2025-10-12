@@ -5,10 +5,7 @@ import styles from './Dispensaires.module.css';
 
 const Dispensaires = () => {
   const [dispensaires, setDispensaires] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [hoveredRow, setHoveredRow] = useState(null);
   const navigate = useNavigate();
 
   // Récupère la liste des dispensaires (même logique que Users.jsx)
@@ -16,7 +13,7 @@ const Dispensaires = () => {
     setLoading(true);
     try {
       const list = await dispensaireService.getAll();
-      setDispensaires(list); // et pas data?.dispensaires?.dispensaires
+      setDispensaires(list);
       setError('');
     } catch (e) {
       setError(e.message || 'Erreur lors du chargement');
@@ -28,15 +25,8 @@ const Dispensaires = () => {
 
   useEffect(() => {
     fetchDispensaires();
-    // eslint-disable-next-line
   }, []);
 
-  // Filtrer selon le nom, synoda ou fileovana
-  const filteredDispensaires = dispensaires.filter(d =>
-    d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (d.synoda || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (d.fileovana || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className={styles.pageBg}>
