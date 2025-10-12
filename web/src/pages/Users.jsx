@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';import usersService from '../services/usersService';
+import React, { useEffect, useState } from 'react';
+import usersService from '../services/usersService';
 import dispensaireService from '../services/dispensaires'; // Import du service dispensaire
 import styles from './Users.module.css';
-import CreateUserModal from '../components/CreateUserModal';
+import CreateOrEditUserModal from '../components/CreateOrEditUserModal';
 
 const UserIcon = ({ size = 32, color = "#2563eb" }) => (
   <svg width={size} height={size} fill="none" viewBox="0 0 24 24">
@@ -18,7 +19,8 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [hoveredRow, setHoveredRow] = useState(null);
-  const [showCreate, setShowCreate] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   // Récupère la liste des utilisateurs
   const fetchUsers = () => {
@@ -48,8 +50,8 @@ const Users = () => {
     // eslint-disable-next-line
   }, []);
 
-  // Rafraîchir la liste après création
-  const handleUserCreated = () => {
+  // Rafraîchir la liste après création ou modification
+  const handleUserSaved = () => {
     fetchUsers();
   };
 
@@ -69,7 +71,7 @@ const Users = () => {
           </div>
           <button
             className={styles.createBtn}
-            onClick={() => setShowCreate(true)}
+            onClick={() => { setEditingUser(null); setModalOpen(true); }}
             type="button"
           >
             + Créer un utilisateur
@@ -129,7 +131,10 @@ const Users = () => {
                     </span>
                   </td>
                   <td className={styles.td}>
-                    <button className={`${styles.btn} ${styles.btnEdit}`}>
+                    <button
+                      className={`${styles.btn} ${styles.btnEdit}`}
+                      onClick={() => { setEditingUser(u); setModalOpen(true); }}
+                    >
                       Modifier
                     </button>
                     <button className={`${styles.btn} ${styles.btnDelete}`}>
@@ -142,12 +147,13 @@ const Users = () => {
           </table>
         </div>
       </div>
-      {/* Modale création utilisateur */}
-      <CreateUserModal
-        open={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={handleUserCreated}
+      {/* Modale création / édition utilisateur */}
+      <CreateOrEditUserModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSaved={handleUserSaved}
         dispensaires={dispensaires}
+        user={editingUser}
       />
     </div>
   );

@@ -18,12 +18,14 @@ function randomString(length = 8) {
   return Math.random().toString(36).slice(-length);
 }
 
-const CreateUserModal = ({
+const CreateOrEditUserModal = ({
   open,
   onClose,
-  onCreated,
+  onSaved,
   dispensaires = [],
+  user = null,
 }) => {
+  const isEdit = !!user;
   const [form, setForm] = useState({
     email: '',
     login: '',
@@ -35,43 +37,60 @@ const CreateUserModal = ({
     dispensaireId: '',
     isActive: true,
   });
-
-  console.log('CreateUserModal dispensaires:', dispensaires);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const firstInputRef = useRef();
 
+  // Pré-remplir le formulaire si user existe
   useEffect(() => {
     if (open) {
-      setForm({
-        email: '',
-        login: '',
-        password: '',
-        nom: '',
-        prenom: '',
-        role: '',
-        specialite: '',
-        dispensaireId: '',
-        isActive: true,
-      });
+      if (isEdit && user) {
+        setForm({
+          email: user.email || '',
+          login: user.login || '',
+          password: '', // vide pour la sécurité
+          nom: user.nom || '',
+          prenom: user.prenom || '',
+          role: user.role || '',
+          specialite: user.specialite || '',
+          dispensaireId: user.dispensaireId || user.dispensaire?.id || '',
+          isActive: user.isActive !== undefined ? user.isActive : true,
+        });
+      } else {
+        setForm({
+          email: '',
+          login: '',
+          password: '',
+          nom: '',
+          prenom: '',
+          role: '',
+          specialite: '',
+          dispensaireId: '',
+          isActive: true,
+        });
+      }
       setErrors({});
       setServerError('');
       setLoading(false);
       setTimeout(() => firstInputRef.current?.focus(), 100);
     }
-  }, [open]);
+    // eslint-disable-next-line
+  }, [open, user]);
 
+  // Génération login (création uniquement)
   const handleGenerateLogin = () => {
     const digits = Math.floor(1000 + Math.random() * 9000); // 4 chiffres
-    setForm(f => ({ ...f, login: '' + digits.toString() }));
+    setForm(f => ({ ...f, login: 'user' + digits }));
   };
 
+  // Génération mot de passe (création uniquement)
   const handleGeneratePassword = () => {
     setForm(f => ({ ...f, password: randomString(10) }));
   };
 
+  // Dynamique spécialité/dispensaire selon rôle
   useEffect(() => {
     if (form.role === 'agent') {
       setForm(f => ({
@@ -89,6 +108,7 @@ const CreateUserModal = ({
     // eslint-disable-next-line
   }, [form.role]);
 
+  // Validation
   const validate = () => {
     const e = {};
     if (!form.email) e.email = 'Email requis';
@@ -100,9 +120,17 @@ const CreateUserModal = ({
       if (!form.specialite) e.specialite = 'Spécialité requise';
       if (!form.dispensaireId) e.dispensaireId = 'Dispensaire requis';
     }
+    // Validation du mot de passe
+    if (!isEdit && !form.password) {
+      e.password = 'Mot de passe requis';
+    }
+    if (form.password && form.password.length < 6) {
+      e.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    }
     return e;
   };
 
+  // Changement de champ
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({
@@ -111,6 +139,7 @@ const CreateUserModal = ({
     }));
   };
 
+  // Soumission
   const handleSubmit = async e => {
     e.preventDefault();
     setErrors({});
@@ -122,18 +151,26 @@ const CreateUserModal = ({
     }
     setLoading(true);
     try {
-      // Retire isActive du payload envoyé à l'API
-      const { isActive, ...payload } = {
+      const payload = {
         ...form,
         dispensaireId: form.role === 'agent' ? form.dispensaireId : undefined,
         specialite: form.role === 'agent' ? form.specialite : undefined,
       };
-      const res = await usersService.create(payload);
+      // En édition, retire password si vide
+      if (isEdit && !form.password) {
+        delete payload.password;
+      }
+      let res;
+      if (isEdit) {
+        res = await usersService.update(user.id, payload);
+      } else {
+        res = await usersService.create(payload);
+      }
       if (res.success) {
-        onCreated && onCreated(res.user);
+        onSaved && onSaved(res.user);
         onClose && onClose();
       } else {
-        setServerError(res.errors?.join(', ') || "Erreur lors de la création");
+        setServerError(res.errors?.join(', ') || "Erreur lors de l'enregistrement");
       }
     } catch (err) {
       setServerError(err.message || "Erreur serveur");
@@ -163,15 +200,14 @@ const CreateUserModal = ({
             <rect x="4" y="15" width="16" height="6" rx="3" fill="#2563eb" opacity="0.15"/>
             <rect x="6" y="16" width="12" height="4" rx="2" fill="#2563eb"/>
           </svg>
-          Créer un utilisateur
+          {isEdit ? "Modifier l'utilisateur" : "Créer un utilisateur"}
         </h2>
         <div className={styles.subtitle}>
-          Remplissez les informations pour ajouter un utilisateur au système.
+          {isEdit
+            ? "Modifiez les informations de l'utilisateur puis enregistrez."
+            : "Remplissez les informations pour ajouter un utilisateur au système."}
         </div>
-        <div
-          aria-live="polite"
-          className={styles.errorZone}
-        >
+        <div aria-live="polite" className={styles.errorZone}>
           {serverError && (
             <div className={styles.errorMsg}>
               {serverError}
@@ -193,7 +229,7 @@ const CreateUserModal = ({
               required
               value={form.email}
               onChange={handleChange}
-              disabled={loading}
+              disabled={loading || isEdit}
               aria-label="Email"
               tabIndex={0}
               placeholder="exemple@domaine.com"
@@ -218,14 +254,17 @@ const CreateUserModal = ({
                 placeholder="Auto-généré ou personnalisé"
                 className={`${styles.input} ${errors.login ? styles.inputError : ''}`}
                 style={{ flex: 1 }}
+                disabled={loading || isEdit}
               />
-              <button
-                type="button"
-                tabIndex={-1}
-                aria-label="Générer login"
-                onClick={handleGenerateLogin}
-                className={styles.genBtn}
-              >Générer</button>
+              {!isEdit && (
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label="Générer login"
+                  onClick={handleGenerateLogin}
+                  className={styles.genBtn}
+                >Générer</button>
+              )}
             </div>
             {errors.login && <div className={styles.errorField}>{errors.login}</div>}
           </div>
@@ -244,18 +283,20 @@ const CreateUserModal = ({
                 disabled={loading}
                 aria-label="Mot de passe"
                 tabIndex={0}
-                placeholder="Mot de passe sécurisé"
+                placeholder={isEdit ? "Laisser vide pour ne pas changer" : "Mot de passe sécurisé"}
                 className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
                 style={{ flex: 1 }}
               />
-              <button
-                type="button"
-                tabIndex={-1}
-                aria-label="Générer mot de passe"
-                onClick={handleGeneratePassword}
-                disabled={loading}
-                className={styles.genBtn}
-              >Générer</button>
+              {!isEdit && (
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label="Générer mot de passe"
+                  onClick={handleGeneratePassword}
+                  disabled={loading}
+                  className={styles.genBtn}
+                >Générer</button>
+              )}
             </div>
             {errors.password && <div className={styles.errorField}>{errors.password}</div>}
           </div>
@@ -359,12 +400,14 @@ const CreateUserModal = ({
                 required
                 value={form.dispensaireId}
                 onChange={handleChange}
-                disabled={loading}
+                disabled={loading || dispensaires.length === 0}
                 aria-label="Dispensaire"
                 tabIndex={0}
                 className={`${styles.select} ${errors.dispensaireId ? styles.selectError : ''}`}
               >
-                <option value="">Sélectionner un dispensaire</option>
+                <option value="">
+                  {dispensaires.length === 0 ? 'Chargement...' : 'Sélectionner un dispensaire'}
+                </option>
                 {dispensaires.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
@@ -396,17 +439,17 @@ const CreateUserModal = ({
               onClick={onClose}
               disabled={loading}
               tabIndex={0}
-              aria-label="Annuler la création"
+              aria-label="Annuler"
               className={styles.cancelBtn}
             >Annuler</button>
             <button
               type="submit"
               disabled={loading}
               tabIndex={0}
-              aria-label="Créer l'utilisateur"
+              aria-label={isEdit ? "Enregistrer" : "Créer l'utilisateur"}
               className={styles.submitBtn}
             >
-              {loading ? 'Création...' : "Créer l'utilisateur"}
+              {loading ? (isEdit ? 'Enregistrement...' : 'Création...') : (isEdit ? 'Enregistrer' : "Créer l'utilisateur")}
             </button>
           </div>
         </form>
@@ -415,4 +458,4 @@ const CreateUserModal = ({
   );
 };
 
-export default CreateUserModal;
+export default CreateOrEditUserModal;
