@@ -12,6 +12,7 @@ export const patientTypes = gql`
   type Patient {
     id: ID!
     nom: String!
+    prenom: String        # <-- Ajouté, nullable comme dans le modèle
     age: Int!
     sexe: String!
     religion: Religion!
@@ -37,6 +38,7 @@ export const patientTypes = gql`
   # Input pour création de patient
   input CreatePatientInput {
     nom: String!
+    prenom: String      # <-- Ajouté, nullable comme dans le modèle
     age: Int!
     sexe: String!
     religion: Religion!
@@ -47,6 +49,7 @@ export const patientTypes = gql`
   # Input pour modification de patient
   input UpdatePatientInput {
     nom: String
+    prenom: String      # <-- Ajouté, nullable comme dans le modèle
     age: Int
     sexe: String
     religion: Religion

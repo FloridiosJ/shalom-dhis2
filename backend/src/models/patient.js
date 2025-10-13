@@ -49,6 +49,11 @@ const Patient = sequelize.define('Patient', {
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
+  },
+  numeroPatient: {
+    type: DataTypes.STRING,
+    allowNull: false, // important pour respecter le schéma GraphQL !
+    unique: true
   }
 }, {
   tableName: 'patients',
