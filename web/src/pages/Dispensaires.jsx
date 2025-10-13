@@ -38,19 +38,6 @@ const Dispensaires = () => {
     fetchDispensaires();
   }, []);
 
-  // Filtrer selon le nom, synoda ou fileovana
-  const filteredDispensaires = dispensaires.filter(d =>
-    d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (d.synoda || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (d.fileovana || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Fonction pour ouvrir le modal d'édition avec les données du dispensaire sélectionné
-  const openEditModal = (dispensaire) => {
-    setDispensaireToEdit(dispensaire);
-    setShowEditModal(true);
-  };
-
   const openDeleteModal = (dispensaire) => {
     setDispensaireToDelete(dispensaire);
     setDeleteError('');
