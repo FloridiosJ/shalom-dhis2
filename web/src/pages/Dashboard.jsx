@@ -3,15 +3,17 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import DashboardCard from '../components/DashboardCard';
 import {
-  OrganisationIcon,
   DispensaireIcon,
   DataIcon,
   ReportIcon,
   UserIcon,
   SettingsIcon,
-  LogoutIcon
+  LogoutIcon,
+  PatientIcon
 } from '../components/DashboardIcons';
 import styles from './Dashboard.module.css';
+
+
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -19,12 +21,12 @@ const Dashboard = () => {
 
   const cardData = [
     {
-      title: 'Organisations',
-      subtitle: 'Module principal',
-      description: 'Gérer les organisations, la hiérarchie administrative et les unités organisationnelles du système de santé',
-      icon: <OrganisationIcon />,
+      title: 'Patients',
+      subtitle: 'Gérer les patients, informations personnelles et dossiers de santé',
+      description: 'Gérer les patients, informations personnelles et dossiers de santé',
+      icon: <PatientIcon />,
       color: 'blue',
-      path: '/organisations'
+      path: '/patients'
     },
     {
       title: 'Dispensaires',
