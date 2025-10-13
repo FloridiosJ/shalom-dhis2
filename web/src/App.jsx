@@ -11,6 +11,7 @@ import Unauthorized from "./components/Unauthorized";
 import DataEntries from "./pages/DataEntries";
 import Dispensaires from "./pages/Dispensaires";
 import Users from "./pages/Users";
+import Patients from "./pages/Patients";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,15 @@ function App() {
               element={
                 <ProtectedRoute roles={["admin"]}>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/patients"
+              element={
+                <ProtectedRoute roles={["admin", "manager", "user"]}>
+                  <Patients />
                 </ProtectedRoute>
               }
             />
