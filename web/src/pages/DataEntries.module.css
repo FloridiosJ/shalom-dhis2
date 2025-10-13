@@ -1,7 +1,10 @@
 .pageBg {
   min-height: 100vh;
-  background: linear-gradient(135deg, #3b82f6 0%, #a78bfa 100%);
-  padding: 2rem 0;
+  width: 100vw;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
+  padding: 0;
+  box-sizing: border-box;
 }
 .card {
   background: #fff;

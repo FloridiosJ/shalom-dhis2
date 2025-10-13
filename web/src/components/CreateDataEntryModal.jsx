@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import styles from "../pages/DataEntries.module.css";
+import styles from "./CreateDataEntryModal.module.css";
 
 const CreateDataEntryModal = ({
   open,
