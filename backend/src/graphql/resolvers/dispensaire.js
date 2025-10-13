@@ -230,47 +230,33 @@ export const dispensaireResolvers = {
     deleteDispensaire: async (parent, { id }, { user }) => {
       requireAuth(user);
       requireRole(user, ['admin']);
-      
-      try {
-        const { Dispensaire, User } = await import('../../models/index.js');
-        
-        const dispensaire = await Dispensaire.findByPk(id);
-        if (!dispensaire) {
-          return {
-            success: false,
-            message: 'Dispensaire non trouvé',
-            errors: ['DISPENSAIRE_NOT_FOUND']
-          };
-        }
-        
-        // Vérifier s'il y a des utilisateurs associés
-        const userCount = await User.count({ where: { dispensaireId: id } });
-        if (userCount > 0) {
-          return {
-            success: false,
-            message: `Impossible de supprimer : ${userCount} utilisateur(s) associé(s)`,
-            errors: ['HAS_ASSOCIATED_USERS']
-          };
-        }
-        
-        // Soft delete
-        await dispensaire.update({ isActive: false });
-        
-        return {
-          dispensaire: await Dispensaire.findByPk(id),
-          success: true,
-          message: 'Dispensaire désactivé avec succès',
-          errors: []
-        };
-        
-      } catch (error) {
-        console.error('❌ Erreur suppression dispensaire:', error);
+      const { Dispensaire, User } = await import('../../models/index.js');
+      const dispensaire = await Dispensaire.findByPk(id);
+      if (!dispensaire) {
         return {
           success: false,
-          message: 'Erreur lors de la suppression',
-          errors: [error.message]
+          message: 'Dispensaire non trouvé',
+          errors: ['DISPENSAIRE_NOT_FOUND'],
+          dispensaire: null
         };
       }
+      // Vérifier s'il y a des utilisateurs associés
+      const userCount = await User.count({ where: { dispensaireId: id } });
+      if (userCount > 0) {
+        return {
+          success: false,
+          message: `Impossible de supprimer : ${userCount} utilisateur(s) associé(s)`,
+          errors: ['HAS_ASSOCIATED_USERS'],
+          dispensaire: null
+        };
+      }
+      await dispensaire.destroy(); // suppression réelle (hard delete)
+      return {
+        success: true,
+        message: 'Dispensaire supprimé avec succès',
+        errors: [],
+        dispensaire: null
+      };
     }
   }
 };

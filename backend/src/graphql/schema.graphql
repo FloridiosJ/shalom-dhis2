@@ -178,11 +178,17 @@ type Mutation {
   # Dispensaire mutations
   createDispensaire(input: CreateDispensaireInput!): Dispensaire!
   updateDispensaire(id: ID!, input: UpdateDispensaireInput!): Dispensaire!
-  deleteDispensaire(id: ID!): Boolean!
+  deleteDispensaire(id: ID!): DeleteDispensaireResponse!
 
   # Data entry mutations
   createDataEntry(input: CreateDataEntryInput!): DataEntry!
   updateDataEntry(id: ID!, input: UpdateDataEntryInput!): DataEntry!
   deleteDataEntry(id: ID!): Boolean!
   syncDataEntries: SyncResult!
+}
+
+type DeleteDispensaireResponse {
+  success: Boolean!
+  errors: [String!]
+  message: String
 }

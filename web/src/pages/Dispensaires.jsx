@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
 import CreateDispensaireModal from '../components/CreateDispensaireModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
 const Dispensaires = () => {
   const [dispensaires, setDispensaires] = useState([]);
@@ -11,7 +12,11 @@ const Dispensaires = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [dispensaireToEdit, setDispensaireToEdit] = useState(null);
+  const [dispensaireToDelete, setDispensaireToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
 
   // Récupère la liste des dispensaires (même logique que Users.jsx)
@@ -44,6 +49,27 @@ const Dispensaires = () => {
   const openEditModal = (dispensaire) => {
     setDispensaireToEdit(dispensaire);
     setShowEditModal(true);
+  };
+
+  const openDeleteModal = (dispensaire) => {
+    setDispensaireToDelete(dispensaire);
+    setDeleteError('');
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await dispensaireService.remove(dispensaireToDelete.id);
+      setShowDeleteModal(false);
+      setDispensaireToDelete(null);
+      fetchDispensaires();
+    } catch (e) {
+      setDeleteError(e.message || "Erreur lors de la suppression");
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
@@ -132,7 +158,7 @@ const Dispensaires = () => {
                       <button
                         className={styles.iconBtnDelete}
                         aria-label="Supprimer"
-                        onClick={() => {/* suppression */}}
+                        onClick={() => openDeleteModal(dispensaire)}
                         type="button"
                       >
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -161,6 +187,19 @@ const Dispensaires = () => {
           onSaved={fetchDispensaires}
           dispensaire={dispensaireToEdit}
           isEdit={true}
+        />
+
+        <ConfirmDeleteModal
+          open={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          user={{
+            nom: dispensaireToDelete?.name,
+            prenom: '',
+            email: dispensaireToDelete?.fileovana
+          }}
+          loading={deleteLoading}
+          error={deleteError}
         />
       </div>
     </div>
