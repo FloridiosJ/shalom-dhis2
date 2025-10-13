@@ -203,14 +203,14 @@ const Patients = () => {
         />
 
         {/* Modal édition (structure similaire, à adapter si besoin) */}
-        {/* <CreatePatientModal
+        <CreatePatientModal
           open={showEditModal}
           onClose={() => setShowEditModal(false)}
           onSaved={fetchPatients}
           dispensaires={dispensaires}
           patient={patientToEdit}
           isEdit={true}
-        /> */}
+        />
 
         <ConfirmDeleteModal
           open={showDeleteModal}

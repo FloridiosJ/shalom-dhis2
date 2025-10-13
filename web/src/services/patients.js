@@ -93,17 +93,29 @@ async function update(id, patientData) {
   const mutation = `
     mutation UpdatePatient($id: ID!, $input: UpdatePatientInput!) {
       updatePatient(id: $id, input: $input) {
-        success
         errors
+        success
+        message
         patient {
-          ${patientFields}
+          id
+          nom
+          prenom
+          displayName
+          age
+          categorieAge
+          isMineur
+          isActive
+          village
+          religion
+          sexe
         }
       }
     }
   `;
   const variables = { id, input: patientData };
   const response = await client.post('', { query: mutation, variables });
-  return handleGraphQLErrors(response).updatePatient;
+  if (response.data.errors) throw new Error(response.data.errors[0].message || 'Erreur GraphQL');
+  return response.data.data.updatePatient;
 }
 
 // 5. Suppression patient

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import patientService from '../services/patients';
-import styles from './CreateUserModal.module.css'; // Réutilise le style utilisateur
+import styles from './CreateUserModal.module.css';
 
 const RELIGIONS = ["Kristianina", "Musulman", "traditionnelle"];
 const SEXES = [
@@ -8,7 +8,14 @@ const SEXES = [
   { label: "Femelle", value: "F" }
 ];
 
-const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
+const PatientModal = ({
+  open,
+  onClose,
+  onSaved,
+  dispensaires,
+  patient,      // undefined pour création, objet pour édition
+  isEdit = false
+}) => {
   const [form, setForm] = useState({
     nom: '',
     prenom: '',
@@ -26,20 +33,20 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
   useEffect(() => {
     if (open) {
       setForm({
-        nom: '',
-        prenom: '',
-        age: '',
-        sexe: '',
-        religion: '',
-        village: '',
-        dispensaireId: ''
+        nom: patient?.nom || '',
+        prenom: patient?.prenom || '',
+        age: patient?.age?.toString() || '',
+        sexe: patient?.sexe || '',
+        religion: patient?.religion || '',
+        village: patient?.village || '',
+        dispensaireId: patient?.dispensaire?.id || ''
       });
       setErrors({});
       setServerError('');
       setLoading(false);
       setTimeout(() => firstInputRef.current?.focus(), 100);
     }
-  }, [open]);
+  }, [open, patient]);
 
   const validate = () => {
     const e = {};
@@ -69,12 +76,24 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
     }
     setLoading(true);
     try {
-      await patientService.create({
-        ...form,
-        age: parseInt(form.age, 10)
-      });
-      onSaved && onSaved();
-      onClose && onClose();
+      let res;
+      if (isEdit && patient?.id) {
+        res = await patientService.update(patient.id, {
+          ...form,
+          age: parseInt(form.age, 10)
+        });
+      } else {
+        res = await patientService.create({
+          ...form,
+          age: parseInt(form.age, 10)
+        });
+      }
+      if (res.success) {
+        onSaved && onSaved();
+        onClose && onClose();
+      } else {
+        setServerError(res.errors?.join(', ') || res.message || "Erreur lors de l'enregistrement");
+      }
     } catch (err) {
       setServerError(err.message || "Erreur serveur");
     } finally {
@@ -87,7 +106,9 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
   return (
     <div className={styles.overlay} aria-modal="true" role="dialog" tabIndex={-1} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <h2 className={styles.title}>Ajouter un patient</h2>
+        <h2 className={styles.title}>
+          {isEdit ? "Modifier le patient" : "Ajouter un patient"}
+        </h2>
         {serverError && <div className={styles.errorMsg}>{serverError}</div>}
         <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
           <div className={styles.formGroup}>
@@ -213,7 +234,9 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
               className={styles.submitBtn}
               disabled={loading}
             >
-              {loading ? "Création..." : "Créer le patient"}
+              {loading
+                ? (isEdit ? "Enregistrement..." : "Création...")
+                : (isEdit ? "Enregistrer" : "Créer le patient")}
             </button>
           </div>
         </form>
@@ -222,4 +245,4 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
   );
 };
 
-export default CreatePatientModal;
+export default PatientModal;
