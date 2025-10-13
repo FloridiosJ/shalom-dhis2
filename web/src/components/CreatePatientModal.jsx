@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import patientService from '../services/patients';
 import styles from './CreateUserModal.module.css'; // Réutilise le style utilisateur
 
 const RELIGIONS = ["Kristianina", "Musulman", "traditionnelle"];
-const SEXES = ["M", "F"];
+const SEXES = [
+  { label: "Male", value: "M" },
+  { label: "Femelle", value: "F" }
+];
 
 const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
   const [form, setForm] = useState({
@@ -65,8 +69,7 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
     }
     setLoading(true);
     try {
-      // Appel mutation GraphQL via patientService
-      await window.patientService.create({
+      await patientService.create({
         ...form,
         age: parseInt(form.age, 10)
       });
@@ -142,7 +145,7 @@ const CreatePatientModal = ({ open, onClose, onSaved, dispensaires }) => {
             >
               <option value="">Sélectionner…</option>
               {SEXES.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
             {errors.sexe && <div className={styles.errorField}>{errors.sexe}</div>}
