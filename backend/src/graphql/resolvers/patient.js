@@ -262,6 +262,28 @@ export const patientResolvers = {
           errors: [error.message]
         };
       }
+    },
+
+    deletePatient: async (parent, { id }, { user }) => {
+      requireAuth(user);
+      requireRole(user, ['admin', 'manager']);
+      const { Patient } = await import('../../models/index.js');
+      const targetPatient = await Patient.findByPk(id);
+      if (!targetPatient) {
+        return {
+          success: false,
+          message: 'Patient non trouvé',
+          errors: ['PATIENT_NOT_FOUND'],
+          patient: null
+        };
+      }
+      await targetPatient.destroy();
+      return {
+        success: true,
+        message: 'Patient supprimé avec succès',
+        errors: [],
+        patient: null
+      };
     }
   }
 };

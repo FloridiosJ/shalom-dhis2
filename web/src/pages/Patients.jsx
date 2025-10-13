@@ -64,7 +64,7 @@ const Patients = () => {
       await patientService.remove(patientToDelete.id);
       setShowDeleteModal(false);
       setPatientToDelete(null);
-      fetchPatients();
+      fetchPatients(); // rafraîchir la liste
     } catch (e) {
       setDeleteError(e.message || "Erreur lors de la suppression");
     } finally {
@@ -179,7 +179,11 @@ const Patients = () => {
                       <button
                         className={styles.iconBtnDelete}
                         aria-label="Supprimer"
-                        onClick={() => openDeleteModal(patient)}
+                        onClick={() => {
+                          setPatientToDelete(patient);
+                          setDeleteError('');
+                          setShowDeleteModal(true);
+                        }}
                         type="button"
                       >
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -219,7 +223,7 @@ const Patients = () => {
           user={{
             nom: patientToDelete?.nom,
             prenom: patientToDelete?.prenom,
-            email: patientToDelete?.numeroPatient
+            email: patientToDelete?.numeroPatient // ou autre info si besoin
           }}
           loading={deleteLoading}
           error={deleteError}
