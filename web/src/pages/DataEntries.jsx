@@ -5,6 +5,7 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import dataEntryService from "../services/dataEntries";
 import patientService from "../services/patients";
 import dispensaireService from "../services/dispensaires";
+import { useNavigate } from 'react-router-dom';
 
 const DataEntries = () => {
   const [dataEntries, setDataEntries] = useState([]);
@@ -19,6 +20,7 @@ const DataEntries = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAll();
@@ -80,7 +82,7 @@ const DataEntries = () => {
     <div className={styles.pageBg}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <button className={styles.actionBtn} onClick={() => window.location.href = "/dashboard"}>
+          <button className={styles.actionBtn} onClick={() => navigate('/dashboard')}>
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
