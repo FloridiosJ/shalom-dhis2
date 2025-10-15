@@ -13,9 +13,9 @@
   border-radius: 1rem;
   box-shadow: 0 8px 32px #0002;
   padding: 2rem;
-  min-width: 340px;
-  max-width: 95vw;
-  width: 400px;
+  min-width: 400px;      /* augmenté */
+  max-width: 600px;      /* augmenté */
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   outline: none;
@@ -116,13 +116,15 @@ textarea:focus {
   background: #fff;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
-  margin-top: 0.25rem;
+  top: 100%;           /* Affiche juste sous l'input */
+  left: 0;
   width: 100%;
   box-shadow: 0 4px 16px #0001;
   max-height: 180px;
   overflow-y: auto;
   list-style: none;
   padding: 0;
+  margin-top: 0.25rem; /* Optionnel, petit espace sous l'input */
 }
 
 .autocompleteItem {
