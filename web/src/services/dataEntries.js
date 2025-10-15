@@ -99,7 +99,6 @@ async function remove(id) {
   `;
   const variables = { id };
   const response = await client.post('', { query: mutation, variables });
-  console.log("Response from deleteDataEntry:", response.data);
   const res = handleGraphQLErrors(response).deleteDataEntry;
   if (!res.success) throw new Error(res.errors?.join(', ') || "Erreur suppression");
   return res;

@@ -29,7 +29,7 @@ const CreateDataEntryModal = ({
       setForm({
         dateConsultation: initialData?.dateConsultation
           ? initialData.dateConsultation.slice(0, 16)
-          : "",
+          : new Date().toISOString().slice(0, 16), // <-- date/heure actuelle par défaut
         patientId: initialData?.patient?.id || "",
         dispensaireId: initialData?.dispensaire?.id || "",
         diagnostic: initialData?.diagnostic || "",
