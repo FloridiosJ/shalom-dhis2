@@ -112,7 +112,7 @@ export const dataEntryResolvers = {
         where: whereClause,
         include: [
           { model: Patient, as: 'patient' },
-          { model: User, as: 'user' },
+          { model: User, as: 'createdBy' },
           { model: Dispensaire, as: 'dispensaire' }
         ],
         order,
