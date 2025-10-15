@@ -147,7 +147,7 @@ export const dataEntryResolvers = {
         where: { patientId },
         include: [
           { model: Patient, as: 'patient' },
-          { model: User, as: 'user' },
+          { model: User, as: 'createdBy' },
           { model: Dispensaire, as: 'dispensaire' }
         ],
         order: [['dateConsultation', 'DESC']],
@@ -328,7 +328,7 @@ export const dataEntryResolvers = {
         const updatedDataEntry = await DataEntry.findByPk(id, {
           include: [
             { model: Patient, as: 'patient' },
-            { model: User, as: 'user' },
+            { model: User, as: 'createdBy' },
             { model: Dispensaire, as: 'dispensaire' }
           ]
         });
@@ -400,6 +400,39 @@ export const dataEntryResolvers = {
         return {
           success: false,
           message: 'Erreur lors de la completion',
+          errors: [error.message]
+        };
+      }
+    },
+
+    deleteDataEntry: async (parent, { id }, { user }) => {
+      requireAuth(user);
+      try {
+        const { DataEntry } = await import('../../models/index.js');
+        const dataEntry = await DataEntry.findByPk(id);
+        if (!dataEntry) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: 'Consultation non trouvée',
+            errors: ['DATA_ENTRY_NOT_FOUND']
+          };
+        }
+        // Vérification des permissions ici si besoin
+
+        await dataEntry.destroy();
+
+        return {
+          dataEntry: null,
+          success: true,
+          message: 'Consultation supprimée avec succès',
+          errors: []
+        };
+      } catch (error) {
+        return {
+          dataEntry: null,
+          success: false,
+          message: 'Erreur lors de la suppression',
           errors: [error.message]
         };
       }

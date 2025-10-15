@@ -52,6 +52,7 @@ export const resolvers = {
     // DataEntry mutations - SUPPRIMER les mutations non définies
     createDataEntry: dataEntryResolvers.Mutation?.createDataEntry,
     updateDataEntry: dataEntryResolvers.Mutation?.updateDataEntry,
+    deleteDataEntry: dataEntryResolvers.Mutation?.deleteDataEntry,
     // ❌ SUPPRIMER: completeConsultation: dataEntryResolvers.Mutation?.completeConsultation,
     
     // Event mutations

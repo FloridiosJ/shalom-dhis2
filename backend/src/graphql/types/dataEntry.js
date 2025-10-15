@@ -48,6 +48,8 @@ export const dataEntryTypes = gql`
     dateConsultation: DateTime
     status: ConsultationStatus
     notes: String
+    patientId: ID 
+    dispensaireId: ID
   }
 
   # Réponse de création/modification d'entrée de données
