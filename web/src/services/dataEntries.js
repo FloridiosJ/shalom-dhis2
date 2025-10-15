@@ -1,9 +1,27 @@
 import axios from "axios";
+
 const API_URL = import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql';
-const client = axios.create({ baseURL: API_URL, headers: { 'Content-Type': 'application/json' } });
+
+const client = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Ajout du token si présent
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth-token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 function handleGraphQLErrors(response) {
-  if (response.data.errors) throw new Error(response.data.errors[0].message || 'Erreur GraphQL');
+  if (response.data.errors) {
+    throw new Error(response.data.errors[0].message || 'Erreur GraphQL');
+  }
   return response.data.data;
 }
 
@@ -14,12 +32,13 @@ const entryFields = `
   prescription
   notes
   dispensaire { id name }
-  patient { id nom prenom }
+  patient { id nom prenom displayName }
 `;
 
-export async function getAll() {
+// 1. Liste des consultations
+async function getAll() {
   const query = `
-    query {
+    query dataEntries {
       dataEntries {
         dataEntries {
           ${entryFields}
@@ -31,7 +50,8 @@ export async function getAll() {
   return handleGraphQLErrors(response).dataEntries.dataEntries;
 }
 
-export async function create(input) {
+// 2. Création consultation
+async function create(input) {
   const mutation = `
     mutation CreateDataEntry($input: CreateDataEntryInput!) {
       createDataEntry(input: $input) {
@@ -48,7 +68,8 @@ export async function create(input) {
   return res.dataEntry;
 }
 
-export async function update(id, input) {
+// 3. Mise à jour consultation
+async function update(id, input) {
   const mutation = `
     mutation UpdateDataEntry($id: ID!, $input: UpdateDataEntryInput!) {
       updateDataEntry(id: $id, input: $input) {
@@ -65,7 +86,8 @@ export async function update(id, input) {
   return res.dataEntry;
 }
 
-export async function remove(id) {
+// 4. Suppression consultation
+async function remove(id) {
   const mutation = `
     mutation DeleteDataEntry($id: ID!) {
       deleteDataEntry(id: $id) {
@@ -82,4 +104,9 @@ export async function remove(id) {
   return res;
 }
 
-export default { getAll, create, update, remove };
+export default {
+  getAll,
+  create,
+  update,
+  remove,
+};
