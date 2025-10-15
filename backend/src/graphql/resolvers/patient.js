@@ -176,7 +176,9 @@ export const patientResolvers = {
         }
         // Générer un numeroPatient unique si non fourni
         if (!input.numeroPatient) {
-          input.numeroPatient = `PAT-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+          const year = String(new Date().getFullYear()).slice(-2); // ex : "25"
+          const rand = Math.floor(1000 + Math.random() * 9000); // 4 chiffres aléatoires
+          input.numeroPatient = `PAT-${year}${rand}`;
         }
         // Créer le patient (inclure prenom si fourni)
         const patient = await Patient.create({
