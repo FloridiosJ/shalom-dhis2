@@ -22,6 +22,8 @@ const CreateDataEntryModal = ({
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const firstInputRef = useRef();
 
   useEffect(() => {
@@ -106,27 +108,85 @@ const CreateDataEntryModal = ({
             />
             {errors.dateConsultation && <div className={styles.errorField}>{errors.dateConsultation}</div>}
           </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="patientId" className={styles.label}>
-              Patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+           <div className={styles.formGroup}>
+            <label htmlFor="numeroPatient" className={styles.label}>
+              Numéro patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
             </label>
-            <select
-              id="patientId"
-              name="patientId"
+            <input
+              id="numeroPatient"
+              name="numeroPatient"
               className={styles.input}
-              value={form.patientId}
-              onChange={handleChange}
-              required
+              value={form.numeroPatient || ""}
+              onChange={e => {
+                const numero = e.target.value;
+                setForm(f => {
+                  const patient = patients.find(p => p.numeroPatient === numero);
+                  return {
+                    ...f,
+                    numeroPatient: numero,
+                    patientId: patient ? patient.id : "",
+                    fullName: patient ? `${patient.nom} ${patient.prenom}` : "",
+                  };
+                });
+              }}
+              autoComplete="off"
               disabled={loading}
-            >
-              <option value="">Sélectionner…</option>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nom} {p.prenom}
-                </option>
-              ))}
-            </select>
-            {errors.patientId && <div className={styles.errorField}>{errors.patientId}</div>}
+            />
+          </div>
+          <div className={styles.formGroup} style={{ position: "relative" }}>
+            <label htmlFor="fullName" className={styles.label}>
+              Nom et prénom <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+            </label>
+            <input
+              id="fullName"
+              name="fullName"
+              className={styles.input}
+              value={form.fullName || ""}
+              onChange={e => {
+                const value = e.target.value;
+                const filtered = patients.filter(
+                  p =>
+                    `${p.nom} ${p.prenom}`.toLowerCase().includes(value.toLowerCase()) ||
+                    p.nom.toLowerCase().includes(value.toLowerCase()) ||
+                    p.prenom.toLowerCase().includes(value.toLowerCase())
+                );
+                setForm(f => ({
+                  ...f,
+                  fullName: value,
+                  patientId: filtered.length === 1 ? filtered[0].id : "",
+                  numeroPatient: filtered.length === 1 ? filtered[0].numeroPatient : "",
+                }));
+                setShowAutocomplete(filtered.length > 0 && value.length > 0);
+                setFilteredPatients(filtered);
+              }}
+              autoComplete="off"
+              disabled={loading}
+              onFocus={() => {
+                if (form.fullName && filteredPatients?.length > 0) setShowAutocomplete(true);
+              }}
+              onBlur={() => setTimeout(() => setShowAutocomplete(false), 200)}
+            />
+            {showAutocomplete && (
+              <ul className={styles.autocompleteList}>
+                {filteredPatients.map((p, idx) => (
+                  <li
+                    key={p.id}
+                    className={styles.autocompleteItem}
+                    onMouseDown={() => {
+                      setForm(f => ({
+                        ...f,
+                        fullName: `${p.nom} ${p.prenom}`,
+                        patientId: p.id,
+                        numeroPatient: p.numeroPatient,
+                      }));
+                      setShowAutocomplete(false);
+                    }}
+                  >
+                    {p.nom} {p.prenom} <span style={{ color: "#64748b", marginLeft: 8 }}>{p.numeroPatient}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="dispensaireId" className={styles.label}>
@@ -186,6 +246,7 @@ const CreateDataEntryModal = ({
               rows={3}
             />
           </div>
+         
           <div className={styles.btnRow}>
             <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={loading}>Annuler</button>
             <button type="submit" className={styles.submitBtn} disabled={loading}>
