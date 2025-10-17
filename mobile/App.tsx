@@ -5,41 +5,51 @@
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import React from 'react';
 import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+  SafeAreaView,
+  Text,
+  StyleSheet,
+  View,
+} from 'react-native';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>🎉 React Native Mobile</Text>
+        <Text style={styles.subtitle}>Configuration réussie !</Text>
+        <Text style={styles.info}>Shalom DHIS2</Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 10,
+  },
+  info: {
+    fontSize: 16,
+    color: '#999',
   },
 });
-
-export default App;
