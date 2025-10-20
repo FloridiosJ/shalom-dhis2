@@ -54,7 +54,7 @@ const LoginForm = () => {
         {/* En-tête */}
         <div className={styles.header}>
           <h1 className={styles.title}>Connexion</h1>
-          <p className={styles.subtitle}>Accédez à votre espace DHIS2 Shalom</p>
+          {/* <p className={styles.subtitle}>Accédez à votre espace DHIS2 Shalom</p> */}
         </div>
 
         {/* ✅ Zone d'erreur avec hauteur fixe réservée */}

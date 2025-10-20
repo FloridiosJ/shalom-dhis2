@@ -32,7 +32,7 @@ const Login = () => {
     <div className={styles.container}>
       {/* Logo en haut à droite */}
       <div className={styles.logo}>
-        DHIS2 Shalom
+        Shalom
       </div>
 
       {/* Panneau gauche - Formulaire */}

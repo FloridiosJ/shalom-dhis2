@@ -9,11 +9,11 @@ const LoginRightPanel = () => {
       </div>
       
       <h2 className={styles.title}>
-        DHIS2 Shalom
+        Shalom Data Compilation
       </h2>
       
       <p className={styles.subtitle}>
-        Plateforme de gestion des données de santé pour les dispensaires de Madagascar
+        Plateforme de gestion des données de Shalom-FLM (Madagascar)
       </p>
       
       <div className={styles.stats}>

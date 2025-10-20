@@ -76,7 +76,7 @@ const Dashboard = () => {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>
-            DHIS2 Shalom
+            SDC Shalom
           </h1>
           
           <button
@@ -96,7 +96,7 @@ const Dashboard = () => {
             Bienvenue, {user?.email}
           </h2>
           <p className={styles.roleInfo}>
-            Rôle: {user?.role} • Système de gestion de santé
+            Rôle: {user?.role}
           </p>
         </div>
       </div>
