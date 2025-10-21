@@ -1,60 +1,40 @@
-import { UserInputError, ForbiddenError } from 'apollo-server-express';
+import { AuthenticationError, UserInputError, ForbiddenError } from 'apollo-server-express';
 import { Op } from 'sequelize';
-import { requireAuth, requireRole } from '../../middleware/auth.js';
 
-export const patientResolvers = {
-  // Resolvers de champs
-  Patient: {
-    displayName: (patient) => patient.getDisplayName(),
-    categorieAge: (patient) => patient.getCategorieAge(),
-    isMineur: (patient) => patient.isMineur(),
-
-    createdBy: async (patient, args, { dataloaders }) => {
-      if (dataloaders && dataloaders.userLoader) {
-        return await dataloaders.userLoader.load(patient.userId);
-      }
-      const { User } = await import('../../models/index.js');
-      return await User.findByPk(patient.userId);
-    },
-
-    dispensaire: async (patient, args, { dataloaders }) => {
-      if (dataloaders && dataloaders.dispensaireLoader) {
-        return await dataloaders.dispensaireLoader.load(patient.dispensaireId);
-      }
-      const { Dispensaire } = await import('../../models/index.js');
-      return await Dispensaire.findByPk(patient.dispensaireId);
-    },
-
-    consultations: async (patient, args, { dataloaders }) => {
-      const { DataEntry } = await import('../../models/index.js');
-      return await DataEntry.findAll({
-        where: { patientId: patient.id },
-        order: [['createdAt', 'DESC']],
-        limit: 50
-      });
-    }
-  },
-
+const patientResolvers = {
   Query: {
-    patient: async (parent, { id }, { user }) => {
-      requireAuth(user);
+    patient: async (_, { id }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
       const { Patient, User, Dispensaire } = await import('../../models/index.js');
+      
       const patient = await Patient.findByPk(id, {
         include: [
           { model: User, as: 'createdBy' },
           { model: Dispensaire, as: 'dispensaire' }
         ]
       });
-      if (!patient) throw new UserInputError('Patient non trouvé');
+      
+      if (!patient) {
+        throw new UserInputError('Patient non trouvé');
+      }
+      
       if (user.role === 'agent' && patient.dispensaireId !== user.dispensaireId) {
         throw new ForbiddenError('Accès non autorisé à ce patient');
       }
+      
       return patient;
     },
 
-    patientByNumero: async (parent, { numero }, { user }) => {
-      requireAuth(user);
+    patientByNumero: async (_, { numero }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
       const { Patient, User, Dispensaire } = await import('../../models/index.js');
+      
       const patient = await Patient.findOne({
         where: { numeroPatient: numero },
         include: [
@@ -62,50 +42,77 @@ export const patientResolvers = {
           { model: Dispensaire, as: 'dispensaire' }
         ]
       });
-      if (!patient) throw new UserInputError('Patient non trouvé');
+      
+      if (!patient) {
+        throw new UserInputError('Patient non trouvé');
+      }
+      
       if (user.role === 'agent' && patient.dispensaireId !== user.dispensaireId) {
         throw new ForbiddenError('Accès non autorisé à ce patient');
       }
+      
       return patient;
     },
 
-    patients: async (parent, { filter, sort, pagination }, { user }) => {
-      requireAuth(user);
-      const { Patient, User, Dispensaire } = await import('../../models/index.js');
-      const whereClause = {};
-      if (filter) {
-        if (filter.dispensaireId) whereClause.dispensaireId = filter.dispensaireId;
-        if (filter.religion) whereClause.religion = filter.religion;
-        if (filter.sexe) whereClause.sexe = filter.sexe;
-        if (filter.village) whereClause.village = { [Op.iLike]: `%${filter.village}%` };
-        if (filter.ageMin !== undefined) whereClause.age = { [Op.gte]: filter.ageMin };
-        if (filter.ageMax !== undefined) {
-          whereClause.age = whereClause.age
-            ? { ...whereClause.age, [Op.lte]: filter.ageMax }
-            : { [Op.lte]: filter.ageMax };
-        }
-        if (filter.isActive !== undefined) whereClause.isActive = filter.isActive;
-        if (filter.search) {
-          whereClause[Op.or] = [
-            { nom: { [Op.iLike]: `%${filter.search}%` } },
-            { prenom: { [Op.iLike]: `%${filter.search}%` } }, // Ajouté pour la recherche sur le prénom
-            { village: { [Op.iLike]: `%${filter.search}%` } },
-            { numeroPatient: { [Op.iLike]: `%${filter.search}%` } }
-          ];
-        }
+    patients: async (_, { filter = {}, sort, pagination = {} }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
       }
+
+      const { Patient, User, Dispensaire } = await import('../../models/index.js');
+      
+      const whereClause = { isActive: true };
+      
+      if (filter.dispensaireId) {
+        whereClause.dispensaireId = filter.dispensaireId;
+      }
+      
+      if (filter.religion) {
+        whereClause.religion = filter.religion;
+      }
+      
+      if (filter.sexe) {
+        whereClause.sexe = filter.sexe;
+      }
+      
+      if (filter.village) {
+        whereClause.village = { [Op.iLike]: `%${filter.village}%` };
+      }
+      
+      if (filter.ageMin !== undefined) {
+        whereClause.age = { [Op.gte]: filter.ageMin };
+      }
+      
+      if (filter.ageMax !== undefined) {
+        whereClause.age = whereClause.age
+          ? { ...whereClause.age, [Op.lte]: filter.ageMax }
+          : { [Op.lte]: filter.ageMax };
+      }
+      
+      if (filter.search) {
+        whereClause[Op.or] = [
+          { nom: { [Op.iLike]: `%${filter.search}%` } },
+          { prenom: { [Op.iLike]: `%${filter.search}%` } },
+          { village: { [Op.iLike]: `%${filter.search}%` } },
+          { numeroPatient: { [Op.iLike]: `%${filter.search}%` } }
+        ];
+      }
+      
+      // Restriction par dispensaire si agent
       if (user.role === 'agent') {
         whereClause.dispensaireId = user.dispensaireId;
       }
+      
       const order = [];
-      if (sort) {
+      if (sort?.field && sort?.direction) {
         order.push([sort.field, sort.direction]);
       } else {
         order.push(['nom', 'ASC']);
       }
-      const page = pagination?.page || 1;
-      const limit = pagination?.limit || 10;
-      const offset = (page - 1) * limit;
+      
+      const limit = pagination.limit || 50;
+      const offset = pagination.offset || 0;
+      
       const { rows: patients, count: totalCount } = await Patient.findAndCountAll({
         where: whereClause,
         include: [
@@ -116,30 +123,41 @@ export const patientResolvers = {
         limit,
         offset
       });
+      
       return {
         patients,
         totalCount,
         hasNextPage: offset + limit < totalCount,
-        hasPreviousPage: page > 1
+        hasPreviousPage: offset > 0
       };
     },
 
-    searchPatients: async (parent, { query, dispensaireId, limit }, { user }) => {
-      requireAuth(user);
+    searchPatients: async (_, { query, dispensaireId, limit = 10 }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
       const { Patient, User, Dispensaire } = await import('../../models/index.js');
+      
       const whereClause = {
+        isActive: true,
         [Op.or]: [
           { nom: { [Op.iLike]: `%${query}%` } },
-          { prenom: { [Op.iLike]: `%${query}%` } }, // Ajouté pour la recherche sur le prénom
+          { prenom: { [Op.iLike]: `%${query}%` } },
           { village: { [Op.iLike]: `%${query}%` } },
           { numeroPatient: { [Op.iLike]: `%${query}%` } }
         ]
       };
-      if (dispensaireId && (user.role !== 'agent' || user.dispensaireId === dispensaireId)) {
+      
+      if (dispensaireId) {
+        if (user.role === 'agent' && user.dispensaireId !== dispensaireId) {
+          throw new ForbiddenError('Accès non autorisé à ce dispensaire');
+        }
         whereClause.dispensaireId = dispensaireId;
       } else if (user.role === 'agent') {
         whereClause.dispensaireId = user.dispensaireId;
       }
+      
       return await Patient.findAll({
         where: whereClause,
         include: [
@@ -153,45 +171,58 @@ export const patientResolvers = {
   },
 
   Mutation: {
-    createPatient: async (parent, { input }, { user }) => {
-      requireAuth(user);
+    createPatient: async (_, { input }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
       try {
-        const { Patient, Dispensaire } = await import('../../models/index.js');
+        const { Patient, Dispensaire, User } = await import('../../models/index.js');
+        
+        console.log('📋 Creating patient with input:', input);
+        console.log('👤 User:', user.id, user.role);
+
         // Vérifier que le dispensaire existe
         const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
         if (!dispensaire) {
           return {
             success: false,
             message: 'Dispensaire non trouvé',
-            errors: ['DISPENSAIRE_NOT_FOUND']
+            errors: ['DISPENSAIRE_NOT_FOUND'],
+            patient: null
           };
         }
+
         // Vérification des permissions
         if (user.role === 'agent' && user.dispensaireId !== input.dispensaireId) {
           return {
             success: false,
             message: 'Vous ne pouvez créer des patients que pour votre dispensaire',
-            errors: ['UNAUTHORIZED_DISPENSAIRE']
+            errors: ['UNAUTHORIZED_DISPENSAIRE'],
+            patient: null
           };
         }
-        // Générer un numeroPatient unique si non fourni
-        if (!input.numeroPatient) {
-          const year = String(new Date().getFullYear()).slice(-2); // ex : "25"
-          const rand = Math.floor(1000 + Math.random() * 9000); // 4 chiffres aléatoires
-          input.numeroPatient = `PAT-${year}${rand}`;
-        }
-        // Créer le patient (inclure prenom si fourni)
-        const patient = await Patient.create({
+
+        // Créer le patient (le hook beforeValidate générera le numeroPatient)
+        const patientData = {
           ...input,
           userId: user.id
-        });
-        // Récupérer le patient créé avec ses relations
+        };
+
+        console.log('💾 Creating patient with data:', patientData);
+
+        const patient = await Patient.create(patientData);
+
+        console.log('✅ Patient created:', patient.id, patient.numeroPatient);
+
+        // Récupérer le patient avec ses relations
         const createdPatient = await Patient.findByPk(patient.id, {
           include: [
-            { model: (await import('../../models/index.js')).User, as: 'createdBy' },
+            { model: User, as: 'createdBy' },
             { model: Dispensaire, as: 'dispensaire' }
           ]
         });
+
         return {
           patient: createdPatient,
           success: true,
@@ -201,55 +232,77 @@ export const patientResolvers = {
         };
       } catch (error) {
         console.error('❌ Erreur création patient:', error);
+        
         if (error.name === 'SequelizeValidationError') {
           return {
             success: false,
             message: 'Données invalides',
-            errors: error.errors.map(err => err.message)
+            errors: error.errors.map(err => err.message),
+            patient: null
           };
         }
+        
+        if (error.name === 'SequelizeUniqueConstraintError') {
+          return {
+            success: false,
+            message: 'Ce numéro patient existe déjà',
+            errors: ['NUMERO_PATIENT_ALREADY_EXISTS'],
+            patient: null
+          };
+        }
+        
         return {
           success: false,
           message: 'Erreur lors de la création du patient',
-          errors: [error.message]
+          errors: [error.message],
+          patient: null
         };
       }
     },
 
-    updatePatient: async (parent, { id, input }, { user }) => {
-      requireAuth(user);
+    updatePatient: async (_, { id, input }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
       try {
         const { Patient, User, Dispensaire } = await import('../../models/index.js');
+        
         const patient = await Patient.findByPk(id);
         if (!patient) {
           return {
             success: false,
             message: 'Patient non trouvé',
-            errors: ['PATIENT_NOT_FOUND']
+            errors: ['PATIENT_NOT_FOUND'],
+            patient: null
           };
         }
+
         // Vérification des permissions
         const canEdit = (
           user.role === 'admin' ||
           user.role === 'manager' ||
           (user.role === 'agent' && patient.dispensaireId === user.dispensaireId)
         );
+
         if (!canEdit) {
           return {
             success: false,
             message: 'Permissions insuffisantes pour modifier ce patient',
-            errors: ['UNAUTHORIZED_EDIT']
+            errors: ['UNAUTHORIZED_EDIT'],
+            patient: null
           };
         }
-        // Mise à jour (inclure prenom si fourni)
+
         await patient.update(input);
-        // Récupérer le patient mis à jour
+
         const updatedPatient = await Patient.findByPk(id, {
           include: [
             { model: User, as: 'createdBy' },
             { model: Dispensaire, as: 'dispensaire' }
           ]
         });
+
         return {
           patient: updatedPatient,
           success: true,
@@ -261,31 +314,108 @@ export const patientResolvers = {
         return {
           success: false,
           message: 'Erreur lors de la modification',
-          errors: [error.message]
+          errors: [error.message],
+          patient: null
         };
       }
     },
 
-    deletePatient: async (parent, { id }, { user }) => {
-      requireAuth(user);
-      requireRole(user, ['admin', 'manager']);
-      const { Patient } = await import('../../models/index.js');
-      const targetPatient = await Patient.findByPk(id);
-      if (!targetPatient) {
+    deletePatient: async (_, { id }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      if (!['admin', 'manager'].includes(user.role)) {
+        throw new ForbiddenError('Seuls les administrateurs et managers peuvent supprimer des patients');
+      }
+
+      try {
+        const { Patient } = await import('../../models/index.js');
+        
+        const patient = await Patient.findByPk(id);
+        if (!patient) {
+          return {
+            success: false,
+            message: 'Patient non trouvé',
+            errors: ['PATIENT_NOT_FOUND'],
+            patient: null
+          };
+        }
+
+        // Soft delete
+        await patient.update({ isActive: false });
+
+        return {
+          success: true,
+          message: 'Patient supprimé avec succès',
+          errors: [],
+          patient: null
+        };
+      } catch (error) {
+        console.error('❌ Erreur suppression patient:', error);
         return {
           success: false,
-          message: 'Patient non trouvé',
-          errors: ['PATIENT_NOT_FOUND'],
+          message: 'Erreur lors de la suppression',
+          errors: [error.message],
           patient: null
         };
       }
-      await targetPatient.destroy();
-      return {
-        success: true,
-        message: 'Patient supprimé avec succès',
-        errors: [],
-        patient: null
-      };
+    }
+  },
+
+  // Field resolvers
+  Patient: {
+    createdBy: async (patient) => {
+      const { User } = await import('../../models/index.js');
+      return await User.findByPk(patient.userId);
+    },
+
+    dispensaire: async (patient) => {
+      const { Dispensaire } = await import('../../models/index.js');
+      return await Dispensaire.findByPk(patient.dispensaireId);
+    },
+
+    consultations: async (patient) => {
+      const { DataEntry } = await import('../../models/index.js');
+      return await DataEntry.findAll({
+        where: { 
+          patientId: patient.id,
+          isActive: true 
+        },
+        order: [['dateConsultation', 'DESC']],
+        limit: 10
+      });
+    },
+
+    vaccinations: async (patient) => {
+      const { Vaccination } = await import('../../models/index.js');
+      return await Vaccination.findAll({
+        where: { 
+          patientId: patient.id,
+          isActive: true 
+        },
+        order: [['dateVaccination', 'DESC']],
+        limit: 20
+      });
+    },
+
+    displayName: (patient) => {
+      return patient.prenom 
+        ? `${patient.nom} ${patient.prenom}` 
+        : patient.nom;
+    },
+
+    categorieAge: (patient) => {
+      if (patient.age < 1) return 'Nourrisson';
+      if (patient.age < 5) return 'Jeune enfant';
+      if (patient.age < 12) return 'Enfant';
+      if (patient.age < 18) return 'Adolescent';
+      if (patient.age < 60) return 'Adulte';
+      return 'Senior';
+    },
+
+    isMineur: (patient) => {
+      return patient.age < 18;
     }
   }
 };

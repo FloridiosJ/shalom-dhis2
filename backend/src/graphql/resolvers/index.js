@@ -6,6 +6,7 @@ import patientResolvers from './patient.js';
 import eventResolvers from './event.js';
 import typeConsultationResolvers from './typeConsultation.js';
 import categorieMaladieResolvers from './categorieMaladie.js';
+import vaccinationResolvers from './vaccination.js';
 import { GraphQLScalarType, Kind } from 'graphql';
 
 // Custom DateTime scalar
@@ -56,6 +57,9 @@ export const resolvers = {
     
     // CategorieMaladie queries
     ...categorieMaladieResolvers.Query,
+
+    // Vaccination queries
+    ...vaccinationResolvers.Query,
   },
   
   Mutation: {
@@ -82,6 +86,9 @@ export const resolvers = {
     
     // CategorieMaladie mutations
     ...categorieMaladieResolvers.Mutation,
+
+    // Vaccination mutations
+    ...vaccinationResolvers.Mutation,
   },
   
   // Field resolvers
@@ -92,5 +99,6 @@ export const resolvers = {
   Event: eventResolvers.Event || {},
   TypeConsultation: typeConsultationResolvers.TypeConsultation || {},
   CategorieMaladie: categorieMaladieResolvers.CategorieMaladie || {},
-  ArbreCategorie: categorieMaladieResolvers.ArbreCategorie || {}
+  ArbreCategorie: categorieMaladieResolvers.ArbreCategorie || {},
+  Vaccination: vaccinationResolvers.Vaccination || {}
 };

@@ -263,6 +263,14 @@ User.associate = (models) => {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
   });
+
+  // ✅ AJOUTER : Relation inverse avec Vaccination (agent)
+  User.hasMany(models.Vaccination, {
+    foreignKey: 'agentId',
+    as: 'vaccinationsEffectuees',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+  });
 };
 
 export default User;

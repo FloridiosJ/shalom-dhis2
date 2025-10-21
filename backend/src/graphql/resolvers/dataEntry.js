@@ -551,25 +551,48 @@ const dataEntryResolvers = {
     }
   },
 
+  // Field resolvers
   DataEntry: {
-    patient: async (parent) => {
-      if (parent.patient) return parent.patient;
-      return await Patient.findByPk(parent.patientId);
+    patient: async (dataEntry) => {
+      const { Patient } = await import('../../models/index.js');
+      return await Patient.findByPk(dataEntry.patientId);
     },
-    createdBy: async (parent) => {
-      if (parent.createdBy) return parent.createdBy;
-      return await User.findByPk(parent.userId);
+
+    createdBy: async (dataEntry) => {
+      const { User } = await import('../../models/index.js');
+      return await User.findByPk(dataEntry.userId);
     },
-    dispensaire: async (parent) => {
-      if (parent.dispensaire) return parent.dispensaire;
-      return await Dispensaire.findByPk(parent.dispensaireId);
+
+    dispensaire: async (dataEntry) => {
+      const { Dispensaire } = await import('../../models/index.js');
+      return await Dispensaire.findByPk(dataEntry.dispensaireId);
     },
-    typeConsultationDetails: async (parent) => {
-      if (parent.typeConsultationDetails) return parent.typeConsultationDetails;
-      return await TypeConsultation.findByPk(parent.typeConsultation);
+
+    typeConsultationDetails: async (dataEntry) => {
+      const { TypeConsultation } = await import('../../models/index.js');
+      return await TypeConsultation.findOne({
+        where: { code: dataEntry.typeConsultation }
+      });
     },
-    summary: (parent) => {
-      return `${parent.typeConsultation} - ${parent.diagnostic.substring(0, 50)}...`;
+
+    categories: async (dataEntry) => {
+      const categories = await dataEntry.getCategories();
+      return categories || [];
+    },
+
+    // ✅ AJOUTER
+    vaccinations: async (dataEntry) => {
+      const { Vaccination } = await import('../../models/index.js');
+      return await Vaccination.findAll({
+        where: { 
+          dataEntryId: dataEntry.id,
+          isActive: true 
+        }
+      });
+    },
+
+    summary: (dataEntry) => {
+      return dataEntry.getSummary();
     }
   }
 };

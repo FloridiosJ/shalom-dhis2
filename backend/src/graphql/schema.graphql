@@ -59,6 +59,19 @@ enum SortDirection {
   DESC
 }
 
+# Enums pour Vaccination
+enum TypeVaccin {
+  BCG_POLIO_O
+  DTCOQ_HEP_B_POLIO_I
+  DTCOQ_HEP_B_POLIO_II
+  DTCOQ_HEP_B_POLIO_III
+  VAR
+  VAA
+  DTCOQ_HEP_B_POLIO_RAPPEL
+  VPO_RAPPEL
+  AUTRES
+}
+
 # User type
 type User {
   id: ID!
@@ -88,7 +101,6 @@ type Dispensaire {
   updatedAt: DateTime!
   users: [User!]!
   dataEntries: [DataEntry!]!
-  fullName: String!
   userCount: Int!
   activeUserCount: Int!
 }
@@ -111,6 +123,7 @@ type Patient {
   createdBy: User!
   dispensaire: Dispensaire!
   consultations: [DataEntry!]!
+  vaccinations: [Vaccination!]! # ✅ AJOUTER
   displayName: String!
   categorieAge: String!
   isMineur: Boolean!
@@ -144,6 +157,7 @@ type DataEntry {
   createdBy: User!
   status: ConsultationStatus!
   categories: [CategorieMaladie!]!
+  vaccinations: [Vaccination!]! # ✅ AJOUTER
   isActive: Boolean!
   summary: String!
   createdAt: DateTime!
@@ -245,6 +259,45 @@ type AuthPayload {
   user: User!
 }
 
+# Vaccination type
+type Vaccination {
+  id: ID!
+  dataEntryId: ID
+  dataEntry: DataEntry
+  patientId: ID!
+  patient: Patient!
+  dateVaccination: DateTime!
+  typeVaccin: TypeVaccin!
+  lot: String
+  agentId: ID!
+  agent: User!
+  remarques: String
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  
+  # Champs calculés
+  vaccinLabel: String!
+  summary: String!
+  isRecent: Boolean!
+}
+
+# Statistiques de vaccination
+type VaccinationStats {
+  typeVaccin: TypeVaccin!
+  label: String!
+  count: Int!
+  pourcentage: Float!
+}
+
+# Couverture vaccinale
+type CouvertureVaccinale {
+  totalPatients: Int!
+  totalVaccinations: Int!
+  parVaccin: [VaccinationStats!]!
+  tauxCouverture: Float!
+}
+
 # Response types
 type UserResponse {
   user: User
@@ -298,6 +351,13 @@ type DeleteCheckResponse {
   message: String!
 }
 
+type VaccinationResponse {
+  vaccination: Vaccination
+  success: Boolean!
+  message: String!
+  errors: [String!]
+}
+
 # Paginated results
 type DataEntryConnection {
   dataEntries: [DataEntry!]!
@@ -329,6 +389,13 @@ type EventConnection {
 
 type UserConnection {
   users: [User!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type VaccinationConnection {
+  vaccinations: [Vaccination!]!
   totalCount: Int!
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
@@ -536,6 +603,33 @@ input UpdateTypeConsultationInput {
   isActive: Boolean
 }
 
+input CreateVaccinationInput {
+  dataEntryId: ID
+  patientId: ID!
+  dateVaccination: DateTime!
+  typeVaccin: TypeVaccin!
+  lot: String
+  remarques: String
+}
+
+input UpdateVaccinationInput {
+  dateVaccination: DateTime
+  typeVaccin: TypeVaccin
+  lot: String
+  remarques: String
+  isActive: Boolean
+}
+
+input VaccinationFilterInput {
+  patientId: ID
+  agentId: ID
+  typeVaccin: TypeVaccin
+  dateFrom: DateTime
+  dateTo: DateTime
+  isActive: Boolean
+  search: String
+}
+
 # Queries
 type Query {
   # Auth
@@ -582,6 +676,14 @@ type Query {
   sousCategories(parentId: ID!, activeOnly: Boolean): [CategorieMaladie!]!
   categoriesStats(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): [CategorieStats!]!
   checkDeleteCategorie(id: ID!): DeleteCheckResponse!
+
+  # Vaccination queries
+  vaccination(id: ID!): Vaccination
+  vaccinations(filter: VaccinationFilterInput, sort: SortInput, pagination: PaginationInput): VaccinationConnection!
+  patientVaccinations(patientId: ID!, limit: Int): [Vaccination!]!
+  recentVaccinations(limit: Int): [Vaccination!]!
+  vaccinationStats(agentId: ID, dateFrom: DateTime, dateTo: DateTime): [VaccinationStats!]!
+  couvertureVaccinale(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): CouvertureVaccinale!
 }
 
 # Mutations
@@ -625,4 +727,9 @@ type Mutation {
   updateCategorieMaladie(id: ID!, input: UpdateCategorieMaladieInput!): CategorieMaladieResponse!
   deleteCategorieMaladie(id: ID!): CategorieMaladieResponse!
   reorderCategories(updates: [ReorderInput!]!): Boolean!
+
+  # Vaccination mutations
+  createVaccination(input: CreateVaccinationInput!): VaccinationResponse!
+  updateVaccination(id: ID!, input: UpdateVaccinationInput!): VaccinationResponse!
+  deleteVaccination(id: ID!): VaccinationResponse!
 }

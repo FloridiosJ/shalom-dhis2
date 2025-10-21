@@ -96,13 +96,21 @@ DataEntry.associate = (models) => {
     onUpdate: 'CASCADE'
   });
 
-  // Nouvelle relation Many-to-Many avec CategorieMaladie
+  // Relation Many-to-Many avec CategorieMaladie
   DataEntry.belongsToMany(models.CategorieMaladie, {
     through: 'DataEntry_CategorieMaladie',
     foreignKey: 'dataEntryId',
     otherKey: 'categorieMaladieId',
     as: 'categories',
     timestamps: true
+  });
+
+  // ✅ AJOUTER : Relation inverse avec Vaccination
+  DataEntry.hasMany(models.Vaccination, {
+    foreignKey: 'dataEntryId',
+    as: 'vaccinations',
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE'
   });
 };
 
