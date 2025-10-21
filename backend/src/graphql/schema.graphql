@@ -138,7 +138,7 @@ type Patient {
 # TypeConsultation type
 type TypeConsultation {
   code: String!
-  label: String!
+  libelle: String!
   description: String
   isActive: Boolean!
   dataEntriesCount: Int!
