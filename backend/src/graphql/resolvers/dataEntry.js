@@ -287,8 +287,13 @@ const dataEntryResolvers = {
         if (!user) {
           throw new AuthenticationError('Non authentifié');
         }
+        console.log('🔍 Validating typeConsultation:', input.typeConsultation);
+        const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCatégorieMaladie } = await import('../../models/index.js');
 
-        const typeConsultation = await TypeConsultation.findByPk(input.typeConsultation);
+        const typeConsultation = await TypeConsultation.findOne({
+          where: { code: input.typeConsultation }
+        });
+        
         if (!typeConsultation) {
           return {
             dataEntry: null,
@@ -297,17 +302,19 @@ const dataEntryResolvers = {
             errors: ['TYPE_NOT_FOUND']
           };
         }
-
         if (!typeConsultation.isActive) {
           return {
             dataEntry: null,
             success: false,
-            message: `Le type de consultation '${typeConsultation.label}' n'est plus actif`,
+            message: `Le type de consultation '${typeConsultation.libelle}' n'est plus actif`,
             errors: ['TYPE_INACTIVE']
           };
         }
 
+        console.log('🔍 Validating patientId:', input.patientId);
+
         const patient = await Patient.findByPk(input.patientId);
+        console.log('🔍 Found patient:', patient);
         if (!patient) {
           return {
             dataEntry: null,
@@ -317,14 +324,48 @@ const dataEntryResolvers = {
           };
         }
 
+        console.log('🔍 Creating DataEntry with input:', input);
+        // Créer la consultation
         const entry = await DataEntry.create({
-          ...input,
-          userId: user.id,
-          dispensaireId: input.dispensaireId || user.dispensaireId,
+          patientId: input.patientId,
+          typeConsultation: input.typeConsultation,
+          diagnostic: input.diagnostic,
+          prescription: input.prescription,
+          notes: input.notes,
           dateConsultation: input.dateConsultation || new Date(),
+          dispensaireId: input.dispensaireId || user.dispensaireId,
+          userId: user.id,
           status: 'active'
         });
 
+        // Gérer les catégories avec métadonnées (nouvelle méthode)
+        if (input.categories && input.categories.length > 0) {
+          for (const cat of input.categories) {
+            await DataEntryCatégorieMaladie.addCategorie(
+              entry.id,
+              cat.categorieMaladieId,
+              {
+                isPrincipal: cat.isPrincipal || false,
+                notes: cat.notes || null
+              }
+            );
+          }
+        }
+        // Gérer les catégories simples (ancienne méthode)
+        else if (input.categorieIds && input.categorieIds.length > 0) {
+          for (let i = 0; i < input.categorieIds.length; i++) {
+            await DataEntryCatégorieMaladie.addCategorie(
+              entry.id,
+              input.categorieIds[i],
+              {
+                isPrincipal: i === 0, // La première est principale par défaut
+                notes: null
+              }
+            );
+          }
+        }
+
+        // Récupérer l'entrée complète avec toutes les relations
         const createdEntry = await DataEntry.findByPk(entry.id, {
           include: [
             { model: Patient, as: 'patient' },
@@ -333,7 +374,7 @@ const dataEntryResolvers = {
             { model: TypeConsultation, as: 'typeConsultationDetails' }
           ]
         });
-
+        console.log('✅ DataEntry created successfully:', createdEntry);
         return {
           dataEntry: createdEntry,
           success: true,
@@ -341,6 +382,7 @@ const dataEntryResolvers = {
           errors: []
         };
       } catch (error) {
+        console.error('❌ Error creating dataEntry:', error);
         return {
           dataEntry: null,
           success: false,
@@ -356,6 +398,8 @@ const dataEntryResolvers = {
           throw new AuthenticationError('Non authentifié');
         }
 
+        const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCatégorieMaladie } = await import('../../models/index.js');
+
         const entry = await DataEntry.findByPk(id);
         if (!entry) {
           return {
@@ -366,7 +410,7 @@ const dataEntryResolvers = {
           };
         }
 
-        if (user.role !== 'ADMIN' && entry.userId !== user.id) {
+        if (user.role !== 'admin' && entry.userId !== user.id) {
           return {
             dataEntry: null,
             success: false,
@@ -376,7 +420,9 @@ const dataEntryResolvers = {
         }
 
         if (input.typeConsultation) {
-          const typeConsultation = await TypeConsultation.findByPk(input.typeConsultation);
+          const typeConsultation = await TypeConsultation.findOne({
+            where: { code: input.typeConsultation }
+          });
           if (!typeConsultation || !typeConsultation.isActive) {
             return {
               dataEntry: null,
@@ -387,7 +433,51 @@ const dataEntryResolvers = {
           }
         }
 
-        await entry.update(input);
+        // Mettre à jour les champs de base
+        await entry.update({
+          diagnostic: input.diagnostic || entry.diagnostic,
+          prescription: input.prescription !== undefined ? input.prescription : entry.prescription,
+          notes: input.notes !== undefined ? input.notes : entry.notes,
+          dateConsultation: input.dateConsultation || entry.dateConsultation,
+          status: input.status || entry.status
+        });
+
+        // Mettre à jour les catégories avec métadonnées si fourni
+        if (input.categories && input.categories.length > 0) {
+          // Supprimer les anciennes associations
+          await DataEntryCatégorieMaladie.destroy({
+            where: { dataEntryId: id }
+          });
+
+          // Ajouter les nouvelles
+          for (const cat of input.categories) {
+            await DataEntryCatégorieMaladie.addCategorie(
+              entry.id,
+              cat.categorieMaladieId,
+              {
+                isPrincipal: cat.isPrincipal || false,
+                notes: cat.notes || null
+              }
+            );
+          }
+        }
+        // Ou mettre à jour avec la méthode simple
+        else if (input.categorieIds && input.categorieIds.length > 0) {
+          await DataEntryCatégorieMaladie.destroy({
+            where: { dataEntryId: id }
+          });
+
+          for (let i = 0; i < input.categorieIds.length; i++) {
+            await DataEntryCatégorieMaladie.addCategorie(
+              entry.id,
+              input.categorieIds[i],
+              {
+                isPrincipal: i === 0,
+                notes: null
+              }
+            );
+          }
+        }
 
         const updatedEntry = await DataEntry.findByPk(id, {
           include: [
@@ -405,6 +495,7 @@ const dataEntryResolvers = {
           errors: []
         };
       } catch (error) {
+        console.error('❌ Error updating dataEntry:', error);
         return {
           dataEntry: null,
           success: false,
@@ -580,7 +671,14 @@ const dataEntryResolvers = {
       return categories || [];
     },
 
-    // ✅ AJOUTER
+    categoriesWithMeta: async (dataEntry) => {
+      return await dataEntry.getCategoriesWithMeta();
+    },
+
+    principalCategorie: async (dataEntry) => {
+      return await dataEntry.getPrincipalCategorie();
+    },
+
     vaccinations: async (dataEntry) => {
       const { Vaccination } = await import('../../models/index.js');
       return await Vaccination.findAll({
@@ -592,7 +690,8 @@ const dataEntryResolvers = {
     },
 
     summary: (dataEntry) => {
-      return dataEntry.getSummary();
+      const dateStr = new Date(dataEntry.dateConsultation).toLocaleDateString('fr-FR');
+      return `${dataEntry.typeConsultation} - ${dateStr} - ${dataEntry.diagnostic.substring(0, 50)}${dataEntry.diagnostic.length > 50 ? '...' : ''}`;
     }
   }
 };

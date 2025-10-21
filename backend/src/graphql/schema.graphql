@@ -146,6 +146,21 @@ type TypeConsultation {
   updatedAt: DateTime!
 }
 
+# Association DataEntry <-> CategorieMaladie avec métadonnées
+type CategorieWithMeta {
+  id: ID!
+  nom: String!
+  code: String
+  niveau: Int!
+  ordre: Int
+  description: String
+  isPrincipal: Boolean!
+  notes: String
+  parent: CategorieMaladie
+  cheminComplet: String!
+  associationCreatedAt: DateTime
+}
+
 # DataEntry type (Consultation)
 type DataEntry {
   id: ID!
@@ -163,6 +178,8 @@ type DataEntry {
   createdBy: User!
   status: ConsultationStatus!
   categories: [CategorieMaladie!]!
+  categoriesWithMeta: [CategorieWithMeta!]!
+  principalCategorie: CategorieMaladie
   vaccinations: [Vaccination!]! # ✅ AJOUTER
   isActive: Boolean!
   summary: String!
@@ -519,6 +536,13 @@ input UpdatePatientInput {
   isActive: Boolean
 }
 
+# Input pour associer des catégories avec métadonnées
+input CategorieAssociationInput {
+  categorieMaladieId: ID!
+  isPrincipal: Boolean
+  notes: String
+}
+
 input CreateDataEntryInput {
   patientId: ID!
   typeConsultation: String!
@@ -528,6 +552,7 @@ input CreateDataEntryInput {
   dateConsultation: DateTime
   dispensaireId: ID
   categorieIds: [ID!]
+  categories: [CategorieAssociationInput!]
 }
 
 input UpdateDataEntryInput {
@@ -537,6 +562,7 @@ input UpdateDataEntryInput {
   dateConsultation: DateTime
   status: ConsultationStatus
   categorieIds: [ID!]
+  categories: [CategorieAssociationInput!]
 }
 
 input CreateEventInput {
