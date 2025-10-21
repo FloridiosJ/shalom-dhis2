@@ -95,6 +95,15 @@ DataEntry.associate = (models) => {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
   });
+
+  // Nouvelle relation Many-to-Many avec CategorieMaladie
+  DataEntry.belongsToMany(models.CategorieMaladie, {
+    through: 'DataEntry_CategorieMaladie',
+    foreignKey: 'dataEntryId',
+    otherKey: 'categorieMaladieId',
+    as: 'categories',
+    timestamps: true
+  });
 };
 
 export default DataEntry;

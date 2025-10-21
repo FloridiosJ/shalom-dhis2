@@ -14,51 +14,229 @@ enum AgentSpecialite {
   infirmiere
 }
 
+enum ConsultationStatus {
+  en_cours
+  termine
+  suivi_requis
+  active
+  completed
+  cancelled
+}
 
-# User type and auth
+enum Gender {
+  M
+  F
+  L
+}
+
+enum Religion {
+  Kristianina
+  Musulman
+  traditionnelle
+}
+
+enum Synoda {
+  SPA
+  SPSofia
+  SPBM
+  SPMel
+}
+
+enum OutilsEvent {
+  presentiel
+  visio
+}
+
+enum EventStatus {
+  planifie
+  en_cours
+  termine
+  annule
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+# User type
 type User {
   id: ID!
-  email: String!
-  login: String!
-  role: UserRole!
   nom: String!
   prenom: String!
-  poste: String
+  email: String
+  login: String!
+  role: UserRole!
   specialite: AgentSpecialite
+  dispensaireId: ID
   dispensaire: Dispensaire
   isActive: Boolean!
   lastLoginAt: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
+  fullName: String!
 }
 
 # Dispensaire type
 type Dispensaire {
   id: ID!
   name: String!
-  code: String!
-  address: String
-  phone: String
-  email: String
+  fileovana: String!
+  synoda: Synoda!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
   users: [User!]!
   dataEntries: [DataEntry!]!
+  fullName: String!
+  userCount: Int!
+  activeUserCount: Int!
+}
+
+# Patient type
+type Patient {
+  id: ID!
+  nom: String!
+  prenom: String
+  age: Int!
+  sexe: String!
+  religion: Religion!
+  village: String!
+  numeroPatient: String!
+  dispensaireId: ID!
+  userId: ID!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  dispensaire: Dispensaire!
+  consultations: [DataEntry!]!
+  displayName: String!
+  categorieAge: String!
+  isMineur: Boolean!
+}
+
+# TypeConsultation type
+type TypeConsultation {
+  code: String!
+  label: String!
+  description: String
+  isActive: Boolean!
+  dataEntriesCount: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
-# Data entry type
+# DataEntry type (Consultation)
 type DataEntry {
   id: ID!
-  value: String!
-  dataElement: String!
-  period: String!
-  orgUnit: String!
+  patientId: ID!
+  patient: Patient!
+  typeConsultation: String!
+  typeConsultationDetails: TypeConsultation
+  diagnostic: String!
+  prescription: String
+  notes: String
+  dateConsultation: DateTime!
+  dispensaireId: ID!
+  dispensaire: Dispensaire!
   userId: ID!
-  dispensaireId: ID
-  user: User!
-  dispensaire: Dispensaire
+  createdBy: User!
+  status: ConsultationStatus!
+  categories: [CategorieMaladie!]!
+  isActive: Boolean!
+  summary: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+# Event type
+type Event {
+  id: ID!
+  date: DateTime!
+  type_event: String!
+  participant: String!
+  outils: OutilsEvent!
+  description: String
+  lieu: String
+  userId: ID!
+  dispensaireId: ID
+  status: EventStatus!
+  nombreParticipants: Int!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  organisateur: User!
+  dispensaire: Dispensaire
+  fullTitle: String!
+  isToday: Boolean!
+  isUpcoming: Boolean!
+}
+
+# CategorieMaladie type (Hiérarchique)
+type CategorieMaladie {
+  id: ID!
+  nom: String!
+  code: String
+  parentId: ID
+  niveau: Int!
+  ordre: Int
+  description: String
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  parent: CategorieMaladie
+  sousCategories: [CategorieMaladie!]!
+  dataEntries: [DataEntry!]!
+  cheminComplet: String!
+  nombreSousCategories: Int!
+  nombreConsultations: Int!
+  hasSousCategories: Boolean!
+}
+
+# Type pour l'arbre hiérarchique
+type ArbreCategorie {
+  id: ID!
+  nom: String!
+  code: String
+  niveau: Int!
+  ordre: Int
+  description: String
+  isActive: Boolean!
+  sousCategories: [ArbreCategorie!]!
+  nombreConsultations: Int!
+}
+
+# Type pour les statistiques de catégories
+type CategorieStats {
+  categorie: CategorieMaladie!
+  nombreConsultations: Int!
+  pourcentage: Float!
+  tendance: String
+}
+
+# Statistiques par type de consultation
+type ConsultationStatsByType {
+  typeConsultation: TypeConsultation!
+  total: Int!
+  thisMonth: Int!
+  thisWeek: Int!
+  byStatus: [StatusCount!]!
+}
+
+type StatusCount {
+  status: String!
+  count: Int!
+}
+
+# Statistiques globales
+type ConsultationOverallStats {
+  totalConsultations: Int!
+  consultationsByStatus: [StatusCount!]!
+  consultationsByType: [ConsultationStatsByType!]!
+  consultationsThisMonth: Int!
+  consultationsToday: Int!
+  patientsSeen: Int!
 }
 
 # Auth payload type
@@ -67,128 +245,384 @@ type AuthPayload {
   user: User!
 }
 
-type PasswordResetPayload {
+# Response types
+type UserResponse {
+  user: User
   success: Boolean!
-  temporaryPassword: String
   message: String!
+  errors: [String!]
+  generatedLogin: String
+  generatedPassword: String
 }
 
-type SyncResult {
+type PatientResponse {
+  patient: Patient
   success: Boolean!
   message: String!
-  syncedCount: Int
+  errors: [String!]
+  generatedNumero: String
+}
+
+type DataEntryResponse {
+  dataEntry: DataEntry
+  success: Boolean!
+  message: String!
   errors: [String!]
 }
 
+type DispensaireResponse {
+  dispensaire: Dispensaire
+  success: Boolean!
+  message: String!
+  errors: [String!]
+}
+
+type EventResponse {
+  event: Event
+  success: Boolean!
+  message: String!
+  errors: [String!]
+}
+
+type CategorieMaladieResponse {
+  categorie: CategorieMaladie
+  success: Boolean!
+  message: String!
+  errors: [String!]
+}
+
+type DeleteCheckResponse {
+  canDelete: Boolean!
+  sousCategories: Int!
+  dataEntries: Int!
+  message: String!
+}
+
+# Paginated results
+type DataEntryConnection {
+  dataEntries: [DataEntry!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type PatientConnection {
+  patients: [Patient!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type DispensaireConnection {
+  dispensaires: [Dispensaire!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type EventConnection {
+  events: [Event!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type UserConnection {
+  users: [User!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
 # Input types
+input LoginInput {
+  login: String!
+  password: String!
+}
+
 input CreateUserInput {
-  email: String!
+  nom: String!
+  prenom: String!
+  email: String
   login: String
   password: String
   role: UserRole!
-  nom: String!
-  prenom: String!
-  poste: String
   specialite: AgentSpecialite
   dispensaireId: ID
 }
 
 input UpdateUserInput {
-  email: String
-  login: String
   nom: String
   prenom: String
-  poste: String
+  email: String
+  login: String
+  password: String
+  role: UserRole
   specialite: AgentSpecialite
   dispensaireId: ID
   isActive: Boolean
 }
 
-input ChangePasswordInput {
-  currentPassword: String!
-  newPassword: String!
-}
-
-
 input CreateDispensaireInput {
   name: String!
-  code: String!
-  address: String
-  phone: String
-  email: String
+  fileovana: String!
+  synoda: Synoda!
 }
 
 input UpdateDispensaireInput {
   name: String
-  code: String
-  address: String
-  phone: String
-  email: String
+  fileovana: String
+  synoda: Synoda
+  isActive: Boolean
+}
+
+input CreatePatientInput {
+  nom: String!
+  prenom: String
+  age: Int!
+  sexe: String!
+  religion: Religion!
+  village: String!
+  dispensaireId: ID!
+  numeroPatient: String
+}
+
+input UpdatePatientInput {
+  nom: String
+  prenom: String
+  age: Int
+  sexe: String
+  religion: Religion
+  village: String
+  dispensaireId: ID
+  isActive: Boolean
 }
 
 input CreateDataEntryInput {
-  value: String!
-  dataElement: String!
-  period: String!
-  orgUnit: String!
+  patientId: ID!
+  typeConsultation: String!
+  diagnostic: String!
+  prescription: String
+  notes: String
+  dateConsultation: DateTime
   dispensaireId: ID
+  categorieIds: [ID!]
 }
 
 input UpdateDataEntryInput {
-  value: String
-  dataElement: String
-  period: String
-  orgUnit: String
+  diagnostic: String
+  prescription: String
+  notes: String
+  dateConsultation: DateTime
+  status: ConsultationStatus
+  categorieIds: [ID!]
+}
+
+input CreateEventInput {
+  date: DateTime!
+  type_event: String!
+  participant: String!
+  outils: OutilsEvent!
+  description: String
+  lieu: String
   dispensaireId: ID
+  nombreParticipants: Int
+}
+
+input UpdateEventInput {
+  date: DateTime
+  type_event: String
+  participant: String
+  outils: OutilsEvent
+  description: String
+  lieu: String
+  dispensaireId: ID
+  status: EventStatus
+  nombreParticipants: Int
+  isActive: Boolean
+}
+
+input CreateCategorieMaladieInput {
+  nom: String!
+  code: String
+  parentId: ID
+  niveau: Int!
+  ordre: Int
+  description: String
+}
+
+input UpdateCategorieMaladieInput {
+  nom: String
+  code: String
+  ordre: Int
+  description: String
+  isActive: Boolean
+}
+
+input CategorieMaladieFilterInput {
+  niveau: Int
+  parentId: ID
+  isActive: Boolean
+  search: String
+}
+
+input DataEntryFilterInput {
+  patientId: ID
+  typeConsultation: String
+  status: ConsultationStatus
+  dispensaireId: ID
+  userId: ID
+  dateFrom: DateTime
+  dateTo: DateTime
+  search: String
+}
+
+input PatientFilterInput {
+  dispensaireId: ID
+  religion: Religion
+  sexe: String
+  village: String
+  ageMin: Int
+  ageMax: Int
+  isActive: Boolean
+  search: String
+}
+
+input DispensaireFilterInput {
+  synoda: Synoda
+  isActive: Boolean
+  search: String
+}
+
+input EventFilterInput {
+  type_event: String
+  outils: OutilsEvent
+  status: EventStatus
+  userId: ID
+  dispensaireId: ID
+  dateFrom: DateTime
+  dateTo: DateTime
+  isActive: Boolean
+  search: String
+}
+
+input UserFilterInput {
+  role: UserRole
+  dispensaireId: ID
+  isActive: Boolean
+  specialite: AgentSpecialite
+  search: String
+}
+
+input ReorderInput {
+  id: ID!
+  ordre: Int!
+}
+
+input PaginationInput {
+  page: Int
+  limit: Int
+  offset: Int
+}
+
+input SortInput {
+  field: String!
+  direction: SortDirection!
+}
+
+input UpdateTypeConsultationInput {
+  label: String
+  description: String
+  isActive: Boolean
 }
 
 # Queries
 type Query {
-  # User queries
+  # Auth
   me: User
-  users(role: UserRole, dispensaireId: ID): [User!]!
+
+  # Users
   user(id: ID!): User
-  searchUsers(query: String!, role: UserRole): [User!]!
+  users(filter: UserFilterInput, pagination: PaginationInput): UserConnection!
 
-  # Dispensaire queries
-  dispensaires: [Dispensaire!]!
+  # Dispensaires
   dispensaire(id: ID!): Dispensaire
+  dispensaires(filter: DispensaireFilterInput, pagination: PaginationInput): DispensaireConnection!
 
-  # Data entry queries
-  dataEntries: [DataEntry!]!
+  # Patients
+  patient(id: ID!): Patient
+  patientByNumero(numero: String!): Patient
+  patients(filter: PatientFilterInput, sort: SortInput, pagination: PaginationInput): PatientConnection!
+  searchPatients(query: String!, dispensaireId: ID, limit: Int): [Patient!]!
+
+  # DataEntries (Consultations)
   dataEntry(id: ID!): DataEntry
+  dataEntries(filter: DataEntryFilterInput, sort: SortInput, pagination: PaginationInput): DataEntryConnection!
+  patientConsultations(patientId: ID!, limit: Int): [DataEntry!]!
+  recentConsultations(dispensaireId: ID, limit: Int): [DataEntry!]!
+  
+  # TypeConsultation
+  typeConsultation(code: String!): TypeConsultation
+  typeConsultations(isActive: Boolean): [TypeConsultation!]!
+
+  # Statistics
+  consultationStatsByType: [ConsultationStatsByType!]!
+  consultationStats(dispensaireId: ID, userId: ID): ConsultationOverallStats!
+
+  # Events
+  event(id: ID!): Event
+  events(filter: EventFilterInput, sort: SortInput, pagination: PaginationInput): EventConnection!
+
+  # CategorieMaladie
+  categorieMaladie(id: ID!): CategorieMaladie
+  categorieMaladieByCode(code: String!): CategorieMaladie
+  categoriesMaladies(filter: CategorieMaladieFilterInput): [CategorieMaladie!]!
+  categoriesPrincipales(activeOnly: Boolean): [CategorieMaladie!]!
+  arbreCategories(activeOnly: Boolean): [ArbreCategorie!]!
+  sousCategories(parentId: ID!, activeOnly: Boolean): [CategorieMaladie!]!
+  categoriesStats(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): [CategorieStats!]!
+  checkDeleteCategorie(id: ID!): DeleteCheckResponse!
 }
 
 # Mutations
 type Mutation {
-  # Auth mutations - CORRECTION ICI
-  login(login: String!, password: String!): AuthPayload!
+  # Auth
+  login(input: LoginInput!): AuthPayload!
   logout: Boolean!
 
-  # User management
-  createUser(input: CreateUserInput!): User!
-  updateUser(id: ID!, input: UpdateUserInput!): User!
+  # Users
+  createUser(input: CreateUserInput!): UserResponse!
+  updateUser(id: ID!, input: UpdateUserInput!): UserResponse!
   deleteUser(id: ID!): UserResponse!
-  
-  # Password management
-  changePassword(input: ChangePasswordInput!): Boolean!
-  resetUserPassword(userId: ID!): PasswordResetPayload!
-  toggleUserStatus(userId: ID!): User!
+  changeUserPassword(id: ID!, newPassword: String, generateNew: Boolean): UserResponse!
 
-  # Dispensaire mutations
-  createDispensaire(input: CreateDispensaireInput!): Dispensaire!
-  updateDispensaire(id: ID!, input: UpdateDispensaireInput!): Dispensaire!
-  deleteDispensaire(id: ID!): DeleteDispensaireResponse!
+  # Dispensaires
+  createDispensaire(input: CreateDispensaireInput!): DispensaireResponse!
+  updateDispensaire(id: ID!, input: UpdateDispensaireInput!): DispensaireResponse!
+  deleteDispensaire(id: ID!): DispensaireResponse!
 
-  # Data entry mutations
-  createDataEntry(input: CreateDataEntryInput!): DataEntry!
-  updateDataEntry(id: ID!, input: UpdateDataEntryInput!): DataEntry!
-  deleteDataEntry(id: ID!): Boolean!
-  syncDataEntries: SyncResult!
-}
+  # Patients
+  createPatient(input: CreatePatientInput!): PatientResponse!
+  updatePatient(id: ID!, input: UpdatePatientInput!): PatientResponse!
+  deletePatient(id: ID!): PatientResponse!
 
-type DeleteDispensaireResponse {
-  success: Boolean!
-  errors: [String!]
-  message: String
+  # DataEntries (Consultations)
+  createDataEntry(input: CreateDataEntryInput!): DataEntryResponse!
+  updateDataEntry(id: ID!, input: UpdateDataEntryInput!): DataEntryResponse!
+  deleteDataEntry(id: ID!): DataEntryResponse!
+  completeConsultation(id: ID!): DataEntryResponse!
+  requireFollowUp(id: ID!, notes: String): DataEntryResponse!
+
+  # TypeConsultation
+  updateTypeConsultation(code: String!, input: UpdateTypeConsultationInput!): TypeConsultation!
+
+  # Events
+  createEvent(input: CreateEventInput!): EventResponse!
+  updateEvent(id: ID!, input: UpdateEventInput!): EventResponse!
+
+  # CategorieMaladie
+  createCategorieMaladie(input: CreateCategorieMaladieInput!): CategorieMaladieResponse!
+  updateCategorieMaladie(id: ID!, input: UpdateCategorieMaladieInput!): CategorieMaladieResponse!
+  deleteCategorieMaladie(id: ID!): CategorieMaladieResponse!
+  reorderCategories(updates: [ReorderInput!]!): Boolean!
 }

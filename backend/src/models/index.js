@@ -7,6 +7,7 @@ import Patient from './patient.js';
 import DataEntry from './dataEntry.js';
 import Event from './event.js';
 import TypeConsultation from './typeConsultation.js';
+import CategorieMaladie from './categorieMaladie.js';
 
 // Définir les associations après que tous les modèles soient importés
 const models = {
@@ -15,7 +16,8 @@ const models = {
   Patient,
   DataEntry,
   Event,
-  TypeConsultation
+  TypeConsultation,
+  CategorieMaladie
 };
 
 // ✅ Définir les associations si les méthodes associate existent
@@ -33,6 +35,7 @@ export {
   DataEntry,
   Event,
   TypeConsultation,
+  CategorieMaladie,
   sequelize
 };
 

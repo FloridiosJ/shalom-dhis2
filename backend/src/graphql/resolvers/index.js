@@ -5,38 +5,57 @@ import dataEntryResolvers from './dataEntry.js';
 import patientResolvers from './patient.js';
 import eventResolvers from './event.js';
 import typeConsultationResolvers from './typeConsultation.js';
+import categorieMaladieResolvers from './categorieMaladie.js';
+import { GraphQLScalarType, Kind } from 'graphql';
+
+// Custom DateTime scalar
+const DateTimeScalar = new GraphQLScalarType({
+  name: 'DateTime',
+  description: 'Date custom scalar type',
+  serialize(value) {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return new Date(value).toISOString();
+  },
+  parseValue(value) {
+    return new Date(value);
+  },
+  parseLiteral(ast) {
+    if (ast.kind === Kind.STRING || ast.kind === Kind.INT) {
+      return new Date(ast.value);
+    }
+    return null;
+  }
+});
 
 export const resolvers = {
+  DateTime: DateTimeScalar,
+  
   Query: {
     // Auth queries
-    ...(authResolvers.Query || {}),
+    me: authResolvers.Query?.me,
     
     // User queries
     ...userResolvers.Query,
     
     // Dispensaire queries
-    dispensaire: dispensaireResolvers.Query?.dispensaire,
-    dispensaires: dispensaireResolvers.Query?.dispensaires,
+    ...dispensaireResolvers.Query,
     
     // Patient queries
-    patient: patientResolvers.Query?.patient,
-    patients: patientResolvers.Query?.patients,
+    ...patientResolvers.Query,
     
     // DataEntry queries
-    dataEntry: dataEntryResolvers.Query?.dataEntry,
-    dataEntries: dataEntryResolvers.Query?.dataEntries,
-    patientConsultations: dataEntryResolvers.Query?.patientConsultations,
-    consultationStatsByType: dataEntryResolvers.Query?.consultationStatsByType,
-    consultationStats: dataEntryResolvers.Query?.consultationStats,
-    recentConsultations: dataEntryResolvers.Query?.recentConsultations,
+    ...dataEntryResolvers.Query,
     
     // Event queries
-    event: eventResolvers.Query?.event,
-    events: eventResolvers.Query?.events,
+    ...eventResolvers.Query,
     
     // TypeConsultation queries
-    typeConsultation: typeConsultationResolvers.Query?.typeConsultation,
-    typeConsultations: typeConsultationResolvers.Query?.typeConsultations,
+    ...typeConsultationResolvers.Query,
+    
+    // CategorieMaladie queries
+    ...categorieMaladieResolvers.Query,
   },
   
   Mutation: {
@@ -47,23 +66,22 @@ export const resolvers = {
     ...userResolvers.Mutation,
     
     // Dispensaire mutations
-    ...(dispensaireResolvers.Mutation || {}),
+    ...dispensaireResolvers.Mutation,
     
     // Patient mutations
-    ...(patientResolvers.Mutation || {}),
+    ...patientResolvers.Mutation,
     
     // DataEntry mutations
-    createDataEntry: dataEntryResolvers.Mutation?.createDataEntry,
-    updateDataEntry: dataEntryResolvers.Mutation?.updateDataEntry,
-    deleteDataEntry: dataEntryResolvers.Mutation?.deleteDataEntry,
-    completeConsultation: dataEntryResolvers.Mutation?.completeConsultation,
-    requireFollowUp: dataEntryResolvers.Mutation?.requireFollowUp,
+    ...dataEntryResolvers.Mutation,
     
     // Event mutations
-    ...(eventResolvers.Mutation || {}),
+    ...eventResolvers.Mutation,
     
     // TypeConsultation mutations
-    updateTypeConsultation: typeConsultationResolvers.Mutation?.updateTypeConsultation,
+    ...typeConsultationResolvers.Mutation,
+    
+    // CategorieMaladie mutations
+    ...categorieMaladieResolvers.Mutation,
   },
   
   // Field resolvers
@@ -72,5 +90,7 @@ export const resolvers = {
   Patient: patientResolvers.Patient || {},
   DataEntry: dataEntryResolvers.DataEntry || {},
   Event: eventResolvers.Event || {},
-  TypeConsultation: typeConsultationResolvers.TypeConsultation || {}
+  TypeConsultation: typeConsultationResolvers.TypeConsultation || {},
+  CategorieMaladie: categorieMaladieResolvers.CategorieMaladie || {},
+  ArbreCategorie: categorieMaladieResolvers.ArbreCategorie || {}
 };

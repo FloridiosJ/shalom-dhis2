@@ -1,186 +1,117 @@
 import jwt from 'jsonwebtoken';
-import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
-
-const JWT_SECRET = process.env.JWT_SECRET;
+import { User } from '../models/index.js';
 
 /**
- * Vérifie qu'un utilisateur est authentifié
- * @param {Object} user - Utilisateur du contexte
- * @throws {AuthenticationError} Si l'utilisateur n'est pas connecté
+ * Middleware pour authentifier un token JWT
  */
-export const requireAuth = (user) => {
-  if (!user) {
-    throw new AuthenticationError('Vous devez être connecté pour effectuer cette action');
+export const authenticateToken = async (token) => {
+  if (!token) {
+    return null;
   }
-};
 
-/**
- * Vérifie qu'un utilisateur a l'un des rôles requis
- * @param {Object} user - Utilisateur du contexte
- * @param {Array<string>} allowedRoles - Rôles autorisés
- * @throws {ForbiddenError} Si l'utilisateur n'a pas les permissions
- */
-export const requireRole = (user, allowedRoles) => {
-  if (!user) {
-    throw new AuthenticationError('Vous devez être connecté');
-  }
-  
-  if (!allowedRoles.includes(user.role)) {
-    throw new ForbiddenError(`Permissions insuffisantes. Rôles requis: ${allowedRoles.join(', ')}`);
-  }
-};
-
-/**
- * Middleware pour extraire l'utilisateur du token JWT
- * @param {Object} req - Requête Express
- * @returns {Object|null} Utilisateur décodé ou null
- */
-export const getUser = async (req) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Vérifier et décoder le token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     
-    if (!authHeader) {
-      return null;
-    }
-    
-    // Format: "Bearer TOKEN"
-    let token = authHeader.split(' ')[1];
-    
-    if (!token) {
-      return null;
-    }
-    
-    // ✅ CORRIGER - Si le token a plus de 3 parties, prendre seulement les 3 premières
-    const tokenParts = token.split('.');  
-    if (tokenParts.length > 3) {
-      token = tokenParts.slice(0, 3).join('.');
-    }
-    if (!JWT_SECRET) {
-      return null;
-    }
-    
-    // Vérifier et décoder le token corrigé
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Récupérer l'utilisateur complet depuis la base de données
-    const { User, Dispensaire } = await import('../models/index.js'); // CORRIGER le chemin
-    
+    // Récupérer l'utilisateur depuis la base de données
     const user = await User.findByPk(decoded.userId, {
-      include: [
-        {
-          model: Dispensaire,
-          as: 'dispensaire'
-        }
-      ]
+      attributes: { exclude: ['password'] }
     });
-    
+
     if (!user || !user.isActive) {
       return null;
     }
-    
+
     return user;
-    
   } catch (error) {
-    console.log('❌ JWT Error details:', {
-      name: error.name,
-      message: error.message,
-      tokenLength: req.headers.authorization?.split(' ')[1]?.length
-    });
+    console.error('Token authentication error:', error.message);
     return null;
   }
 };
 
 /**
- * Vérifie si un utilisateur peut accéder à un dispensaire
- * @param {Object} user - Utilisateur
- * @param {string} dispensaireId - ID du dispensaire
- * @returns {boolean} True si l'accès est autorisé
+ * Middleware Express pour protéger les routes REST
+ */
+export const requireAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ 
+        error: 'Authentication required',
+        message: 'No token provided' 
+      });
+    }
+
+    const user = await authenticateToken(token);
+    
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'Authentication failed',
+        message: 'Invalid or expired token' 
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+};
+
+/**
+ * Middleware pour vérifier le rôle
+ */
+export const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ 
+        error: 'Authentication required',
+        message: 'User not authenticated' 
+      });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        error: 'Access denied',
+        message: `Required role: ${roles.join(' or ')}` 
+      });
+    }
+
+    next();
+  };
+};
+
+/**
+ * Générer un token JWT
+ */
+export const generateToken = (user) => {
+  return jwt.sign(
+    { 
+      userId: user.id,
+      role: user.role,
+      email: user.email 
+    },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+};
+
+/**
+ * Vérifier si un utilisateur est admin
+ */
+export const isAdmin = (user) => {
+  return user && user.role === 'ADMIN';
+};
+
+/**
+ * Vérifier si un utilisateur peut accéder à un dispensaire
  */
 export const canAccessDispensaire = (user, dispensaireId) => {
   if (!user) return false;
-  
-  // Les admins peuvent tout voir
-  if (user.role === 'admin') return true;
-  
-  // Les managers peuvent voir tous les dispensaires
-  if (user.role === 'manager') return true;
-  
-  // Les agents ne peuvent voir que leur dispensaire
-  if (user.role === 'agent') {
-    return user.dispensaireId === dispensaireId;
-  }
-  
-  return false;
-};
-
-/**
- * Vérifie si un utilisateur peut modifier un autre utilisateur
- * @param {Object} currentUser - Utilisateur connecté
- * @param {Object} targetUser - Utilisateur à modifier
- * @returns {boolean} True si la modification est autorisée
- */
-export const canModifyUser = (currentUser, targetUser) => {
-  if (!currentUser || !targetUser) return false;
-  
-  // Un utilisateur peut se modifier lui-même (partiellement)
-  if (currentUser.id === targetUser.id) return true;
-  
-  // Les admins peuvent modifier tout le monde
-  if (currentUser.role === 'admin') return true;
-  
-  // Les managers peuvent modifier les agents et autres managers (mais pas les admins)
-  if (currentUser.role === 'manager' && targetUser.role !== 'admin') {
-    return true;
-  }
-  
-  return false;
-};
-
-/**
- * Filtre les champs modifiables selon les permissions
- * @param {Object} currentUser - Utilisateur connecté
- * @param {Object} targetUser - Utilisateur à modifier
- * @param {Object} input - Données à modifier
- * @returns {Object} Champs autorisés
- */
-export const filterAllowedFields = (currentUser, targetUser, input) => {
-  if (!currentUser || !targetUser) return {};
-  
-  // Si l'utilisateur se modifie lui-même
-  if (currentUser.id === targetUser.id) {
-    const allowedFields = ['nom', 'prenom', 'password'];
-    return Object.keys(input)
-      .filter(key => allowedFields.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = input[key];
-        return obj;
-      }, {});
-  }
-  
-  // Les admins peuvent tout modifier
-  if (currentUser.role === 'admin') {
-    return input;
-  }
-  
-  // Les managers peuvent modifier certains champs (pas le rôle admin)
-  if (currentUser.role === 'manager') {
-    const restrictedFields = targetUser.role === 'admin' ? Object.keys(input) : [];
-    return Object.keys(input)
-      .filter(key => !restrictedFields.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = input[key];
-        return obj;
-      }, {});
-  }
-  
-  return {};
-};
-
-export default {
-  requireAuth,
-  requireRole,
-  getUser,
-  canAccessDispensaire,
-  canModifyUser,
-  filterAllowedFields
+  if (user.role === 'ADMIN') return true;
+  return user.dispensaireId === dispensaireId;
 };

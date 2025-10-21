@@ -3,6 +3,33 @@ import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 
 const authResolvers = {
+  Query: {
+    // ✅ AJOUTER la query me
+    me: async (_, __, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { User, Dispensaire } = await import('../../models/index.js');
+      
+      // Récupérer l'utilisateur avec ses relations
+      const fullUser = await User.findByPk(user.id, {
+        include: [
+          {
+            model: Dispensaire,
+            as: 'dispensaire'
+          }
+        ]
+      });
+
+      if (!fullUser) {
+        throw new AuthenticationError('Utilisateur non trouvé');
+      }
+
+      return fullUser;
+    }
+  },
+
   Mutation: {
     login: async (_, { input }) => {
       console.log('🔍 Login attempt with:', input.login);

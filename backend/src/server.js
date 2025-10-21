@@ -1,106 +1,106 @@
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import sequelize from './config/db.js';
 import { resolvers } from './graphql/resolvers/index.js';
-import { initDatabase } from './database/init.js';
-import authMiddleware, { getUser } from './middleware/auth.js';
+import { authenticateToken } from './middleware/auth.js';
+import { runSeeders } from './database/seeders/index.js';
 
-// ✅ IMPORT des types au lieu de readFileSync
-import { userTypes } from './graphql/types/user.js';
-import { dispensaireTypes } from './graphql/types/dispensaire.js';
-import { patientTypes } from './graphql/types/patient.js';
-import { dataEntryTypes } from './graphql/types/dataEntry.js';
-import { eventTypes } from './graphql/types/event.js';
-import { gql } from 'apollo-server-express';
-import { typeConsultationTypeDefs } from './graphql/types/typeConsultation.js';
+// Charger les variables d'environnement
+dotenv.config();
 
-// ✅ Types de base
-const baseTypes = gql`
-  scalar DateTime
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-  enum SortDirection {
-    ASC
-    DESC
-  }
+const app = express();
 
-  input PaginationInput {
-    page: Int = 1
-    limit: Int = 10
-  }
+// Middlewares
+app.use(cors());
+app.use(express.json());
 
-  type Query {
-    _empty: String
-  }
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
-  type Mutation {
-    _empty: String
-  }
-
-  # Type pour l'authentification
-  type AuthPayload {
-    token: String!
-    user: User!
-  }
-
-  input LoginInput {
-    login: String!
-    password: String!
-  }
-
-  extend type Mutation {
-    login(input: LoginInput!): AuthPayload!
-    logout: Boolean
-  }
-`;
-
-// ✅ Combiner tous les types
-const typeDefs = [
-  baseTypes,
-  userTypes,
-  dispensaireTypes,
-  patientTypes,
-  dataEntryTypes,
-  eventTypes,
-  typeConsultationTypeDefs
-];
-
+// Fonction pour démarrer le serveur
 async function startServer() {
   try {
-    // 1. Initialize database first
-    await initDatabase();
-    
-    // 2. Setup Express
-    const app = express();
-    
-    // 3. Setup GraphQL
+    // Test de connexion à la base de données
+    console.log('🔌 Testing database connection...');
+    await sequelize.authenticate();
+    console.log('✅ Database connection has been established successfully.');
+
+    // Synchroniser les modèles avec la base de données
+    console.log('🔄 Synchronizing database models...');
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database models synchronized successfully.');
+
+    // Exécuter les seeders
+    console.log('🌱 Running seeders...');
+    await runSeeders();
+    console.log('✅ Seeders executed successfully.');
+
+    // Charger le schéma GraphQL depuis le fichier
+    console.log('📋 Loading GraphQL schema...');
+    const typeDefs = readFileSync(
+      join(__dirname, 'graphql', 'schema.graphql'),
+      'utf-8'
+    );
+    console.log('✅ GraphQL schema loaded successfully.');
+
+    // Créer le serveur Apollo
+    console.log('🚀 Starting Apollo Server...');
     const server = new ApolloServer({
       typeDefs,
       resolvers,
       context: async ({ req }) => {
-        // Extraire l'utilisateur du token JWT
-        const user = await getUser(req);
-        
+        try {
+          const token = req.headers.authorization?.replace('Bearer ', '') || '';
+          const user = token ? await authenticateToken(token) : null;
+          return { user };
+        } catch (error) {
+          console.error('Context creation error:', error);
+          return { user: null };
+        }
+      },
+      formatError: (error) => {
+        console.error('GraphQL Error:', error);
         return {
-          user,
-          // Ajouter des dataloaders ici si nécessaire
-          dataloaders: {
-            // userLoader: new DataLoader(...),
-            // dispensaireLoader: new DataLoader(...),
+          message: error.message,
+          locations: error.locations,
+          path: error.path,
+          extensions: {
+            code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
+            ...error.extensions
           }
         };
       },
       introspection: true,
       playground: true
     });
-    
+
     await server.start();
     server.applyMiddleware({ app, path: '/graphql' });
-    
-    // 4. Start server
+
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
-      console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+      console.log('');
+      console.log('='.repeat(50));
+      console.log(`✅ Server running on http://localhost:${PORT}`);
+      console.log(`🚀 GraphQL endpoint: http://localhost:${PORT}${server.graphqlPath}`);
+      console.log(`🏥 GraphQL Playground: http://localhost:${PORT}${server.graphqlPath}`);
+      console.log('='.repeat(50));
+      console.log('');
     });
-    
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
