@@ -72,6 +72,12 @@ enum TypeVaccin {
   AUTRES
 }
 
+# Enums pour ActiviteSpirituelle
+enum TypeActiviteSpirituelle {
+  culte
+  priere
+}
+
 # User type
 type User {
   id: ID!
@@ -298,6 +304,40 @@ type CouvertureVaccinale {
   tauxCouverture: Float!
 }
 
+# ActiviteSpirituelle type
+type ActiviteSpirituelle {
+  id: ID!
+  date: DateTime!
+  dispensaireId: ID!
+  dispensaire: Dispensaire!
+  typeActivite: TypeActiviteSpirituelle!
+  nombreParticipants: Int
+  precheur: String
+  versetPreche: String
+  theme: String
+  notes: String
+  agentId: ID!
+  agent: User!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  
+  # Champs calculés
+  typeLabel: String!
+  summary: String!
+  isRecent: Boolean!
+  isToday: Boolean!
+  isUpcoming: Boolean!
+}
+
+# Statistiques d'activités spirituelles
+type ActiviteSprituelleStats {
+  typeActivite: TypeActiviteSpirituelle!
+  count: Int!
+  totalParticipants: Int!
+  moyenneParticipants: Float!
+}
+
 # Response types
 type UserResponse {
   user: User
@@ -358,6 +398,13 @@ type VaccinationResponse {
   errors: [String!]
 }
 
+type ActiviteSprituelleResponse {
+  activite: ActiviteSpirituelle
+  success: Boolean!
+  message: String!
+  errors: [String!]
+}
+
 # Paginated results
 type DataEntryConnection {
   dataEntries: [DataEntry!]!
@@ -396,6 +443,13 @@ type UserConnection {
 
 type VaccinationConnection {
   vaccinations: [Vaccination!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type ActiviteSprituelleConnection {
+  activites: [ActiviteSpirituelle!]!
   totalCount: Int!
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
@@ -630,6 +684,38 @@ input VaccinationFilterInput {
   search: String
 }
 
+input CreateActiviteSprituelleInput {
+  date: DateTime!
+  dispensaireId: ID!
+  typeActivite: TypeActiviteSpirituelle!
+  nombreParticipants: Int
+  precheur: String
+  versetPreche: String
+  theme: String
+  notes: String
+}
+
+input UpdateActiviteSprituelleInput {
+  date: DateTime
+  typeActivite: TypeActiviteSpirituelle
+  nombreParticipants: Int
+  precheur: String
+  versetPreche: String
+  theme: String
+  notes: String
+  isActive: Boolean
+}
+
+input ActiviteSprituelleFilterInput {
+  dispensaireId: ID
+  agentId: ID
+  typeActivite: TypeActiviteSpirituelle
+  dateFrom: DateTime
+  dateTo: DateTime
+  isActive: Boolean
+  search: String
+}
+
 # Queries
 type Query {
   # Auth
@@ -684,6 +770,13 @@ type Query {
   recentVaccinations(limit: Int): [Vaccination!]!
   vaccinationStats(agentId: ID, dateFrom: DateTime, dateTo: DateTime): [VaccinationStats!]!
   couvertureVaccinale(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): CouvertureVaccinale!
+
+  # ActiviteSpirituelle queries
+  activiteSpirituelle(id: ID!): ActiviteSpirituelle
+  activitesSpiritulles(filter: ActiviteSprituelleFilterInput, sort: SortInput, pagination: PaginationInput): ActiviteSprituelleConnection!
+  dispensaireActivites(dispensaireId: ID!, limit: Int): [ActiviteSpirituelle!]!
+  recentesActivitesSpiritulles(limit: Int): [ActiviteSpirituelle!]!
+  activitesSpirituellesStats(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): [ActiviteSprituelleStats!]!
 }
 
 # Mutations
@@ -732,4 +825,9 @@ type Mutation {
   createVaccination(input: CreateVaccinationInput!): VaccinationResponse!
   updateVaccination(id: ID!, input: UpdateVaccinationInput!): VaccinationResponse!
   deleteVaccination(id: ID!): VaccinationResponse!
+
+  # ActiviteSpirituelle mutations
+  createActiviteSpirituelle(input: CreateActiviteSprituelleInput!): ActiviteSprituelleResponse!
+  updateActiviteSpirituelle(id: ID!, input: UpdateActiviteSprituelleInput!): ActiviteSprituelleResponse!
+  deleteActiviteSpirituelle(id: ID!): ActiviteSprituelleResponse!
 }

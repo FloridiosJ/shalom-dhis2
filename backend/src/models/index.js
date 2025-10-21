@@ -9,6 +9,7 @@ import Event from './event.js';
 import TypeConsultation from './typeConsultation.js';
 import CategorieMaladie from './categorieMaladie.js';
 import Vaccination from './vaccination.js';
+import ActiviteSpirituelle from './activiteSpirituelle.js';
 
 // Définir les associations après que tous les modèles soient importés
 const models = {
@@ -19,7 +20,8 @@ const models = {
   Event,
   TypeConsultation,
   CategorieMaladie,
-  Vaccination
+  Vaccination,
+  ActiviteSpirituelle
 };
 
 // ✅ Définir les associations si les méthodes associate existent
@@ -39,6 +41,7 @@ export {
   TypeConsultation,
   CategorieMaladie,
   Vaccination,
+  ActiviteSpirituelle,
   sequelize
 };
 

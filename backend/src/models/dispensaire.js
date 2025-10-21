@@ -117,18 +117,42 @@ Dispensaire.prototype.getStats = async function() {
 
 // Définition des associations
 Dispensaire.associate = (models) => {
-  // Relation avec User
+  // Relation inverse avec User (utilisateurs du dispensaire)
   Dispensaire.hasMany(models.User, {
     foreignKey: 'dispensaireId',
     as: 'users',
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE'
   });
-  
-  // Relation avec DataEntry
+
+  // Relation inverse avec Patient (patients du dispensaire)
+  Dispensaire.hasMany(models.Patient, {
+    foreignKey: 'dispensaireId',
+    as: 'patients',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  });
+
+  // Relation inverse avec DataEntry (consultations du dispensaire)
   Dispensaire.hasMany(models.DataEntry, {
     foreignKey: 'dispensaireId',
     as: 'dataEntries',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  });
+
+  // Relation inverse avec Event (événements du dispensaire)
+  Dispensaire.hasMany(models.Event, {
+    foreignKey: 'dispensaireId',
+    as: 'events',
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE'
+  });
+
+  // ✅ AJOUTER : Relation inverse avec ActiviteSpirituelle
+  Dispensaire.hasMany(models.ActiviteSpirituelle, {
+    foreignKey: 'dispensaireId',
+    as: 'activitesSpiritulles',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
   });

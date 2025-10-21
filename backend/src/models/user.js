@@ -264,10 +264,18 @@ User.associate = (models) => {
     onUpdate: 'CASCADE'
   });
 
-  // ✅ AJOUTER : Relation inverse avec Vaccination (agent)
+  // Relation inverse avec Vaccination (agent)
   User.hasMany(models.Vaccination, {
     foreignKey: 'agentId',
     as: 'vaccinationsEffectuees',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
+  });
+
+  // ✅ AJOUTER : Relation inverse avec ActiviteSpirituelle
+  User.hasMany(models.ActiviteSpirituelle, {
+    franciscKey: 'agentId',
+    as: 'activitesSpirituellesOrganisees',
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'
   });
