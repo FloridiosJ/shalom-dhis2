@@ -14,6 +14,13 @@ const DataEntry = sequelize.define('DataEntry', {
       notNull: { msg: 'Le patient est obligatoire' }
     }
   },
+  typeConsultation: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Le type de consultation est obligatoire' }
+    }
+  },
   diagnostic: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -59,21 +66,34 @@ const DataEntry = sequelize.define('DataEntry', {
   timestamps: true
 });
 
-// ✅ Associations
 DataEntry.associate = (models) => {
   DataEntry.belongsTo(models.Patient, {
     foreignKey: 'patientId',
-    as: 'patient'
+    as: 'patient',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
   });
   
   DataEntry.belongsTo(models.User, {
     foreignKey: 'userId',
-    as: 'createdBy'
+    as: 'createdBy',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
   });
   
   DataEntry.belongsTo(models.Dispensaire, {
     foreignKey: 'dispensaireId',
-    as: 'dispensaire'
+    as: 'dispensaire',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  });
+
+  DataEntry.belongsTo(models.TypeConsultation, {
+    foreignKey: 'typeConsultation',
+    targetKey: 'code',
+    as: 'typeConsultationDetails',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE'
   });
 };
 

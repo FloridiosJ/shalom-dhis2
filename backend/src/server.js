@@ -11,6 +11,7 @@ import { patientTypes } from './graphql/types/patient.js';
 import { dataEntryTypes } from './graphql/types/dataEntry.js';
 import { eventTypes } from './graphql/types/event.js';
 import { gql } from 'apollo-server-express';
+import { typeConsultationTypeDefs } from './graphql/types/typeConsultation.js';
 
 // ✅ Types de base
 const baseTypes = gql`
@@ -58,7 +59,8 @@ const typeDefs = [
   dispensaireTypes,
   patientTypes,
   dataEntryTypes,
-  eventTypes
+  eventTypes,
+  typeConsultationTypeDefs
 ];
 
 async function startServer() {

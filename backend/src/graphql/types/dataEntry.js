@@ -6,26 +6,32 @@ export const dataEntryTypes = gql`
     en_cours
     termine
     suivi_requis
+    active
+    completed
+    cancelled
   }
 
   # Type principal DataEntry
   type DataEntry {
     id: ID!
     patientId: ID!
+    typeConsultation: String!
     diagnostic: String!
-    prescription: String!
+    prescription: String
     userId: ID!
     dispensaireId: ID!
     dateConsultation: DateTime!
     status: ConsultationStatus!
     notes: String
+    isActive: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
     
     # Relations
     patient: Patient!
-    user: User!
+    createdBy: User!
     dispensaire: Dispensaire!
+    typeConsultationDetails: TypeConsultation
     
     # Champs calculés
     summary: String!
@@ -34,22 +40,22 @@ export const dataEntryTypes = gql`
   # Input pour création d'entrée de données
   input CreateDataEntryInput {
     patientId: ID!
+    typeConsultation: String!
     diagnostic: String!
-    prescription: String!
-    dispensaireId: ID!
+    prescription: String
+    dispensaireId: ID
     dateConsultation: DateTime
     notes: String
   }
 
   # Input pour modification d'entrée de données
   input UpdateDataEntryInput {
+    typeConsultation: String
     diagnostic: String
     prescription: String
     dateConsultation: DateTime
     status: ConsultationStatus
     notes: String
-    patientId: ID 
-    dispensaireId: ID
   }
 
   # Réponse de création/modification d'entrée de données
@@ -65,6 +71,7 @@ export const dataEntryTypes = gql`
     patientId: ID
     userId: ID
     dispensaireId: ID
+    typeConsultation: String
     status: ConsultationStatus
     dateFrom: DateTime
     dateTo: DateTime
@@ -93,16 +100,25 @@ export const dataEntryTypes = gql`
 
   # Statistiques des consultations
   type ConsultationStats {
-    totalConsultations: Int!
-    consultationsByStatus: [StatusCount!]!
-    consultationsThisMonth: Int!
-    consultationsToday: Int!
-    patientsSeen: Int!
+    typeConsultation: TypeConsultation!
+    total: Int!
+    thisMonth: Int!
+    thisWeek: Int!
+    byStatus: [StatusCount!]!
   }
 
   type StatusCount {
-    status: ConsultationStatus!
+    status: String!
     count: Int!
+  }
+
+  type ConsultationOverallStats {
+    totalConsultations: Int!
+    consultationsByStatus: [StatusCount!]!
+    consultationsByType: [ConsultationStats!]!
+    consultationsThisMonth: Int!
+    consultationsToday: Int!
+    patientsSeen: Int!
   }
 
   extend type Query {
@@ -122,11 +138,14 @@ export const dataEntryTypes = gql`
       limit: Int = 10
     ): [DataEntry!]!
 
-    # Statistiques des consultations
+    # Statistiques des consultations par type
+    consultationStatsByType: [ConsultationStats!]!
+
+    # Statistiques globales des consultations
     consultationStats(
       dispensaireId: ID
       userId: ID
-    ): ConsultationStats!
+    ): ConsultationOverallStats!
 
     # Consultations récentes
     recentConsultations(

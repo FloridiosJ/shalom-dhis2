@@ -1,426 +1,445 @@
-import { UserInputError, ForbiddenError } from 'apollo-server-express';
+// filepath: /home/jacob/WORK_SPACE/Floridios/shalom-dhis2/backend/src/graphql/resolvers/dataEntry.js
+import { DataEntry, Patient, User, Dispensaire, TypeConsultation } from '../../models/index.js';
+import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { Op } from 'sequelize';
-import { requireAuth, requireRole } from '../../middleware/auth.js';
 
-export const dataEntryResolvers = {
-  // Resolvers de champs
-  DataEntry: {
-    summary: (dataEntry) => dataEntry.getSummary(),
-
-    patient: async (dataEntry, args, { dataloaders }) => {
-      if (dataloaders && dataloaders.patientLoader) {
-        return await dataloaders.patientLoader.load(dataEntry.patientId);
-      }
-      
-      const { Patient } = await import('../../models/index.js');
-      return await Patient.findByPk(dataEntry.patientId);
-    },
-
-    user: async (dataEntry, args, { dataloaders }) => {
-      if (dataloaders && dataloaders.userLoader) {
-        return await dataloaders.userLoader.load(dataEntry.userId);
-      }
-      
-      const { User } = await import('../../models/index.js');
-      return await User.findByPk(dataEntry.userId);
-    },
-
-    dispensaire: async (dataEntry, args, { dataloaders }) => {
-      if (dataloaders && dataloaders.dispensaireLoader) {
-        return await dataloaders.dispensaireLoader.load(dataEntry.dispensaireId);
-      }
-      
-      const { Dispensaire } = await import('../../models/index.js');
-      return await Dispensaire.findByPk(dataEntry.dispensaireId);
-    }
-  },
-
+const dataEntryResolvers = {
   Query: {
-    dataEntry: async (parent, { id }, { user }) => {
-      requireAuth(user);
-      
-      const { DataEntry, Patient, User, Dispensaire } = await import('../../models/index.js');
-      
-      const dataEntry = await DataEntry.findByPk(id, {
+    dataEntry: async (_, { id }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const entry = await DataEntry.findByPk(id, {
         include: [
           { model: Patient, as: 'patient' },
-          { model: User, as: 'user' },
-          { model: Dispensaire, as: 'dispensaire' }
+          { model: User, as: 'createdBy' },
+          { model: Dispensaire, as: 'dispensaire' },
+          { model: TypeConsultation, as: 'typeConsultationDetails' }
         ]
       });
-      
-      if (!dataEntry) {
+
+      if (!entry) {
         throw new UserInputError('Consultation non trouvée');
       }
-      
-      // Vérification des permissions
-      if (user.role === 'agent' && dataEntry.dispensaireId !== user.dispensaireId) {
-        throw new ForbiddenError('Accès non autorisé à cette consultation');
-      }
-      
-      return dataEntry;
+
+      return entry;
     },
 
-    dataEntries: async (parent, { filter, sort, pagination }, { user }) => {
-      requireAuth(user);
-      
-      const { DataEntry, Patient, User, Dispensaire } = await import('../../models/index.js');
-      
-      // Construction de la requête avec filtres
-      const whereClause = {};
-      
+    dataEntries: async (_, { filter, sort, pagination }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const where = { isActive: true };
+
       if (filter) {
-        if (filter.patientId) whereClause.patientId = filter.patientId;
-        if (filter.userId) whereClause.userId = filter.userId;
-        if (filter.dispensaireId) whereClause.dispensaireId = filter.dispensaireId;
-        if (filter.status) whereClause.status = filter.status;
-        
-        if (filter.dateFrom || filter.dateTo) {
-          whereClause.dateConsultation = {};
-          if (filter.dateFrom) whereClause.dateConsultation[Op.gte] = filter.dateFrom;
-          if (filter.dateTo) whereClause.dateConsultation[Op.lte] = filter.dateTo;
+        if (filter.typeConsultation) {
+          where.typeConsultation = filter.typeConsultation;
         }
-        
+        if (filter.patientId) {
+          where.patientId = filter.patientId;
+        }
+        if (filter.dispensaireId) {
+          where.dispensaireId = filter.dispensaireId;
+        }
+        if (filter.userId) {
+          where.userId = filter.userId;
+        }
+        if (filter.status) {
+          where.status = filter.status;
+        }
+        if (filter.dateFrom && filter.dateTo) {
+          where.dateConsultation = {
+            [Op.between]: [new Date(filter.dateFrom), new Date(filter.dateTo)]
+          };
+        }
         if (filter.search) {
-          whereClause[Op.or] = [
+          where[Op.or] = [
             { diagnostic: { [Op.iLike]: `%${filter.search}%` } },
             { prescription: { [Op.iLike]: `%${filter.search}%` } },
             { notes: { [Op.iLike]: `%${filter.search}%` } }
           ];
         }
       }
-      
-      // Pour les agents, limiter aux consultations de leur dispensaire
-      if (user.role === 'agent') {
-        whereClause.dispensaireId = user.dispensaireId;
+
+      if (user.role !== 'ADMIN' && user.dispensaireId) {
+        where.dispensaireId = user.dispensaireId;
       }
-      
-      // Tri
-      const order = [];
-      if (sort) {
-        order.push([sort.field, sort.direction]);
-      } else {
-        order.push(['dateConsultation', 'DESC']);
-      }
-      
-      // Pagination
-      const page = pagination?.page || 1;
-      const limit = pagination?.limit || 10;
-      const offset = (page - 1) * limit;
-      
-      const { rows: dataEntries, count: totalCount } = await DataEntry.findAndCountAll({
-        where: whereClause,
+
+      const limit = pagination?.limit || 20;
+      const offset = pagination?.offset || 0;
+
+      const order = sort 
+        ? [[sort.field, sort.direction]]
+        : [['dateConsultation', 'DESC']];
+
+      const { count, rows } = await DataEntry.findAndCountAll({
+        where,
         include: [
           { model: Patient, as: 'patient' },
           { model: User, as: 'createdBy' },
-          { model: Dispensaire, as: 'dispensaire' }
+          { model: Dispensaire, as: 'dispensaire' },
+          { model: TypeConsultation, as: 'typeConsultationDetails' }
         ],
         order,
         limit,
         offset
       });
-      
+
       return {
-        dataEntries,
-        totalCount,
-        hasNextPage: offset + limit < totalCount,
-        hasPreviousPage: page > 1
+        dataEntries: rows,
+        totalCount: count,
+        hasNextPage: offset + limit < count,
+        hasPreviousPage: offset > 0
       };
     },
 
-    patientConsultations: async (parent, { patientId, limit }, { user }) => {
-      requireAuth(user);
-      
-      const { DataEntry, Patient, User, Dispensaire } = await import('../../models/index.js');
-      
-      // Vérifier l'accès au patient
-      const patient = await Patient.findByPk(patientId);
-      if (!patient) {
-        throw new UserInputError('Patient non trouvé');
+    patientConsultations: async (_, { patientId, limit }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
       }
-      
-      if (user.role === 'agent' && patient.dispensaireId !== user.dispensaireId) {
-        throw new ForbiddenError('Accès non autorisé aux consultations de ce patient');
-      }
-      
+
       return await DataEntry.findAll({
-        where: { patientId },
+        where: { 
+          patientId,
+          isActive: true 
+        },
         include: [
           { model: Patient, as: 'patient' },
           { model: User, as: 'createdBy' },
-          { model: Dispensaire, as: 'dispensaire' }
+          { model: Dispensaire, as: 'dispensaire' },
+          { model: TypeConsultation, as: 'typeConsultationDetails' }
         ],
         order: [['dateConsultation', 'DESC']],
-        limit
+        limit: limit || 10
+      });
+    },
+
+    consultationStatsByType: async (_, __, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const types = await TypeConsultation.findAll({
+        where: { isActive: true }
+      });
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+
+      const stats = await Promise.all(
+        types.map(async (type) => {
+          const where = { 
+            typeConsultation: type.code,
+            isActive: true
+          };
+
+          if (user.role !== 'ADMIN' && user.dispensaireId) {
+            where.dispensaireId = user.dispensaireId;
+          }
+
+          const [total, thisMonth, thisWeek, statusCounts] = await Promise.all([
+            DataEntry.count({ where }),
+            DataEntry.count({
+              where: {
+                ...where,
+                dateConsultation: { [Op.gte]: startOfMonth }
+              }
+            }),
+            DataEntry.count({
+              where: {
+                ...where,
+                dateConsultation: { [Op.gte]: startOfWeek }
+              }
+            }),
+            DataEntry.findAll({
+              where,
+              attributes: [
+                'status',
+                [DataEntry.sequelize.fn('COUNT', '*'), 'count']
+              ],
+              group: ['status'],
+              raw: true
+            })
+          ]);
+
+          return {
+            typeConsultation: type,
+            total,
+            thisMonth,
+            thisWeek,
+            byStatus: statusCounts.map(s => ({
+              status: s.status,
+              count: parseInt(s.count)
+            }))
+          };
+        })
+      );
+
+      return stats;
+    },
+
+    consultationStats: async (_, { dispensaireId, userId }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const where = { isActive: true };
+
+      if (dispensaireId) {
+        where.dispensaireId = dispensaireId;
+      } else if (user.role !== 'ADMIN' && user.dispensaireId) {
+        where.dispensaireId = user.dispensaireId;
+      }
+
+      if (userId) {
+        where.userId = userId;
+      }
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      const [
+        totalConsultations,
+        consultationsThisMonth,
+        consultationsToday,
+        patientsSeen,
+        consultationsByStatus,
+        consultationsByType
+      ] = await Promise.all([
+        DataEntry.count({ where }),
+        DataEntry.count({
+          where: {
+            ...where,
+            dateConsultation: { [Op.gte]: startOfMonth }
+          }
+        }),
+        DataEntry.count({
+          where: {
+            ...where,
+            dateConsultation: { [Op.gte]: startOfDay }
+          }
+        }),
+        DataEntry.count({
+          where,
+          distinct: true,
+          col: 'patientId'
+        }),
+        DataEntry.findAll({
+          where,
+          attributes: [
+            'status',
+            [DataEntry.sequelize.fn('COUNT', '*'), 'count']
+          ],
+          group: ['status'],
+          raw: true
+        }),
+        dataEntryResolvers.Query.consultationStatsByType(_, __, { user })
+      ]);
+
+      return {
+        totalConsultations,
+        consultationsThisMonth,
+        consultationsToday,
+        patientsSeen,
+        consultationsByStatus: consultationsByStatus.map(s => ({
+          status: s.status,
+          count: parseInt(s.count)
+        })),
+        consultationsByType
+      };
+    },
+
+    recentConsultations: async (_, { dispensaireId, limit }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const where = { isActive: true };
+
+      if (dispensaireId) {
+        where.dispensaireId = dispensaireId;
+      } else if (user.role !== 'ADMIN' && user.dispensaireId) {
+        where.dispensaireId = user.dispensaireId;
+      }
+
+      return await DataEntry.findAll({
+        where,
+        include: [
+          { model: Patient, as: 'patient' },
+          { model: User, as: 'createdBy' },
+          { model: Dispensaire, as: 'dispensaire' },
+          { model: TypeConsultation, as: 'typeConsultationDetails' }
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: limit || 10
       });
     }
   },
 
   Mutation: {
-    createDataEntry: async (parent, { input }, { user }) => {
-      
+    createDataEntry: async (_, { input }, { user }) => {
       try {
-        // Vérifications d'authentification
-        requireAuth(user);
-        
-        
-        const { DataEntry, Patient, Dispensaire } = await import('../../models/index.js');
-        
-        // ✅ Vérifier que le patient existe
-        if (input.patientId) {
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
+        }
 
-          console.log('🔍 AGNATINY patienID:', input.patientId);
-          const patient = await Patient.findByPk(input.patientId);
-          console.log('🔍 Patient check:', patient ? `✅ ${patient.nom}` : '❌ NULL');
-          
-          if (!patient) {
-            return {
-              success: false,
-              message: 'Patient non trouvé',
-              errors: ['PATIENT_NOT_FOUND'],
-              dataEntry: null
-            };
-          }
-        }
-        
-        // ✅ Vérifier que le dispensaire existe
-        if (input.dispensaireId) {
-          const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
-          console.log('🔍 Dispensaire check:', dispensaire ? `✅ ${dispensaire.name}` : '❌ NULL');
-          
-          if (!dispensaire) {
-            return {
-              success: false,
-              message: 'Dispensaire non trouvé',
-              errors: ['DISPENSAIRE_NOT_FOUND'],
-              dataEntry: null
-            };
-          }
-        }
-        
-        // ✅ Préparer les données pour la création
-        const dataEntryData = {
-          patientId: input.patientId,
-          diagnostic: input.diagnostic,
-          prescription: input.prescription,
-          notes: input.notes,
-          dateConsultation: input.dateConsultation ? new Date(input.dateConsultation) : new Date(),
-          dispensaireId: input.dispensaireId,
-          userId: user.id, // ✅ IMPORTANT: Ajouter l'utilisateur créateur
-          status: 'active', // Valeur par défaut
-          isActive: true
-        };
-        
-        console.log('🔄 Creating DataEntry with data:', dataEntryData);
-        
-        // ✅ Créer l'entrée de données
-        const dataEntry = await DataEntry.create(dataEntryData);
-        
-        console.log('✅ DataEntry created successfully:', {
-          id: dataEntry.id,
-          patientId: dataEntry.patientId,
-          diagnostic: dataEntry.diagnostic?.substring(0, 50) + '...'
-        });
-        
-        // ✅ Récupérer l'entrée créée avec ses relations
-        const createdDataEntry = await DataEntry.findByPk(dataEntry.id, {
-          include: [
-            {
-              model: Patient,
-              as: 'patient'
-            },
-            {
-              model: Dispensaire,
-              as: 'dispensaire'
-            },
-            {
-              model: (await import('../../models/index.js')).User,
-              as: 'createdBy'
-            }
-          ]
-        });
-        
-        console.log('✅ DataEntry retrieved with relations:', createdDataEntry ? 'SUCCESS' : 'NULL');
-        
-        // ✅ Retourner la structure correcte
-        const response = {
-          success: true,
-          message: 'Consultation créée avec succès',
-          errors: [],
-          dataEntry: createdDataEntry // ✅ IMPORTANT: Retourner l'objet complet
-        };
-        
-        console.log('🚀 Returning response:', { 
-          success: response.success, 
-          dataEntryId: response.dataEntry?.id 
-        });
-        
-        return response;
-        
-      } catch (error) {
-        console.error('❌ Error in createDataEntry:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack?.split('\n').slice(0, 3)
-        });
-        
-        // ✅ Gestion d'erreurs spécifiques
-        if (error.name === 'SequelizeValidationError') {
+        const typeConsultation = await TypeConsultation.findByPk(input.typeConsultation);
+        if (!typeConsultation) {
           return {
+            dataEntry: null,
             success: false,
-            message: 'Données de validation invalides',
-            errors: error.errors.map(err => `${err.path}: ${err.message}`),
-            dataEntry: null
+            message: `Type de consultation '${input.typeConsultation}' non trouvé`,
+            errors: ['TYPE_NOT_FOUND']
           };
         }
-        
-        if (error.name === 'SequelizeForeignKeyConstraintError') {
-          return {
-            success: false,
-            message: 'Référence invalide (patient ou dispensaire inexistant)',
-            errors: ['FOREIGN_KEY_CONSTRAINT'],
-            dataEntry: null
-          };
-        }
-        
-        return {
-          success: false,
-          message: 'Erreur lors de la création de la consultation',
-          errors: [error.message],
-          dataEntry: null
-        };
-      }
-    },
 
-    updateDataEntry: async (parent, { id, input }, { user }) => {
-      requireAuth(user);
-      
-      try {
-        const { DataEntry, Patient, User, Dispensaire } = await import('../../models/index.js');
-        
-        const dataEntry = await DataEntry.findByPk(id);
-        if (!dataEntry) {
+        if (!typeConsultation.isActive) {
           return {
+            dataEntry: null,
             success: false,
-            message: 'Consultation non trouvée',
-            errors: ['DATA_ENTRY_NOT_FOUND']
+            message: `Le type de consultation '${typeConsultation.label}' n'est plus actif`,
+            errors: ['TYPE_INACTIVE']
           };
         }
-        
-        // Vérification des permissions
-        const canEdit = (
-          user.role === 'admin' ||
-          user.role === 'manager' ||
-          (user.role === 'agent' && dataEntry.userId === user.id && dataEntry.dispensaireId === user.dispensaireId)
-        );
-        
-        if (!canEdit) {
+
+        const patient = await Patient.findByPk(input.patientId);
+        if (!patient) {
           return {
+            dataEntry: null,
             success: false,
-            message: 'Permissions insuffisantes pour modifier cette consultation',
-            errors: ['UNAUTHORIZED_EDIT']
+            message: 'Patient non trouvé',
+            errors: ['PATIENT_NOT_FOUND']
           };
         }
-        
-        await dataEntry.update(input);
-        
-        // Récupérer la consultation mise à jour
-        const updatedDataEntry = await DataEntry.findByPk(id, {
+
+        const entry = await DataEntry.create({
+          ...input,
+          userId: user.id,
+          dispensaireId: input.dispensaireId || user.dispensaireId,
+          dateConsultation: input.dateConsultation || new Date(),
+          status: 'active'
+        });
+
+        const createdEntry = await DataEntry.findByPk(entry.id, {
           include: [
             { model: Patient, as: 'patient' },
             { model: User, as: 'createdBy' },
-            { model: Dispensaire, as: 'dispensaire' }
+            { model: Dispensaire, as: 'dispensaire' },
+            { model: TypeConsultation, as: 'typeConsultationDetails' }
           ]
         });
-        
+
         return {
-          dataEntry: updatedDataEntry,
+          dataEntry: createdEntry,
           success: true,
-          message: 'Consultation modifiée avec succès',
+          message: 'Consultation créée avec succès',
           errors: []
         };
-        
       } catch (error) {
-        console.error('❌ Erreur modification consultation:', error);
         return {
+          dataEntry: null,
           success: false,
-          message: 'Erreur lors de la modification',
+          message: error.message,
           errors: [error.message]
         };
       }
     },
 
-    completeConsultation: async (parent, { id }, { user }) => {
-      requireAuth(user);
-      
+    updateDataEntry: async (_, { id, input }, { user }) => {
       try {
-        const { DataEntry } = await import('../../models/index.js');
-        
-        const dataEntry = await DataEntry.findByPk(id);
-        if (!dataEntry) {
-          return {
-            success: false,
-            message: 'Consultation non trouvée',
-            errors: ['DATA_ENTRY_NOT_FOUND']
-          };
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
         }
-        
-        // Vérification des permissions
-        const canEdit = (
-          user.role === 'admin' ||
-          user.role === 'manager' ||
-          (user.role === 'agent' && dataEntry.userId === user.id)
-        );
-        
-        if (!canEdit) {
-          return {
-            success: false,
-            message: 'Permissions insuffisantes',
-            errors: ['UNAUTHORIZED_EDIT']
-          };
-        }
-        
-        await dataEntry.markAsCompleted();
-        
-        return {
-          dataEntry: await DataEntry.findByPk(id, {
-            include: [
-              { model: (await import('../../models/index.js')).Patient, as: 'patient' },
-              { model: (await import('../../models/index.js')).User, as: 'user' },
-              { model: (await import('../../models/index.js')).Dispensaire, as: 'dispensaire' }
-            ]
-          }),
-          success: true,
-          message: 'Consultation marquée comme terminée',
-          errors: []
-        };
-        
-      } catch (error) {
-        console.error('❌ Erreur completion consultation:', error);
-        return {
-          success: false,
-          message: 'Erreur lors de la completion',
-          errors: [error.message]
-        };
-      }
-    },
 
-    deleteDataEntry: async (parent, { id }, { user }) => {
-      requireAuth(user);
-      try {
-        const { DataEntry } = await import('../../models/index.js');
-        const dataEntry = await DataEntry.findByPk(id);
-        if (!dataEntry) {
+        const entry = await DataEntry.findByPk(id);
+        if (!entry) {
           return {
             dataEntry: null,
             success: false,
             message: 'Consultation non trouvée',
-            errors: ['DATA_ENTRY_NOT_FOUND']
+            errors: ['NOT_FOUND']
           };
         }
-        // Vérification des permissions ici si besoin
 
-        await dataEntry.destroy();
+        if (user.role !== 'ADMIN' && entry.userId !== user.id) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: 'Vous ne pouvez modifier que vos propres consultations',
+            errors: ['FORBIDDEN']
+          };
+        }
+
+        if (input.typeConsultation) {
+          const typeConsultation = await TypeConsultation.findByPk(input.typeConsultation);
+          if (!typeConsultation || !typeConsultation.isActive) {
+            return {
+              dataEntry: null,
+              success: false,
+              message: 'Type de consultation invalide',
+              errors: ['INVALID_TYPE']
+            };
+          }
+        }
+
+        await entry.update(input);
+
+        const updatedEntry = await DataEntry.findByPk(id, {
+          include: [
+            { model: Patient, as: 'patient' },
+            { model: User, as: 'createdBy' },
+            { model: Dispensaire, as: 'dispensaire' },
+            { model: TypeConsultation, as: 'typeConsultationDetails' }
+          ]
+        });
+
+        return {
+          dataEntry: updatedEntry,
+          success: true,
+          message: 'Consultation mise à jour avec succès',
+          errors: []
+        };
+      } catch (error) {
+        return {
+          dataEntry: null,
+          success: false,
+          message: error.message,
+          errors: [error.message]
+        };
+      }
+    },
+
+    deleteDataEntry: async (_, { id }, { user }) => {
+      try {
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
+        }
+
+        const entry = await DataEntry.findByPk(id);
+        if (!entry) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: 'Consultation non trouvée',
+            errors: ['NOT_FOUND']
+          };
+        }
+
+        if (user.role !== 'ADMIN' && entry.userId !== user.id) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: 'Accès refusé',
+            errors: ['FORBIDDEN']
+          };
+        }
+
+        await entry.update({ isActive: false });
 
         return {
           dataEntry: null,
@@ -432,10 +451,125 @@ export const dataEntryResolvers = {
         return {
           dataEntry: null,
           success: false,
-          message: 'Erreur lors de la suppression',
+          message: error.message,
           errors: [error.message]
         };
       }
+    },
+
+    completeConsultation: async (_, { id }, { user }) => {
+      try {
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
+        }
+
+        const entry = await DataEntry.findByPk(id);
+        if (!entry) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: 'Consultation non trouvée',
+            errors: ['NOT_FOUND']
+          };
+        }
+
+        await entry.update({ status: 'completed' });
+
+        const updatedEntry = await DataEntry.findByPk(id, {
+          include: [
+            { model: Patient, as: 'patient' },
+            { model: User, as: 'createdBy' },
+            { model: Dispensaire, as: 'dispensaire' },
+            { model: TypeConsultation, as: 'typeConsultationDetails' }
+          ]
+        });
+
+        return {
+          dataEntry: updatedEntry,
+          success: true,
+          message: 'Consultation marquée comme terminée',
+          errors: []
+        };
+      } catch (error) {
+        return {
+          dataEntry: null,
+          success: false,
+          message: error.message,
+          errors: [error.message]
+        };
+      }
+    },
+
+    requireFollowUp: async (_, { id, notes }, { user }) => {
+      try {
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
+        }
+
+        const entry = await DataEntry.findByPk(id);
+        if (!entry) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: 'Consultation non trouvée',
+            errors: ['NOT_FOUND']
+          };
+        }
+
+        const updateData = { status: 'suivi_requis' };
+        if (notes) {
+          updateData.notes = entry.notes 
+            ? `${entry.notes}\n\n[SUIVI REQUIS] ${notes}`
+            : `[SUIVI REQUIS] ${notes}`;
+        }
+
+        await entry.update(updateData);
+
+        const updatedEntry = await DataEntry.findByPk(id, {
+          include: [
+            { model: Patient, as: 'patient' },
+            { model: User, as: 'createdBy' },
+            { model: Dispensaire, as: 'dispensaire' },
+            { model: TypeConsultation, as: 'typeConsultationDetails' }
+          ]
+        });
+
+        return {
+          dataEntry: updatedEntry,
+          success: true,
+          message: 'Suivi requis enregistré',
+          errors: []
+        };
+      } catch (error) {
+        return {
+          dataEntry: null,
+          success: false,
+          message: error.message,
+          errors: [error.message]
+        };
+      }
+    }
+  },
+
+  DataEntry: {
+    patient: async (parent) => {
+      if (parent.patient) return parent.patient;
+      return await Patient.findByPk(parent.patientId);
+    },
+    createdBy: async (parent) => {
+      if (parent.createdBy) return parent.createdBy;
+      return await User.findByPk(parent.userId);
+    },
+    dispensaire: async (parent) => {
+      if (parent.dispensaire) return parent.dispensaire;
+      return await Dispensaire.findByPk(parent.dispensaireId);
+    },
+    typeConsultationDetails: async (parent) => {
+      if (parent.typeConsultationDetails) return parent.typeConsultationDetails;
+      return await TypeConsultation.findByPk(parent.typeConsultation);
+    },
+    summary: (parent) => {
+      return `${parent.typeConsultation} - ${parent.diagnostic.substring(0, 50)}...`;
     }
   }
 };

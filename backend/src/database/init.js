@@ -6,16 +6,14 @@ export async function initDatabase() {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
     
-    // ✅ Import du fichier index qui charge tous les modèles et associations
     console.log('📦 Loading all models...');
     await import('../models/index.js');
     
     console.log('🔄 Synchronizing database...');
     
-    // ✅ Synchroniser tous les modèles avec leurs associations
     await sequelize.sync({ 
-      force: process.env.NODE_ENV === 'development', // Force seulement en dev
-      alter: process.env.NODE_ENV !== 'production',  // Alter sauf en production
+      force: process.env.NODE_ENV === 'development',
+      alter: process.env.NODE_ENV !== 'production',
       logging: console.log 
     });
     
@@ -23,8 +21,8 @@ export async function initDatabase() {
     console.log('🔍 Tables created:', Object.keys(sequelize.models));
     
     console.log('🔄 Running seeders...');
-    const { seedAdmin } = await import('./seeders/adminSeeder.js');
-    await seedAdmin();
+    const { runSeeders } = await import('./seeders/index.js');
+    await runSeeders();
     console.log('✅ Seeders completed successfully.');
     
   } catch (error) {

@@ -4,6 +4,7 @@ import dispensaireResolvers from './dispensaire.js';
 import dataEntryResolvers from './dataEntry.js';
 import patientResolvers from './patient.js';
 import eventResolvers from './event.js';
+import typeConsultationResolvers from './typeConsultation.js';
 
 export const resolvers = {
   Query: {
@@ -13,27 +14,29 @@ export const resolvers = {
     // User queries
     ...userResolvers.Query,
     
-    // Dispensaire queries - SUPPRIMER dispensairesBySynoda
+    // Dispensaire queries
     dispensaire: dispensaireResolvers.Query?.dispensaire,
     dispensaires: dispensaireResolvers.Query?.dispensaires,
-    // ❌ SUPPRIMER: dispensairesBySynoda: dispensaireResolvers.Query?.dispensairesBySynoda,
     
-    // Patient queries - SUPPRIMER les queries non définies dans le schéma
+    // Patient queries
     patient: patientResolvers.Query?.patient,
     patients: patientResolvers.Query?.patients,
-    // ❌ SUPPRIMER: patientByNumero: patientResolvers.Query?.patientByNumero,
-    // ❌ SUPPRIMER: searchPatients: patientResolvers.Query?.searchPatients,
     
-    // DataEntry queries - SUPPRIMER les queries non définies
+    // DataEntry queries
     dataEntry: dataEntryResolvers.Query?.dataEntry,
     dataEntries: dataEntryResolvers.Query?.dataEntries,
-    // ❌ SUPPRIMER: patientConsultations: dataEntryResolvers.Query?.patientConsultations,
+    patientConsultations: dataEntryResolvers.Query?.patientConsultations,
+    consultationStatsByType: dataEntryResolvers.Query?.consultationStatsByType,
+    consultationStats: dataEntryResolvers.Query?.consultationStats,
+    recentConsultations: dataEntryResolvers.Query?.recentConsultations,
     
-    // Event queries - SUPPRIMER les queries non définies
+    // Event queries
     event: eventResolvers.Query?.event,
     events: eventResolvers.Query?.events,
-    // ❌ SUPPRIMER: upcomingEvents: eventResolvers.Query?.upcomingEvents,
-    // ❌ SUPPRIMER: todayEvents: eventResolvers.Query?.todayEvents,
+    
+    // TypeConsultation queries
+    typeConsultation: typeConsultationResolvers.Query?.typeConsultation,
+    typeConsultations: typeConsultationResolvers.Query?.typeConsultations,
   },
   
   Mutation: {
@@ -49,14 +52,18 @@ export const resolvers = {
     // Patient mutations
     ...(patientResolvers.Mutation || {}),
     
-    // DataEntry mutations - SUPPRIMER les mutations non définies
+    // DataEntry mutations
     createDataEntry: dataEntryResolvers.Mutation?.createDataEntry,
     updateDataEntry: dataEntryResolvers.Mutation?.updateDataEntry,
     deleteDataEntry: dataEntryResolvers.Mutation?.deleteDataEntry,
-    // ❌ SUPPRIMER: completeConsultation: dataEntryResolvers.Mutation?.completeConsultation,
+    completeConsultation: dataEntryResolvers.Mutation?.completeConsultation,
+    requireFollowUp: dataEntryResolvers.Mutation?.requireFollowUp,
     
     // Event mutations
     ...(eventResolvers.Mutation || {}),
+    
+    // TypeConsultation mutations
+    updateTypeConsultation: typeConsultationResolvers.Mutation?.updateTypeConsultation,
   },
   
   // Field resolvers
@@ -65,4 +72,5 @@ export const resolvers = {
   Patient: patientResolvers.Patient || {},
   DataEntry: dataEntryResolvers.DataEntry || {},
   Event: eventResolvers.Event || {},
+  TypeConsultation: typeConsultationResolvers.TypeConsultation || {}
 };
