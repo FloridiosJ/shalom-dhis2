@@ -4,45 +4,48 @@ import sequelize from '../config/db.js';
 import User from './user.js';
 import Dispensaire from './dispensaire.js';
 import Patient from './patient.js';
-import DataEntry from './dataEntry.js';
-import Event from './event.js';
 import TypeConsultation from './typeConsultation.js';
 import CategorieMaladie from './categorieMaladie.js';
+import DataEntry from './dataEntry.js';
+import DataEntryCatégorieMaladie from './dataEntryCatégorieMaladie.js';
 import Vaccination from './vaccination.js';
 import ActiviteSpirituelle from './activiteSpirituelle.js';
+import Event from './event.js';
 
 // Définir les associations après que tous les modèles soient importés
 const models = {
   User,
   Dispensaire,
   Patient,
-  DataEntry,
-  Event,
   TypeConsultation,
   CategorieMaladie,
+  DataEntry,
+  DataEntryCatégorieMaladie,
   Vaccination,
-  ActiviteSpirituelle
+  ActiviteSpirituelle,
+  Event
 };
 
-// ✅ Définir les associations si les méthodes associate existent
-Object.keys(models).forEach(modelName => {
-  if (models[modelName].associate) {
-    models[modelName].associate(models);
+// Configuration des associations
+Object.values(models).forEach(model => {
+  if (model.associate) {
+    model.associate(models);
   }
 });
 
 // Exporter les modèles individuellement pour une utilisation facile
 export {
+  sequelize,
   User,
   Dispensaire,
   Patient,
-  DataEntry,
-  Event,
   TypeConsultation,
   CategorieMaladie,
+  DataEntry,
+  DataEntryCatégorieMaladie,
   Vaccination,
   ActiviteSpirituelle,
-  sequelize
+  Event
 };
 
 // Export par défaut de tous les modèles

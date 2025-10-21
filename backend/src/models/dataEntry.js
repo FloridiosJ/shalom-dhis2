@@ -96,13 +96,18 @@ DataEntry.associate = (models) => {
     onUpdate: 'CASCADE'
   });
 
-  // Relation Many-to-Many avec CategorieMaladie
+  // Association Many-to-Many avec CategorieMaladie via table de jointure
   DataEntry.belongsToMany(models.CategorieMaladie, {
-    through: 'DataEntry_CategorieMaladie',
+    through: models.DataEntryCatégorieMaladie,
     foreignKey: 'dataEntryId',
     otherKey: 'categorieMaladieId',
-    as: 'categories',
-    timestamps: true
+    as: 'categories'
+  });
+
+  // Association directe avec la table de jointure pour accéder aux métadonnées
+  DataEntry.hasMany(models.DataEntryCatégorieMaladie, {
+    foreignKey: 'dataEntryId',
+    as: 'categoriesAssociations'
   });
 
   // ✅ AJOUTER : Relation inverse avec Vaccination
@@ -112,6 +117,32 @@ DataEntry.associate = (models) => {
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE'
   });
+};
+
+// Méthodes pour gérer les catégories avec métadonnées
+DataEntry.prototype.getCategoriesWithMeta = async function() {
+  const { DataEntryCatégorieMaladie } = await import('./index.js');
+  return await DataEntryCatégorieMaladie.getCategoriesWithMeta(this.id);
+};
+
+DataEntry.prototype.getPrincipalCategorie = async function() {
+  const { DataEntryCatégorieMaladie } = await import('./index.js');
+  return await DataEntryCatégorieMaladie.getPrincipalCategorie(this.id);
+};
+
+DataEntry.prototype.setPrincipalCategorie = async function(categorieMaladieId) {
+  const { DataEntryCatégorieMaladie } = await import('./index.js');
+  return await DataEntryCatégorieMaladie.setPrincipal(this.id, categorieMaladieId);
+};
+
+DataEntry.prototype.addCategorie = async function(categorieMaladieId, options) {
+  const { DataEntryCatégorieMaladie } = await import('./index.js');
+  return await DataEntryCatégorieMaladie.addCategorie(this.id, categorieMaladieId, options);
+};
+
+DataEntry.prototype.removeCategorie = async function(categorieMaladieId) {
+  const { DataEntryCatégorieMaladie } = await import('./index.js');
+  return await DataEntryCatégorieMaladie.removeCategorie(this.id, categorieMaladieId);
 };
 
 export default DataEntry;
