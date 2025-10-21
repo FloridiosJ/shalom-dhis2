@@ -2,49 +2,76 @@ import TypeConsultation from '../../models/typeConsultation.js';
 
 const typesConsultation = [
   {
-    code: 'CONSULTATION_GENERALE',
-    label: 'Consultation Générale',
-    description: 'Consultation médicale générale'
+    code: 'CURATIF',
+    libelle: 'Consultation Curative',
+    description: 'Consultation pour traitement de maladies',
+    isActive: true
+  },
+  {
+    code: 'PREVENTIF',
+    libelle: 'Consultation Préventive',
+    description: 'Consultation de prévention et dépistage',
+    isActive: true
   },
   {
     code: 'CPN',
-    label: 'Consultation Prénatale',
-    description: 'Suivi de grossesse et consultation prénatale'
+    libelle: 'Consultation Prénatale',
+    description: 'Suivi de grossesse et consultation prénatale',
+    isActive: true
+  },
+  {
+    code: 'CPON',
+    libelle: 'Consultation Post-Natale',
+    description: 'Suivi après accouchement',
+    isActive: true
   },
   {
     code: 'ACCOUCHEMENT',
-    label: 'Accouchement',
-    description: 'Accompagnement et suivi d\'accouchement'
+    libelle: 'Accouchement',
+    description: 'Accompagnement et suivi d\'accouchement',
+    isActive: true
   },
   {
     code: 'VACCINATION',
-    label: 'Vaccination',
-    description: 'Administration de vaccins'
+    libelle: 'Vaccination',
+    description: 'Administration de vaccins',
+    isActive: true
   },
   {
-    code: 'SUIVI_NUTRITIONNEL',
-    label: 'Suivi Nutritionnel',
-    description: 'Évaluation et suivi de l\'état nutritionnel'
+    code: 'NUTRITION',
+    libelle: 'Suivi Nutritionnel',
+    description: 'Évaluation et suivi de l\'état nutritionnel',
+    isActive: true
   },
   {
-    code: 'PLANIFICATION_FAMILIALE',
-    label: 'Planification Familiale',
-    description: 'Conseil et services de planification familiale'
+    code: 'PLANIFICATION',
+    libelle: 'Planification Familiale',
+    description: 'Conseil et services de planification familiale',
+    isActive: true
   },
   {
-    code: 'IST_SIDA',
-    label: 'IST/SIDA',
-    description: 'Dépistage et traitement IST/SIDA'
-  },
-  {
-    code: 'ROUGEOLE',
-    label: 'Rougeole',
-    description: 'Prise en charge de la rougeole'
+    code: 'IST',
+    libelle: 'IST/SIDA',
+    description: 'Dépistage et traitement IST/SIDA',
+    isActive: true
   },
   {
     code: 'PALUDISME',
-    label: 'Paludisme',
-    description: 'Diagnostic et traitement du paludisme'
+    libelle: 'Paludisme',
+    description: 'Diagnostic et traitement du paludisme',
+    isActive: true
+  },
+  {
+    code: 'TUBERCULOSE',
+    libelle: 'Tuberculose',
+    description: 'Dépistage et traitement de la tuberculose',
+    isActive: true
+  },
+  {
+    code: 'URGENCE',
+    libelle: 'Urgence',
+    description: 'Consultation d\'urgence',
+    isActive: true
   }
 ];
 
@@ -52,14 +79,36 @@ export async function seedTypeConsultation() {
   try {
     console.log('🌱 Seeding TypeConsultation...');
     
+    let created = 0;
+    let updated = 0;
+
     for (const type of typesConsultation) {
-      await TypeConsultation.findOrCreate({
+      const [typeConsultation, isCreated] = await TypeConsultation.findOrCreate({
         where: { code: type.code },
-        defaults: type
+        defaults: {
+          libelle: type.libelle,
+          description: type.description,
+          isActive: type.isActive
+        }
       });
+
+      if (isCreated) {
+        created++;
+        console.log(`  ✅ Type créé: ${type.code} - ${type.libelle}`);
+      } else {
+        // Mettre à jour si existe déjà
+        await typeConsultation.update({
+          libelle: type.libelle,
+          description: type.description,
+          isActive: type.isActive
+        });
+        updated++;
+        console.log(`  🔄 Type mis à jour: ${type.code} - ${type.libelle}`);
+      }
     }
     
     console.log('✅ TypeConsultation seeded successfully');
+    console.log(`📊 Créés: ${created} | Mis à jour: ${updated} | Total: ${typesConsultation.length}`);
   } catch (error) {
     console.error('❌ Error seeding TypeConsultation:', error);
     throw error;

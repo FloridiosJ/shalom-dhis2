@@ -274,7 +274,7 @@ User.associate = (models) => {
 
   // ✅ AJOUTER : Relation inverse avec ActiviteSpirituelle
   User.hasMany(models.ActiviteSpirituelle, {
-    franciscKey: 'agentId',
+    foreignKey: 'agentId', // ✅ CORRIGER ici
     as: 'activitesSpirituellesOrganisees',
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE'

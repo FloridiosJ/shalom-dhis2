@@ -7,7 +7,7 @@ const CategorieMaladie = sequelize.define('CategorieMaladie', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  nom: {
+  nom: { // ✅ Le schéma GraphQL utilise "nom" - OK
     type: DataTypes.STRING,
     allowNull: false,
     validate: {

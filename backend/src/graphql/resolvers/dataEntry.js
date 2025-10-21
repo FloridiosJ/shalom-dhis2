@@ -287,9 +287,10 @@ const dataEntryResolvers = {
         if (!user) {
           throw new AuthenticationError('Non authentifié');
         }
-        console.log('🔍 Validating typeConsultation:', input.typeConsultation);
+        
         const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCatégorieMaladie } = await import('../../models/index.js');
 
+        // Valider le type de consultation
         const typeConsultation = await TypeConsultation.findOne({
           where: { code: input.typeConsultation }
         });
@@ -298,10 +299,11 @@ const dataEntryResolvers = {
           return {
             dataEntry: null,
             success: false,
-            message: `Type de consultation '${input.typeConsultation}' non trouvé`,
+            message: `Type de consultation '${input.typeConsultation}' non trouvé. Types disponibles : CURATIF, PREVENTIF, CPN, CPON, ACCOUCHEMENT, VACCINATION, NUTRITION, PLANIFICATION, IST, PALUDISME, TUBERCULOSE, URGENCE`,
             errors: ['TYPE_NOT_FOUND']
           };
         }
+        
         if (!typeConsultation.isActive) {
           return {
             dataEntry: null,
@@ -311,10 +313,8 @@ const dataEntryResolvers = {
           };
         }
 
-        console.log('🔍 Validating patientId:', input.patientId);
-
+        // Valider le patient
         const patient = await Patient.findByPk(input.patientId);
-        console.log('🔍 Found patient:', patient);
         if (!patient) {
           return {
             dataEntry: null,
@@ -324,7 +324,6 @@ const dataEntryResolvers = {
           };
         }
 
-        console.log('🔍 Creating DataEntry with input:', input);
         // Créer la consultation
         const entry = await DataEntry.create({
           patientId: input.patientId,
@@ -338,7 +337,7 @@ const dataEntryResolvers = {
           status: 'active'
         });
 
-        // Gérer les catégories avec métadonnées (nouvelle méthode)
+        // Gérer les catégories avec métadonnées
         if (input.categories && input.categories.length > 0) {
           for (const cat of input.categories) {
             await DataEntryCatégorieMaladie.addCategorie(
@@ -351,14 +350,14 @@ const dataEntryResolvers = {
             );
           }
         }
-        // Gérer les catégories simples (ancienne méthode)
+        // Gérer les catégories simples (rétrocompatibilité)
         else if (input.categorieIds && input.categorieIds.length > 0) {
           for (let i = 0; i < input.categorieIds.length; i++) {
             await DataEntryCatégorieMaladie.addCategorie(
               entry.id,
               input.categorieIds[i],
               {
-                isPrincipal: i === 0, // La première est principale par défaut
+                isPrincipal: i === 0,
                 notes: null
               }
             );
@@ -374,7 +373,7 @@ const dataEntryResolvers = {
             { model: TypeConsultation, as: 'typeConsultationDetails' }
           ]
         });
-        console.log('✅ DataEntry created successfully:', createdEntry);
+
         return {
           dataEntry: createdEntry,
           success: true,

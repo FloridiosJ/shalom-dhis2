@@ -149,7 +149,7 @@ type TypeConsultation {
 # Association DataEntry <-> CategorieMaladie avec métadonnées
 type CategorieWithMeta {
   id: ID!
-  nom: String!
+  nom: String! # ✅ Utilise "nom" comme CategorieMaladie
   code: String
   niveau: Int!
   ordre: Int

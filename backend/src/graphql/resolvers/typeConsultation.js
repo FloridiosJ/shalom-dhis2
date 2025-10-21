@@ -9,7 +9,10 @@ export const typeConsultationResolvers = {
       }
 
       const where = isActive !== undefined ? { isActive } : {};
-      return await TypeConsultation.findAll();
+      return await TypeConsultation.findAll({
+        where,
+        order: [['libelle', 'ASC']]
+      });
     },
     
     typeConsultation: async (_, { code }, { user }) => {
