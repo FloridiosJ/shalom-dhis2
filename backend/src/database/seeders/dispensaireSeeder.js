@@ -42,26 +42,8 @@ export async function seedDispensaire() {
         isActive: true
       },
       {
-        name: "Dispensaire Central",
-        fileovana: "Antananarivo",
-        synoda: "SPA",
-        isActive: true
-      },
-      {
-        name: "Dispensaire Nord",
-        fileovana: "Antsohihy",
-        synoda: "SPSofia",
-        isActive: true
-      },
-      {
-        name: "Dispensaire Ouest",
-        fileovana: "Maintirano",
-        synoda: "SPBM",
-        isActive: true
-      },
-      {
-        name: "Dispensaire Sud",
-        fileovana: "Morondava",
+        name: "Onara",
+        fileovana: "Ankoro Vahiny",
         synoda: "SPMel",
         isActive: true
       }
