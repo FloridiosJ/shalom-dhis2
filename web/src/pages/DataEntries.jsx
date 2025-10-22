@@ -56,10 +56,13 @@ const DataEntries = () => {
 
   // CRUD handlers
   const handleCreate = async (input) => {
+    // ✅ Le payload est déjà nettoyé dans le modal
     await dataEntryService.create(input);
     fetchAll();
   };
+  
   const handleEdit = async (input) => {
+    // ✅ Le payload est déjà nettoyé dans le modal
     await dataEntryService.update(entryToEdit.id, input);
     fetchAll();
   };

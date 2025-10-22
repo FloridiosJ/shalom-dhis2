@@ -9,7 +9,6 @@ const client = axios.create({
   },
 });
 
-// Ajout du token si présent
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth-token');
   if (token) {
@@ -20,7 +19,8 @@ client.interceptors.request.use((config) => {
 
 function handleGraphQLErrors(response) {
   if (response.data.errors) {
-    throw new Error(response.data.errors[0].message || 'Erreur GraphQL');
+    const errorMsg = response.data.errors.map(e => e.message).join(', ');
+    throw new Error(errorMsg || 'Erreur GraphQL');
   }
   return response.data.data;
 }
@@ -28,17 +28,20 @@ function handleGraphQLErrors(response) {
 const entryFields = `
   id
   dateConsultation
+  typeConsultation
   diagnostic
   prescription
   notes
+  status
   dispensaire { id name }
-  patient { id nom prenom displayName }
+  patient { id nom prenom numeroPatient displayName }
+  typeConsultationDetails { code libelle }
 `;
 
 // 1. Liste des consultations
 async function getAll() {
   const query = `
-    query dataEntries {
+    query DataEntries {
       dataEntries {
         dataEntries {
           ${entryFields}
@@ -56,6 +59,7 @@ async function create(input) {
     mutation CreateDataEntry($input: CreateDataEntryInput!) {
       createDataEntry(input: $input) {
         success
+        message
         errors
         dataEntry { ${entryFields} }
       }
@@ -64,25 +68,45 @@ async function create(input) {
   const variables = { input };
   const response = await client.post('', { query: mutation, variables });
   const res = handleGraphQLErrors(response).createDataEntry;
-  if (!res.success) throw new Error(res.errors?.join(', ') || "Erreur création");
+  if (!res.success) throw new Error(res.errors?.join(', ') || res.message || "Erreur création");
   return res.dataEntry;
 }
 
 // 3. Mise à jour consultation
 async function update(id, input) {
+  // ✅ CORRECTION : Adapter le payload pour UpdateDataEntryInput
+  // Le backend n'accepte pas patientId et dispensaireId en update
+  const updatePayload = {
+    typeConsultation: input.typeConsultation,
+    diagnostic: input.diagnostic,
+    prescription: input.prescription,
+    notes: input.notes,
+    dateConsultation: input.dateConsultation,
+    status: input.status,
+    // Ne pas inclure: patientId, dispensaireId (non modifiables)
+  };
+
+  // Supprimer les champs undefined
+  Object.keys(updatePayload).forEach(key => {
+    if (updatePayload[key] === undefined) {
+      delete updatePayload[key];
+    }
+  });
+
   const mutation = `
     mutation UpdateDataEntry($id: ID!, $input: UpdateDataEntryInput!) {
       updateDataEntry(id: $id, input: $input) {
         success
+        message
         errors
         dataEntry { ${entryFields} }
       }
     }
   `;
-  const variables = { id, input };
+  const variables = { id, input: updatePayload };
   const response = await client.post('', { query: mutation, variables });
   const res = handleGraphQLErrors(response).updateDataEntry;
-  if (!res.success) throw new Error(res.errors?.join(', ') || "Erreur modification");
+  if (!res.success) throw new Error(res.errors?.join(', ') || res.message || "Erreur modification");
   return res.dataEntry;
 }
 
@@ -92,20 +116,35 @@ async function remove(id) {
     mutation DeleteDataEntry($id: ID!) {
       deleteDataEntry(id: $id) {
         success
-        errors
         message
+        errors
       }
     }
   `;
   const variables = { id };
   const response = await client.post('', { query: mutation, variables });
   const res = handleGraphQLErrors(response).deleteDataEntry;
-  if (!res.success) throw new Error(res.errors?.join(', ') || "Erreur suppression");
+  if (!res.success) throw new Error(res.errors?.join(', ') || res.message || "Erreur suppression");
   return res;
+}
+
+// 5. Récupérer une consultation par ID
+async function getById(id) {
+  const query = `
+    query DataEntry($id: ID!) {
+      dataEntry(id: $id) {
+        ${entryFields}
+      }
+    }
+  `;
+  const variables = { id };
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).dataEntry;
 }
 
 export default {
   getAll,
+  getById,
   create,
   update,
   remove,
