@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { TYPES_CONSULTATION } from "../constants";
 import styles from "./CreateDataEntryModal.module.css";
 
 const CreateDataEntryModal = ({
@@ -31,22 +32,6 @@ const CreateDataEntryModal = ({
   const [showNumAutocomplete, setShowNumAutocomplete] = useState(false);
   const [filteredNumPatients, setFilteredNumPatients] = useState([]);
   const firstInputRef = useRef();
-
-  // Types de consultation disponibles
-  const typesConsultation = [
-    { code: "CURATIF", label: "Consultation Curative" },
-    { code: "PREVENTIF", label: "Consultation Préventive" },
-    { code: "CPN", label: "Consultation Prénatale (CPN)" },
-    { code: "CPON", label: "Consultation Post-Natale (CPON)" },
-    { code: "ACCOUCHEMENT", label: "Accouchement" },
-    { code: "VACCINATION", label: "Vaccination" },
-    { code: "NUTRITION", label: "Nutrition" },
-    { code: "PLANIFICATION", label: "Planification Familiale" },
-    { code: "IST", label: "IST/VIH" },
-    { code: "PALUDISME", label: "Paludisme" },
-    { code: "TUBERCULOSE", label: "Tuberculose" },
-    { code: "URGENCE", label: "Urgence" },
-  ];
 
   useEffect(() => {
     if (open) {
@@ -291,8 +276,10 @@ const CreateDataEntryModal = ({
               disabled={loading}
             >
               <option value="">Sélectionner…</option>
-              {typesConsultation.map((t) => (
-                <option key={t.code} value={t.code}>{t.label}</option>
+              {TYPES_CONSULTATION.map((t) => (
+                <option key={t.code} value={t.code}>
+                  {t.icon} {t.label}
+                </option>
               ))}
             </select>
             {errors.typeConsultation && <div className={styles.errorField}>{errors.typeConsultation}</div>}

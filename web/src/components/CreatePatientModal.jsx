@@ -1,12 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import patientService from '../services/patients';
+import { RELIGIONS, SEXES } from '../constants';
 import styles from './CreateUserModal.module.css';
-
-const RELIGIONS = ["Kristianina", "Musulman", "traditionnelle"];
-const SEXES = [
-  { label: "Male", value: "M" },
-  { label: "Femelle", value: "F" }
-];
 
 const PatientModal = ({
   open,
@@ -154,7 +149,9 @@ const PatientModal = ({
             {errors.age && <div className={styles.errorField}>{errors.age}</div>}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="patient-sexe" className={styles.label}>Sexe <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
+            <label htmlFor="patient-sexe" className={styles.label}>
+              Sexe <span aria-hidden="true" style={{color:'#dc2626'}}>*</span>
+            </label>
             <select
               id="patient-sexe"
               name="sexe"
@@ -166,13 +163,17 @@ const PatientModal = ({
             >
               <option value="">Sélectionner…</option>
               {SEXES.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.icon} {opt.label}
+                </option>
               ))}
             </select>
             {errors.sexe && <div className={styles.errorField}>{errors.sexe}</div>}
           </div>
           <div className={styles.formGroup}>
-            <label htmlFor="patient-religion" className={styles.label}>Religion <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
+            <label htmlFor="patient-religion" className={styles.label}>
+              Religion <span aria-hidden="true" style={{color:'#dc2626'}}>*</span>
+            </label>
             <select
               id="patient-religion"
               name="religion"
@@ -184,7 +185,9 @@ const PatientModal = ({
             >
               <option value="">Sélectionner…</option>
               {RELIGIONS.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.icon} {opt.label}
+                </option>
               ))}
             </select>
             {errors.religion && <div className={styles.errorField}>{errors.religion}</div>}

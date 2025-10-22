@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import styles from './CreateUserModal.module.css'; // On réutilise le même CSS que CreateOrEditUserModal
-import dispensaireService from '../services/dispensaires'; // Assure-toi que l'import est correct
-
-const SYNODA_OPTIONS = ["SPBM", "SPA", "SPMel", "SPSofia"];
+import styles from './CreateUserModal.module.css';
+import dispensaireService from '../services/dispensaires';
+import { SYNODA_OPTIONS } from '../constants';
 
 const CreateDispensaireModal = ({
   open,
   onClose,
   onSaved,
-  dispensaire, // objet à éditer ou undefined pour création
+  dispensaire,
   isEdit = false,
 }) => {
   const [form, setForm] = useState({
@@ -195,7 +194,9 @@ const CreateDispensaireModal = ({
             >
               <option value="">Sélectionner…</option>
               {SYNODA_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
             {errors.synoda && <div className={styles.errorField}>{errors.synoda}</div>}

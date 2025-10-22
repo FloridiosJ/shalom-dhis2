@@ -1,18 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import usersService from '../services/usersService';
+import { USER_ROLES, SPECIALITES } from '../constants';
 import styles from './CreateUserModal.module.css';
-
-const roles = [
-  { value: 'admin', label: 'Administrateur' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'agent', label: 'Agent' },
-];
-
-const specialites = [
-  { value: 'sage_femme', label: 'Sage-femme' },
-  { value: 'infirmier', label: 'Infirmier' },
-  { value: 'infirmière', label: 'Infirmière' },
-];
 
 function randomString(length = 8) {
   return Math.random().toString(36).slice(-length);
@@ -95,7 +84,7 @@ const CreateOrEditUserModal = ({
     if (form.role === 'agent') {
       setForm(f => ({
         ...f,
-        specialite: f.specialite || specialites[0].value,
+        specialite: f.specialite || SPECIALITES[0].value,
         dispensaireId: f.dispensaireId || (dispensaires[0]?.id || ''),
       }));
     } else {
@@ -361,8 +350,10 @@ const CreateOrEditUserModal = ({
               className={`${styles.select} ${errors.role ? styles.selectError : ''}`}
             >
               <option value="">Sélectionner un rôle</option>
-              {roles.map(r => (
-                <option key={r.value} value={r.value}>{r.label}</option>
+              {USER_ROLES.map(r => (
+                <option key={r.value} value={r.value}>
+                  {r.icon} {r.label}
+                </option>
               ))}
             </select>
             {errors.role && <div className={styles.errorField}>{errors.role}</div>}
@@ -385,8 +376,10 @@ const CreateOrEditUserModal = ({
                 className={`${styles.select} ${errors.specialite ? styles.selectError : ''}`}
               >
                 <option value="">Sélectionner une spécialité</option>
-                {specialites.map(s => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
+                {SPECIALITES.map(s => (
+                  <option key={s.value} value={s.value}>
+                    {s.icon} {s.label}
+                  </option>
                 ))}
               </select>
               {errors.specialite && <div className={styles.errorField}>{errors.specialite}</div>}
