@@ -138,3 +138,180 @@ textarea:focus {
   background: #e0e7ff;
   color: #1e293b; /* Texte noir même au survol */
 }
+
+/* ✅ Styles pour les catégories de maladies */
+.categoriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.categoryItem {
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.categoryName {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.categoryCode {
+  font-size: 0.75rem;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.principalBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f59e0b;
+  background: #fef3c7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.categoryActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.setPrincipalBtn {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.setPrincipalBtn:hover {
+  background: #fef3c7;
+}
+
+.removeBtn {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.removeBtn:hover {
+  background: #fee2e2;
+}
+
+.categoryNotesInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.categoryNotesInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.addCategoryBtn {
+  width: 100%;
+  padding: 0.75rem;
+  background: white;
+  border: 2px dashed #cbd5e1;
+  color: #3b82f6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.addCategoryBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #3b82f6;
+}
+
+.addCategoryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.categorySelectorDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.categorySelectorItem {
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.categorySelectorItem:hover {
+  background: #f1f5f9;
+}
+
+.categorySelectorItem + .categorySelectorItem {
+  border-top: 1px solid #f1f5f9;
+}
+
+.infoText {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  line-height: 1.5;
+}
+
+.infoText strong {
+  margin-left: 0.25rem;
+  color: #1e3a8a;
+}
+
+.infoText svg {
+  flex-shrink: 0;
+  color: #3b82f6;
+}

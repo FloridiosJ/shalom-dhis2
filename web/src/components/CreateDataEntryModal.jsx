@@ -9,11 +9,12 @@ const CreateDataEntryModal = ({
   onSaved,
   dispensaires = [],
   patients = [],
+  categories = [], // ✅ Ajout des catégories de maladies
   initialData = null,
   onSubmit,
   isEdit = false,
 }) => {
-  const { user } = useAuth(); // ✅ Récupérer l'utilisateur connecté
+  const { user } = useAuth();
   const isAgent = user?.role === 'agent';
 
   const [form, setForm] = useState({
@@ -24,7 +25,9 @@ const CreateDataEntryModal = ({
     diagnostic: "",
     prescription: "",
     notes: "",
-    // Champs UI uniquement (non envoyés au backend)
+    // ✅ Nouvelles catégories
+    categories: [], // [{ categorieMaladieId, isPrincipal, notes }]
+    // Champs UI uniquement
     numeroPatient: "",
     fullName: "",
   });
@@ -35,31 +38,47 @@ const CreateDataEntryModal = ({
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [showNumAutocomplete, setShowNumAutocomplete] = useState(false);
   const [filteredNumPatients, setFilteredNumPatients] = useState([]);
+  
+  // ✅ État pour gérer les catégories sélectionnées
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [showCategorySelector, setShowCategorySelector] = useState(false);
+  
   const firstInputRef = useRef();
 
   useEffect(() => {
     if (open) {
       const patient = initialData?.patient;
-      
-      // ✅ CORRECTION : Pré-remplir avec le dispensaire de l'agent
       const defaultDispensaireId = isAgent && user?.dispensaire?.id 
         ? user.dispensaire.id 
         : (initialData?.dispensaire?.id || "");
 
+      // ✅ Mapper les catégories existantes
+      const existingCategories = initialData?.categoriesWithMeta?.map(cat => ({
+        categorieMaladieId: cat.id,
+        isPrincipal: cat.isPrincipal || false,
+        notes: cat.notes || "",
+        // Info pour l'affichage
+        nom: cat.nom,
+        code: cat.code,
+      })) || [];
+
       setForm({
         dateConsultation: initialData?.dateConsultation
-          ? initialData.dateConsultation.slice(0, 16)
+          ? new Date(initialData.dateConsultation).toISOString().slice(0, 16)
           : new Date().toISOString().slice(0, 16),
         patientId: patient?.id || "",
-        dispensaireId: defaultDispensaireId, // ✅ Auto-rempli pour les agents
+        dispensaireId: defaultDispensaireId,
         typeConsultation: initialData?.typeConsultation || "CURATIF",
         diagnostic: initialData?.diagnostic || "",
         prescription: initialData?.prescription || "",
         notes: initialData?.notes || "",
+        categories: existingCategories,
         // Champs UI
         numeroPatient: patient?.numeroPatient || "",
         fullName: patient ? `${patient.nom} ${patient.prenom}` : "",
       });
+      
+      setSelectedCategories(existingCategories);
       setErrors({});
       setServerError("");
       setLoading(false);
@@ -71,20 +90,71 @@ const CreateDataEntryModal = ({
     const e = {};
     if (!form.dateConsultation) e.dateConsultation = "Date requise";
     if (!form.patientId) e.patientId = "Patient requis";
-    
-    // ✅ Pour les non-agents, le dispensaire est requis dans le formulaire
-    if (!isAgent && !form.dispensaireId) {
-      e.dispensaireId = "Dispensaire requis";
-    }
-    
+    if (!isAgent && !form.dispensaireId) e.dispensaireId = "Dispensaire requis";
     if (!form.typeConsultation) e.typeConsultation = "Type de consultation requis";
     if (!form.diagnostic.trim()) e.diagnostic = "Diagnostic requis";
+    
+    // ✅ Validation des catégories (optionnel mais recommandé)
+    if (selectedCategories.length > 0) {
+      const principalCount = selectedCategories.filter(c => c.isPrincipal).length;
+      if (principalCount > 1) {
+        e.categories = "Une seule catégorie principale autorisée";
+      }
+    }
+    
     return e;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  // ✅ Ajouter une catégorie
+  const handleAddCategory = (categoryId) => {
+    const category = categories.find(c => c.id === categoryId);
+    if (!category) return;
+    
+    // Vérifier si déjà ajoutée
+    if (selectedCategories.some(c => c.categorieMaladieId === categoryId)) {
+      return;
+    }
+
+    const newCategory = {
+      categorieMaladieId: categoryId,
+      isPrincipal: selectedCategories.length === 0, // La première est principale par défaut
+      notes: "",
+      // Info pour l'affichage
+      nom: category.nom,
+      code: category.code,
+    };
+
+    setSelectedCategories([...selectedCategories, newCategory]);
+    setShowCategorySelector(false);
+  };
+
+  // ✅ Retirer une catégorie
+  const handleRemoveCategory = (categoryId) => {
+    setSelectedCategories(selectedCategories.filter(c => c.categorieMaladieId !== categoryId));
+  };
+
+  // ✅ Marquer comme principale
+  const handleSetPrincipal = (categoryId) => {
+    setSelectedCategories(
+      selectedCategories.map(c => ({
+        ...c,
+        isPrincipal: c.categorieMaladieId === categoryId
+      }))
+    );
+  };
+
+  // ✅ Modifier les notes d'une catégorie
+  const handleCategoryNoteChange = (categoryId, notes) => {
+    setSelectedCategories(
+      selectedCategories.map(c => 
+        c.categorieMaladieId === categoryId ? { ...c, notes } : c
+      )
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -98,26 +168,32 @@ const CreateDataEntryModal = ({
     }
     setLoading(true);
     try {
-      // ✅ CORRECTION : Si agent, utiliser son dispensaire
       const payload = {
         dateConsultation: new Date(form.dateConsultation).toISOString(),
         patientId: form.patientId,
         dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId,
         typeConsultation: form.typeConsultation,
         diagnostic: form.diagnostic,
-        prescription: form.prescription,
-        notes: form.notes,
+        prescription: form.prescription || "",
+        notes: form.notes || "",
       };
 
-      console.log('📤 User:', user);
-      console.log('📤 isAgent:', isAgent);
-      console.log('📤 user.dispensaire:', user?.dispensaire);
+      // ✅ Ajouter les catégories si présentes
+      if (selectedCategories.length > 0) {
+        payload.categories = selectedCategories.map(c => ({
+          categorieMaladieId: c.categorieMaladieId,
+          isPrincipal: c.isPrincipal,
+          notes: c.notes || ""
+        }));
+      }
+
       console.log('📤 Payload consultation:', payload);
 
       await onSubmit(payload);
       onSaved && onSaved();
       onClose && onClose();
     } catch (err) {
+      console.error('❌ Erreur:', err);
       setServerError(err.message || "Erreur serveur");
     } finally {
       setLoading(false);
@@ -126,12 +202,18 @@ const CreateDataEntryModal = ({
 
   if (!open) return null;
 
+  // ✅ Filtrer les catégories non sélectionnées
+  const availableCategories = categories.filter(
+    cat => !selectedCategories.some(sc => sc.categorieMaladieId === cat.id)
+  );
+
   return (
     <div className={styles.overlay} aria-modal="true" role="dialog" tabIndex={-1} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()} tabIndex={0}>
         <h2 className={styles.title}>{isEdit ? "Modifier la consultation" : "Ajouter une consultation"}</h2>
         {serverError && <div className={styles.errorMsg}>{serverError}</div>}
         <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
+          {/* Date consultation */}
           <div className={styles.formGroup}>
             <label htmlFor="dateConsultation" className={styles.label}>
               Date de consultation <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
@@ -150,6 +232,7 @@ const CreateDataEntryModal = ({
             {errors.dateConsultation && <div className={styles.errorField}>{errors.dateConsultation}</div>}
           </div>
 
+          {/* Numéro patient */}
           <div className={styles.formGroup} style={{ position: "relative" }}>
             <label htmlFor="numeroPatient" className={styles.label}>
               Numéro patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
@@ -206,6 +289,7 @@ const CreateDataEntryModal = ({
             {errors.patientId && <div className={styles.errorField}>{errors.patientId}</div>}
           </div>
 
+          {/* Nom et prénom */}
           <div className={styles.formGroup} style={{ position: "relative" }}>
             <label htmlFor="fullName" className={styles.label}>
               Nom et prénom <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
@@ -262,7 +346,7 @@ const CreateDataEntryModal = ({
             )}
           </div>
 
-          {/* ✅ Dispensaire - AFFICHÉ UNIQUEMENT pour admin/manager */}
+          {/* Dispensaire (admin/manager uniquement) */}
           {!isAgent && (
             <div className={styles.formGroup}>
               <label htmlFor="dispensaireId" className={styles.label}>
@@ -286,7 +370,7 @@ const CreateDataEntryModal = ({
             </div>
           )}
 
-          {/* ✅ Message informatif pour les agents */}
+          {/* Message informatif pour agents */}
           {isAgent && (
             <div className={styles.infoText}>
               <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.5rem', flexShrink: 0 }}>
@@ -297,6 +381,7 @@ const CreateDataEntryModal = ({
             </div>
           )}
 
+          {/* Type consultation */}
           <div className={styles.formGroup}>
             <label htmlFor="typeConsultation" className={styles.label}>
               Type de consultation <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
@@ -320,6 +405,7 @@ const CreateDataEntryModal = ({
             {errors.typeConsultation && <div className={styles.errorField}>{errors.typeConsultation}</div>}
           </div>
 
+          {/* Diagnostic */}
           <div className={styles.formGroup}>
             <label htmlFor="diagnostic" className={styles.label}>
               Diagnostic <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
@@ -336,6 +422,93 @@ const CreateDataEntryModal = ({
             {errors.diagnostic && <div className={styles.errorField}>{errors.diagnostic}</div>}
           </div>
 
+          {/* ✅ Catégories de maladies */}
+          {categories.length > 0 && (
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                Catégories de maladies
+              </label>
+              
+              {/* Liste des catégories sélectionnées */}
+              {selectedCategories.length > 0 && (
+                <div className={styles.categoriesList}>
+                  {selectedCategories.map((cat) => (
+                    <div key={cat.categorieMaladieId} className={styles.categoryItem}>
+                      <div className={styles.categoryHeader}>
+                        <div className={styles.categoryName}>
+                          {cat.isPrincipal && (
+                            <span className={styles.principalBadge}>★ Principale</span>
+                          )}
+                          <strong>{cat.nom}</strong>
+                          <span className={styles.categoryCode}>{cat.code}</span>
+                        </div>
+                        <div className={styles.categoryActions}>
+                          {!cat.isPrincipal && (
+                            <button
+                              type="button"
+                              onClick={() => handleSetPrincipal(cat.categorieMaladieId)}
+                              className={styles.setPrincipalBtn}
+                              title="Marquer comme principale"
+                            >
+                              ★
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCategory(cat.categorieMaladieId)}
+                            className={styles.removeBtn}
+                            title="Retirer"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Notes pour cette catégorie (optionnel)"
+                        value={cat.notes}
+                        onChange={(e) => handleCategoryNoteChange(cat.categorieMaladieId, e.target.value)}
+                        className={styles.categoryNotesInput}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Bouton ajouter catégorie */}
+              {availableCategories.length > 0 && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCategorySelector(!showCategorySelector)}
+                    className={styles.addCategoryBtn}
+                    disabled={loading}
+                  >
+                    + Ajouter une catégorie
+                  </button>
+
+                  {showCategorySelector && (
+                    <div className={styles.categorySelectorDropdown}>
+                      {availableCategories.map((cat) => (
+                        <div
+                          key={cat.id}
+                          className={styles.categorySelectorItem}
+                          onClick={() => handleAddCategory(cat.id)}
+                        >
+                          <strong>{cat.nom}</strong>
+                          <span className={styles.categoryCode}>{cat.code}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {errors.categories && <div className={styles.errorField}>{errors.categories}</div>}
+            </div>
+          )}
+
+          {/* Prescription */}
           <div className={styles.formGroup}>
             <label htmlFor="prescription" className={styles.label}>Prescription</label>
             <input
@@ -348,6 +521,7 @@ const CreateDataEntryModal = ({
             />
           </div>
 
+          {/* Notes */}
           <div className={styles.formGroup}>
             <label htmlFor="notes" className={styles.label}>Notes</label>
             <textarea
@@ -361,8 +535,11 @@ const CreateDataEntryModal = ({
             />
           </div>
          
+          {/* Boutons */}
           <div className={styles.btnRow}>
-            <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={loading}>Annuler</button>
+            <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={loading}>
+              Annuler
+            </button>
             <button type="submit" className={styles.submitBtn} disabled={loading}>
               {loading ? (isEdit ? "Enregistrement..." : "Création...") : (isEdit ? "Enregistrer" : "Créer la consultation")}
             </button>
