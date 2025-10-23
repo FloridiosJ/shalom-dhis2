@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-// ✅ Changer les imports nommés en imports par défaut
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Organisations from "./pages/Organisations";
@@ -12,6 +11,7 @@ import DataEntries from "./pages/DataEntries";
 import Dispensaires from "./pages/Dispensaires";
 import Users from "./pages/Users";
 import Patients from "./pages/Patients";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient();
 
@@ -84,8 +84,8 @@ function App() {
             <Route
               path="/reports"
               element={
-                <ProtectedRoute roles={["admin", "manager", "user"]}>
-                  <Dashboard />
+                <ProtectedRoute roles={["admin", "manager"]}>
+                  <Reports />
                 </ProtectedRoute>
               }
             />
