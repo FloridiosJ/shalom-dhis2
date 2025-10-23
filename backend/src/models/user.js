@@ -70,9 +70,10 @@ const User = sequelize.define('User', {
   },
   dispensaireId: {
     type: DataTypes.UUID,
-    allowNull: true,
+    allowNull: true, // ✅ Déjà nullable
     validate: {
       isRequiredForAgent(value) {
+        // ✅ CORRECTION : Vérifier seulement pour les agents
         if (this.role === 'agent' && !value) {
           throw new Error('Un dispensaire est obligatoire pour les agents');
         }

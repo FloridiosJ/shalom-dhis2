@@ -137,20 +137,32 @@ const userResolvers = {
 
         const { User, Dispensaire } = await import('../../models/index.js');
 
-        // Valider le dispensaire
-        const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
-        if (!dispensaire) {
-          return {
-            user: null,
-            success: false,
-            message: 'Dispensaire non trouvé',
-            errors: ['DISPENSAIRE_NOT_FOUND']
-          };
-        }
+        // ✅ CORRECTION : Valider le dispensaire seulement si fourni
+        if (input.dispensaireId) {
+          const dispensaire = await Dispensaire.findByPk(input.dispensaireId);
+          if (!dispensaire) {
+            return {
+              user: null,
+              success: false,
+              message: 'Dispensaire non trouvé',
+              errors: ['DISPENSAIRE_NOT_FOUND']
+            };
+          }
 
-        // Manager ne peut créer que dans son dispensaire
-        if (user.role === 'manager' && user.dispensaireId !== input.dispensaireId) {
-          throw new ForbiddenError('Vous ne pouvez créer des utilisateurs que dans votre dispensaire');
+          // Manager ne peut créer que dans son dispensaire
+          if (user.role === 'manager' && user.dispensaireId !== input.dispensaireId) {
+            throw new ForbiddenError('Vous ne pouvez créer des utilisateurs que dans votre dispensaire');
+          }
+        } else {
+          // ✅ Vérifier que seuls admin/manager peuvent créer sans dispensaire
+          if (input.role === 'agent') {
+            return {
+              user: null,
+              success: false,
+              message: 'Un dispensaire est requis pour un agent',
+              errors: ['DISPENSAIRE_REQUIRED_FOR_AGENT']
+            };
+          }
         }
 
         // Vérifier si l'email existe déjà
@@ -173,7 +185,6 @@ const userResolvers = {
         let generatedLogin = null;
         
         if (!login) {
-          // ✅ CORRECTION : Utiliser la fonction locale
           login = generateLogin(input.nom, input.prenom);
           generatedLogin = login;
           console.log('🔑 Login généré:', login);
@@ -182,7 +193,6 @@ const userResolvers = {
         // Vérifier si le login existe
         const existingLogin = await User.findOne({ where: { login } });
         if (existingLogin) {
-          // Si le login existe, régénérer avec un nombre aléatoire différent
           login = generateLogin(input.nom, input.prenom);
           generatedLogin = login;
           console.log('🔑 Login régénéré:', login);
@@ -193,7 +203,6 @@ const userResolvers = {
         let generatedPassword = null;
         
         if (!password) {
-          // ✅ CORRECTION : Utiliser la fonction locale
           password = generatePassword();
           generatedPassword = password;
           console.log('🔒 Mot de passe généré');
@@ -202,7 +211,7 @@ const userResolvers = {
         // Hasher le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Créer l'utilisateur
+        // ✅ Créer l'utilisateur avec ou sans dispensaire
         const newUser = await User.create({
           nom: input.nom,
           prenom: input.prenom,
@@ -210,8 +219,8 @@ const userResolvers = {
           login,
           password: hashedPassword,
           role: input.role || 'agent',
-          specialite: input.specialite,
-          dispensaireId: input.dispensaireId,
+          specialite: input.specialite || null,
+          dispensaireId: input.dispensaireId || null, // ✅ Accepter null
           isActive: true
         });
 
@@ -222,7 +231,8 @@ const userResolvers = {
           include: [
             {
               model: Dispensaire,
-              as: 'dispensaire'
+              as: 'dispensaire',
+              required: false // ✅ Jointure optionnelle
             }
           ]
         });
@@ -238,7 +248,6 @@ const userResolvers = {
       } catch (error) {
         console.error('❌ Erreur création utilisateur:', error);
         
-        // Gérer les erreurs spécifiques
         if (error instanceof AuthenticationError || error instanceof ForbiddenError) {
           throw error;
         }

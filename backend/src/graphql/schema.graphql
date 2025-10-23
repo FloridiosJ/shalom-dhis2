@@ -497,7 +497,6 @@ input UpdateUserInput {
   password: String
   role: UserRole
   specialite: AgentSpecialite
-  dispensaireId: ID
   isActive: Boolean
 }
 

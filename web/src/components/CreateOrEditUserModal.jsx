@@ -105,10 +105,13 @@ const CreateOrEditUserModal = ({
     if (!form.nom) e.nom = 'Nom requis';
     if (!form.prenom) e.prenom = 'Prénom requis';
     if (!form.role) e.role = 'Rôle requis';
+    
+    // ✅ CORRECTION : Valider dispensaire et specialite seulement pour les agents
     if (form.role === 'agent') {
       if (!form.specialite) e.specialite = 'Spécialité requise';
       if (!form.dispensaireId) e.dispensaireId = 'Dispensaire requis';
     }
+    
     // Validation du mot de passe
     if (!isEdit && !form.password) {
       e.password = 'Mot de passe requis';
@@ -140,25 +143,40 @@ const CreateOrEditUserModal = ({
     }
     setLoading(true);
     try {
+      // ✅ CORRECTION : Ne pas envoyer dispensaireId/specialite si pas agent
       const payload = {
-        ...form,
-        dispensaireId: form.role === 'agent' ? form.dispensaireId : undefined,
-        specialite: form.role === 'agent' ? form.specialite : undefined,
+        email: form.email,
+        login: form.login,
+        password: form.password,
+        nom: form.nom,
+        prenom: form.prenom,
+        role: form.role,
+        isActive: form.isActive,
       };
+
+      // ✅ Ajouter dispensaireId et specialite seulement pour les agents
+      if (form.role === 'agent') {
+        payload.dispensaireId = form.dispensaireId;
+        payload.specialite = form.specialite;
+      }
+
       // En création, retire isActive du payload
       if (!isEdit) {
         delete payload.isActive;
       }
+      
       // En édition, retire password si vide
       if (isEdit && !form.password) {
         delete payload.password;
       }
+
       let res;
       if (isEdit) {
         res = await usersService.update(user.id, payload);
       } else {
         res = await usersService.create(payload);
       }
+      
       if (res.success) {
         onSaved && onSaved(res.user);
         onClose && onClose();
