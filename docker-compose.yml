@@ -15,7 +15,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    # restart: unless-stopped
     networks:
       - app-network
 
@@ -35,7 +35,7 @@ services:
       - DB_NAME=${DB_NAME}
     env_file:
       - .env
-    restart: unless-stopped
+    # restart: unless-stopped
     networks:
       - app-network
 
@@ -65,7 +65,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     depends_on:
       - db
-    restart: unless-stopped
+    # restart: unless-stopped
     networks:
       - app-network
 
