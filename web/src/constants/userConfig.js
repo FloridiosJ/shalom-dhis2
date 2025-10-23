@@ -26,11 +26,9 @@ export const USER_ROLES = [
  * Spécialités médicales disponibles
  */
 export const SPECIALITES = [
-  { value: 'medecin', label: 'Médecin', icon: '🩺' },
   { value: 'sage_femme', label: 'Sage-femme', icon: '🤱' },
   { value: 'infirmier', label: 'Infirmier', icon: '💉' },
   { value: 'infirmière', label: 'Infirmière', icon: '💉' },
-  { value: 'auxiliaire', label: 'Auxiliaire', icon: '🏥' },
 ];
 
 /**
