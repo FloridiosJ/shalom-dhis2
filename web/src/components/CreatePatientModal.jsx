@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import patientService from '../services/patients';
 import { RELIGIONS, SEXES } from '../constants';
 import styles from './CreateUserModal.module.css';
@@ -8,9 +9,12 @@ const PatientModal = ({
   onClose,
   onSaved,
   dispensaires,
-  patient,      // undefined pour création, objet pour édition
+  patient,
   isEdit = false
 }) => {
+  const { user } = useAuth();
+  const isAgent = user?.role === 'agent';
+
   const [form, setForm] = useState({
     nom: '',
     prenom: '',
@@ -27,6 +31,11 @@ const PatientModal = ({
 
   useEffect(() => {
     if (open) {
+      // ✅ CORRECTION : user.dispensaire.id au lieu de user.dispensaireId
+      const defaultDispensaireId = isAgent && user?.dispensaire?.id 
+        ? user.dispensaire.id 
+        : (patient?.dispensaire?.id || '');
+
       setForm({
         nom: patient?.nom || '',
         prenom: patient?.prenom || '',
@@ -34,14 +43,14 @@ const PatientModal = ({
         sexe: patient?.sexe || '',
         religion: patient?.religion || '',
         village: patient?.village || '',
-        dispensaireId: patient?.dispensaire?.id || ''
+        dispensaireId: defaultDispensaireId
       });
       setErrors({});
       setServerError('');
       setLoading(false);
       setTimeout(() => firstInputRef.current?.focus(), 100);
     }
-  }, [open, patient]);
+  }, [open, patient, user, isAgent]);
 
   const validate = () => {
     const e = {};
@@ -51,7 +60,11 @@ const PatientModal = ({
     if (!form.sexe) e.sexe = 'Sexe requis';
     if (!form.religion) e.religion = 'Religion requise';
     if (!form.village.trim()) e.village = 'Village requis';
-    if (!form.dispensaireId) e.dispensaireId = 'Dispensaire requis';
+    
+    if (!isAgent && !form.dispensaireId) {
+      e.dispensaireId = 'Dispensaire requis';
+    }
+    
     return e;
   };
 
@@ -71,17 +84,22 @@ const PatientModal = ({
     }
     setLoading(true);
     try {
+      // ✅ CORRECTION : user.dispensaire.id au lieu de user.dispensaireId
+      const payload = {
+        nom: form.nom,
+        prenom: form.prenom,
+        age: parseInt(form.age, 10),
+        sexe: form.sexe,
+        religion: form.religion,
+        village: form.village,
+        dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId
+      };
+
       let res;
       if (isEdit && patient?.id) {
-        res = await patientService.update(patient.id, {
-          ...form,
-          age: parseInt(form.age, 10)
-        });
+        res = await patientService.update(patient.id, payload);
       } else {
-        res = await patientService.create({
-          ...form,
-          age: parseInt(form.age, 10)
-        });
+        res = await patientService.create(payload);
       }
       if (res.success) {
         onSaved && onSaved();
@@ -120,6 +138,7 @@ const PatientModal = ({
             />
             {errors.nom && <div className={styles.errorField}>{errors.nom}</div>}
           </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="patient-prenom" className={styles.label}>Prénom <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
             <input
@@ -133,6 +152,7 @@ const PatientModal = ({
             />
             {errors.prenom && <div className={styles.errorField}>{errors.prenom}</div>}
           </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="patient-age" className={styles.label}>Âge <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
             <input
@@ -148,6 +168,7 @@ const PatientModal = ({
             />
             {errors.age && <div className={styles.errorField}>{errors.age}</div>}
           </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="patient-sexe" className={styles.label}>
               Sexe <span aria-hidden="true" style={{color:'#dc2626'}}>*</span>
@@ -170,6 +191,7 @@ const PatientModal = ({
             </select>
             {errors.sexe && <div className={styles.errorField}>{errors.sexe}</div>}
           </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="patient-religion" className={styles.label}>
               Religion <span aria-hidden="true" style={{color:'#dc2626'}}>*</span>
@@ -192,6 +214,7 @@ const PatientModal = ({
             </select>
             {errors.religion && <div className={styles.errorField}>{errors.religion}</div>}
           </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="patient-village" className={styles.label}>Village <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
             <input
@@ -205,24 +228,41 @@ const PatientModal = ({
             />
             {errors.village && <div className={styles.errorField}>{errors.village}</div>}
           </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="patient-dispensaire" className={styles.label}>Dispensaire <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
-            <select
-              id="patient-dispensaire"
-              name="dispensaireId"
-              className={styles.input}
-              value={form.dispensaireId}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            >
-              <option value="">Sélectionner…</option>
-              {dispensaires.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-            {errors.dispensaireId && <div className={styles.errorField}>{errors.dispensaireId}</div>}
-          </div>
+
+          {/* ✅ Dispensaire - AFFICHÉ UNIQUEMENT pour admin/manager */}
+          {!isAgent && (
+            <div className={styles.formGroup}>
+              <label htmlFor="patient-dispensaire" className={styles.label}>Dispensaire <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
+              <select
+                id="patient-dispensaire"
+                name="dispensaireId"
+                className={styles.input}
+                value={form.dispensaireId}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              >
+                <option value="">Sélectionner…</option>
+                {dispensaires.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+              {errors.dispensaireId && <div className={styles.errorField}>{errors.dispensaireId}</div>}
+            </div>
+          )}
+
+          {/* ✅ Message informatif pour les agents */}
+          {isAgent && (
+            <div className={styles.infoText}>
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.5rem', flexShrink: 0 }}>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              Le patient sera automatiquement assigné à votre dispensaire : 
+              {/* ✅ CORRECTION : user.dispensaire.name */}
+              <strong> {user?.dispensaire?.name || 'Chargement...'}</strong>
+            </div>
+          )}
+
           <div className={styles.btnRow}>
             <button
               type="button"

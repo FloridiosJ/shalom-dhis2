@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from '../hooks/useAuth';
 import { TYPES_CONSULTATION } from "../constants";
 import styles from "./CreateDataEntryModal.module.css";
 
@@ -12,6 +13,9 @@ const CreateDataEntryModal = ({
   onSubmit,
   isEdit = false,
 }) => {
+  const { user } = useAuth(); // ✅ Récupérer l'utilisateur connecté
+  const isAgent = user?.role === 'agent';
+
   const [form, setForm] = useState({
     dateConsultation: "",
     patientId: "",
@@ -36,12 +40,18 @@ const CreateDataEntryModal = ({
   useEffect(() => {
     if (open) {
       const patient = initialData?.patient;
+      
+      // ✅ CORRECTION : Pré-remplir avec le dispensaire de l'agent
+      const defaultDispensaireId = isAgent && user?.dispensaire?.id 
+        ? user.dispensaire.id 
+        : (initialData?.dispensaire?.id || "");
+
       setForm({
         dateConsultation: initialData?.dateConsultation
           ? initialData.dateConsultation.slice(0, 16)
           : new Date().toISOString().slice(0, 16),
         patientId: patient?.id || "",
-        dispensaireId: initialData?.dispensaire?.id || "",
+        dispensaireId: defaultDispensaireId, // ✅ Auto-rempli pour les agents
         typeConsultation: initialData?.typeConsultation || "CURATIF",
         diagnostic: initialData?.diagnostic || "",
         prescription: initialData?.prescription || "",
@@ -55,13 +65,18 @@ const CreateDataEntryModal = ({
       setLoading(false);
       setTimeout(() => firstInputRef.current?.focus(), 100);
     }
-  }, [open, initialData]);
+  }, [open, initialData, user, isAgent]);
 
   const validate = () => {
     const e = {};
     if (!form.dateConsultation) e.dateConsultation = "Date requise";
     if (!form.patientId) e.patientId = "Patient requis";
-    if (!form.dispensaireId) e.dispensaireId = "Dispensaire requis";
+    
+    // ✅ Pour les non-agents, le dispensaire est requis dans le formulaire
+    if (!isAgent && !form.dispensaireId) {
+      e.dispensaireId = "Dispensaire requis";
+    }
+    
     if (!form.typeConsultation) e.typeConsultation = "Type de consultation requis";
     if (!form.diagnostic.trim()) e.diagnostic = "Diagnostic requis";
     return e;
@@ -83,16 +98,22 @@ const CreateDataEntryModal = ({
     }
     setLoading(true);
     try {
-      // ✅ Ne garder que les champs attendus par le backend
+      // ✅ CORRECTION : Si agent, utiliser son dispensaire
       const payload = {
         dateConsultation: new Date(form.dateConsultation).toISOString(),
         patientId: form.patientId,
-        dispensaireId: form.dispensaireId,
+        dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId,
         typeConsultation: form.typeConsultation,
         diagnostic: form.diagnostic,
         prescription: form.prescription,
         notes: form.notes,
       };
+
+      console.log('📤 User:', user);
+      console.log('📤 isAgent:', isAgent);
+      console.log('📤 user.dispensaire:', user?.dispensaire);
+      console.log('📤 Payload consultation:', payload);
+
       await onSubmit(payload);
       onSaved && onSaved();
       onClose && onClose();
@@ -154,7 +175,7 @@ const CreateDataEntryModal = ({
                 setFilteredNumPatients(filtered);
               }}
               autoComplete="off"
-              disabled={loading || isEdit} // ✅ Désactivé en mode édition
+              disabled={loading || isEdit}
               onFocus={() => {
                 if (form.numeroPatient && filteredNumPatients?.length > 0) setShowNumAutocomplete(true);
               }}
@@ -212,7 +233,7 @@ const CreateDataEntryModal = ({
                 setFilteredPatients(filtered);
               }}
               autoComplete="off"
-              disabled={loading || isEdit} // ✅ Désactivé en mode édition
+              disabled={loading || isEdit}
               onFocus={() => {
                 if (form.fullName && filteredPatients?.length > 0) setShowAutocomplete(true);
               }}
@@ -241,26 +262,40 @@ const CreateDataEntryModal = ({
             )}
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="dispensaireId" className={styles.label}>
-              Dispensaire <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
-            </label>
-            <select
-              id="dispensaireId"
-              name="dispensaireId"
-              className={styles.input}
-              value={form.dispensaireId}
-              onChange={handleChange}
-              required
-              disabled={loading || isEdit} // ✅ Désactivé en mode édition
-            >
-              <option value="">Sélectionner…</option>
-              {dispensaires.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-            {errors.dispensaireId && <div className={styles.errorField}>{errors.dispensaireId}</div>}
-          </div>
+          {/* ✅ Dispensaire - AFFICHÉ UNIQUEMENT pour admin/manager */}
+          {!isAgent && (
+            <div className={styles.formGroup}>
+              <label htmlFor="dispensaireId" className={styles.label}>
+                Dispensaire <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+              </label>
+              <select
+                id="dispensaireId"
+                name="dispensaireId"
+                className={styles.input}
+                value={form.dispensaireId}
+                onChange={handleChange}
+                required
+                disabled={loading || isEdit}
+              >
+                <option value="">Sélectionner…</option>
+                {dispensaires.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+              {errors.dispensaireId && <div className={styles.errorField}>{errors.dispensaireId}</div>}
+            </div>
+          )}
+
+          {/* ✅ Message informatif pour les agents */}
+          {isAgent && (
+            <div className={styles.infoText}>
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style={{ marginRight: '0.5rem', flexShrink: 0 }}>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              La consultation sera automatiquement assignée à votre dispensaire : 
+              <strong> {user?.dispensaire?.name || 'Chargement...'}</strong>
+            </div>
+          )}
 
           <div className={styles.formGroup}>
             <label htmlFor="typeConsultation" className={styles.label}>
