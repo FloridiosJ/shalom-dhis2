@@ -1,5 +1,4 @@
 import { AuthenticationError, ForbiddenError } from 'apollo-server-express';
-import bcrypt from 'bcrypt';
 
 // ✅ Fonctions utilitaires pour générer login et password
 function generateLogin(nom, prenom) {
@@ -10,7 +9,7 @@ function generateLogin(nom, prenom) {
 }
 
 function generatePassword() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%';
   let password = '';
   for (let i = 0; i < 12; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -208,19 +207,17 @@ const userResolvers = {
           console.log('🔒 Mot de passe généré');
         }
 
-        // Hasher le mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // ✅ Créer l'utilisateur avec ou sans dispensaire
+        // ✅ CORRECTION : Ne PAS hasher le mot de passe ici
+        // Le hook beforeSave du modèle s'en charge
         const newUser = await User.create({
           nom: input.nom,
           prenom: input.prenom,
           email: input.email,
           login,
-          password: hashedPassword,
+          password, // ✅ Mot de passe en clair - sera hashé par le hook
           role: input.role || 'agent',
           specialite: input.specialite || null,
-          dispensaireId: input.dispensaireId || null, // ✅ Accepter null
+          dispensaireId: input.dispensaireId || null,
           isActive: true
         });
 
@@ -375,6 +372,7 @@ const userResolvers = {
           // ✅ CORRECTION : Utiliser la fonction locale
           password = generatePassword();
           generatedPassword = password;
+          console.log('🔒 Nouveau mot de passe généré:', password);
         }
 
         if (!password) {
@@ -386,8 +384,8 @@ const userResolvers = {
           };
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await targetUser.update({ password: hashedPassword });
+        // ✅ CORRECTION : Ne PAS hasher ici, laisser le hook faire le travail
+        await targetUser.update({ password }); // Le hook beforeSave va hasher
 
         return {
           user: targetUser,
