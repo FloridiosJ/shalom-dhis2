@@ -57,16 +57,17 @@ function App() {
             <Route
               path="/users"
               element={
-                <ProtectedRoute roles={["admin"]}>
+                <ProtectedRoute roles={["admin", "manager"]}>
                   <Users />
                 </ProtectedRoute>
               }
             />
 
+            {/* ✅ Routes accessibles aux agents */}
             <Route
               path="/data-entries"
               element={
-                <ProtectedRoute roles={["admin", "manager", "user"]}>
+                <ProtectedRoute roles={["admin", "manager", "agent"]}>
                   <DataEntries />
                 </ProtectedRoute>
               }
@@ -75,12 +76,22 @@ function App() {
             <Route
               path="/dispensaires"
               element={
-                <ProtectedRoute roles={["admin", "manager", "user"]}>
+                <ProtectedRoute roles={["admin", "manager"]}>
                   <Dispensaires />
                 </ProtectedRoute>
               }
             />
 
+            <Route
+              path="/patients"
+              element={
+                <ProtectedRoute roles={["admin", "manager", "agent"]}>
+                  <Patients />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ✅ Reports uniquement pour admin et manager */}
             <Route
               path="/reports"
               element={
@@ -95,15 +106,6 @@ function App() {
               element={
                 <ProtectedRoute roles={["admin"]}>
                   <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/patients"
-              element={
-                <ProtectedRoute roles={["admin", "manager", "user"]}>
-                  <Patients />
                 </ProtectedRoute>
               }
             />
