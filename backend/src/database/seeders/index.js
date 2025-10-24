@@ -30,4 +30,5 @@ export const runSeeders = async () => {
   
   console.log('✅ Database seeding completed');
   console.log('='.repeat(50));
+  
 };

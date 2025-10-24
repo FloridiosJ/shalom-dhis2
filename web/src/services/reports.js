@@ -19,22 +19,21 @@ client.interceptors.request.use((config) => {
 
 function handleGraphQLErrors(response) {
   if (response.data.errors) {
-    const errorMsg = response.data.errors.map(e => e.message).join(', ');
-    throw new Error(errorMsg || 'Erreur GraphQL');
+    throw new Error(response.data.errors[0].message || 'Erreur GraphQL');
   }
   return response.data.data;
 }
 
 /**
- * Statistiques globales
+ * Statistiques globales du système
  */
 async function getGlobalStats() {
   const query = `
     query GlobalStats {
       reports {
-        totalPatients
         totalConsultations
         totalDispensaires
+        totalPatients
         totalUsers
       }
     }
@@ -44,100 +43,183 @@ async function getGlobalStats() {
 }
 
 /**
- * Statistiques par dispensaire
+ * Statistiques complètes des consultations
  */
-async function getStatsByDispensaire(dispensaireId, startDate, endDate) {
+async function getConsultationStats(dispensaireId = null, userId = null) {
   const query = `
-    query StatsByDispensaire($dispensaireId: ID, $startDate: String, $endDate: String) {
-      reportsByDispensaire(dispensaireId: $dispensaireId, startDate: $startDate, endDate: $endDate) {
-        dispensaire { id name }
-        totalConsultations
-        totalPatients
-        consultationsByType {
-          type
+    query ConsultationStats($dispensaireId: ID, $userId: ID) {
+      consultationStats(dispensaireId: $dispensaireId, userId: $userId) {
+        total
+        thisMonth
+        thisWeek
+        today
+        averagePerDay
+        averagePerWeek
+        averagePerMonth
+        byStatus {
+          status
           count
         }
-        consultationsByMonth {
-          month
+        byType {
+          typeConsultation
+          typeDetails {
+            code
+            libelle
+            description
+          }
           count
+        }
+        topCategories {
+          categorie {
+            id
+            nom
+            code
+          }
+          nombreConsultations
+          pourcentage
+        }
+        recentConsultations {
+          id
+          diagnostic
+          prescription
+          dateConsultation
+          status
+          typeConsultation
+          patient {
+            id
+            nom
+            prenom
+            numeroPatient
+          }
+          createdBy {
+            nom
+            prenom
+          }
         }
       }
     }
   `;
-  const variables = { dispensaireId, startDate, endDate };
+  const variables = { dispensaireId, userId };
   const response = await client.post('', { query, variables });
-  return handleGraphQLErrors(response).reportsByDispensaire;
+  return handleGraphQLErrors(response).consultationStats;
+}
+
+/**
+ * Dashboard complet
+ */
+async function getDashboard(dispensaireId = null) {
+  const query = `
+    query Dashboard($dispensaireId: ID) {
+      dashboard(dispensaireId: $dispensaireId) {
+        totalPatients
+        totalConsultations
+        consultationsToday
+        consultationsThisMonth
+        newPatientsThisMonth
+        upcomingEvents {
+          id
+          date
+          type_event
+          lieu
+          nombreParticipants
+        }
+        recentConsultations {
+          id
+          diagnostic
+          dateConsultation
+          patient {
+            nom
+            prenom
+            numeroPatient
+          }
+          createdBy {
+            nom
+            prenom
+          }
+        }
+      }
+    }
+  `;
+  const variables = { dispensaireId };
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).dashboard;
 }
 
 /**
  * Statistiques par période
  */
-async function getStatsByPeriod(startDate, endDate) {
+async function getStatsByPeriod(dateFrom, dateTo, dispensaireId = null) {
   const query = `
-    query StatsByPeriod($startDate: String!, $endDate: String!) {
-      reportsByPeriod(startDate: $startDate, endDate: $endDate) {
-        totalConsultations
-        totalPatients
-        consultationsByType {
-          type
-          count
-        }
-        consultationsByDay {
-          date
-          count
-        }
-        topDiagnostics {
-          diagnostic
+    query StatsByPeriod($dateFrom: DateTime, $dateTo: DateTime, $dispensaireId: ID) {
+      reportsByPeriod(dateFrom: $dateFrom, dateTo: $dateTo, dispensaireId: $dispensaireId) {
+        dateFrom
+        dateTo
+        consultationsPeriod
+        newPatientsPeriod
+        consultationsByStatus {
+          status
           count
         }
       }
     }
   `;
-  const variables = { startDate, endDate };
+  const variables = { dateFrom, dateTo, dispensaireId };
   const response = await client.post('', { query, variables });
   return handleGraphQLErrors(response).reportsByPeriod;
 }
 
 /**
- * Top diagnostics
+ * Statistiques par type de consultation
  */
-async function getTopDiagnostics(limit = 10) {
+async function getStatsByConsultationType(dateFrom = null, dateTo = null, dispensaireId = null) {
   const query = `
-    query TopDiagnostics($limit: Int) {
-      topDiagnostics(limit: $limit) {
-        diagnostic
+    query StatsByConsultationType($dateFrom: DateTime, $dateTo: DateTime, $dispensaireId: ID) {
+      reportsByConsultationType(dateFrom: $dateFrom, dateTo: $dateTo, dispensaireId: $dispensaireId) {
+        typeConsultation
+        typeDetails {
+          code
+          libelle
+          description
+        }
         count
-        percentage
       }
     }
   `;
-  const variables = { limit };
+  const variables = { dateFrom, dateTo, dispensaireId };
   const response = await client.post('', { query, variables });
-  return handleGraphQLErrors(response).topDiagnostics;
+  return handleGraphQLErrors(response).reportsByConsultationType;
 }
 
 /**
- * Évolution des consultations
+ * Statistiques par dispensaire
  */
-async function getConsultationsEvolution(period = 'month') {
+async function getStatsByDispensaire(dispensaireId) {
   const query = `
-    query ConsultationsEvolution($period: String) {
-      consultationsEvolution(period: $period) {
-        period
-        count
-        growth
+    query StatsByDispensaire($dispensaireId: ID!) {
+      reportsByDispensaire(dispensaireId: $dispensaireId) {
+        dispensaire {
+          id
+          name
+          fileovana
+          synoda
+        }
+        totalPatients
+        totalConsultations
+        totalUsers
+        activeUsers
       }
     }
   `;
-  const variables = { period };
+  const variables = { dispensaireId };
   const response = await client.post('', { query, variables });
-  return handleGraphQLErrors(response).consultationsEvolution;
+  return handleGraphQLErrors(response).reportsByDispensaire;
 }
 
 export default {
   getGlobalStats,
-  getStatsByDispensaire,
+  getConsultationStats,
+  getDashboard,
   getStatsByPeriod,
-  getTopDiagnostics,
-  getConsultationsEvolution,
+  getStatsByConsultationType,
+  getStatsByDispensaire,
 };

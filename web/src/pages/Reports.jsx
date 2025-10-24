@@ -28,17 +28,17 @@ const Reports = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [stats, disps, diagnostics, evo] = await Promise.all([
-        reportService.getGlobalStats(),
-        dispensaireService.getAll(),
-        reportService.getTopDiagnostics(10),
-        reportService.getConsultationsEvolution(period),
+      const [ diagnostics, evo] = await Promise.all([
+        // dispensaireService.getAll(),
+        // reportService.getTopDiagnostics(10),
+        // reportService.getConsultationsEvolution(period),
       ]);
-      
+      const stats = await reportService.getGlobalStats();
+      const disps = await dispensaireService.getAll();
       setGlobalStats(stats);
       setDispensaires(disps);
-      setTopDiagnostics(diagnostics);
-      setEvolution(evo);
+      // setTopDiagnostics(diagnostics);
+      // setEvolution(evo);
 
       // Charger les stats de période
       if (dateRange.startDate && dateRange.endDate) {
