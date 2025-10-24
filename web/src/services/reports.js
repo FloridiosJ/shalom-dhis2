@@ -19,8 +19,7 @@ client.interceptors.request.use((config) => {
 
 function handleGraphQLErrors(response) {
   if (response.data.errors) {
-    const errorMsg = response.data.errors.map(e => e.message).join(', ');
-    throw new Error(errorMsg || 'Erreur GraphQL');
+    throw new Error(response.data.errors[0].message || 'Erreur GraphQL');
   }
   return response.data.data;
 }
@@ -165,7 +164,6 @@ async function getStatsByDispensaire(dispensaireId, startDate = null, endDate = 
         dispensaire {
           id
           name
-          code
         }
         totalConsultations
         totalPatients

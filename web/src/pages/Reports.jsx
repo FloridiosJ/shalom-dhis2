@@ -95,8 +95,6 @@ const Reports = () => {
         totalUsers: dispensaireStats?.totalUsers || 0
       }
     : {
-        // Pour "Tous les dispensaires" : patients / dispensaires / users = totals globaux,
-        // consultations et moyenne/jour viennent de periodStats (période sélectionnée).
         totalPatients: globalStats?.totalPatients ?? 0,
         totalConsultations: periodStats?.total ?? (globalStats?.totalConsultations ?? 0),
         totalDispensaires: globalStats?.totalDispensaires ?? (dispensaires?.length || 0),
