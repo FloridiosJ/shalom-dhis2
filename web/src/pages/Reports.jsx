@@ -87,12 +87,21 @@ const Reports = () => {
   };
 
   // Déterminer quelles stats afficher
-  const displayStats = selectedDispensaire !== 'all' ? {
-    totalPatients: dispensaireStats?.totalPatients || 0,
-    totalConsultations: dispensaireStats?.totalConsultations || 0,
-    totalDispensaires: 1, // Le dispensaire sélectionné
-    totalUsers: globalStats?.totalUsers || 0 // Garde les users globaux
-  } : globalStats;
+  const displayStats = selectedDispensaire !== 'all'
+    ? {
+        totalPatients: dispensaireStats?.totalPatients || 0,
+        totalConsultations: dispensaireStats?.totalConsultations || 0,
+        totalDispensaires: 1, // Le dispensaire sélectionné
+        totalUsers: dispensaireStats?.totalUsers || 0
+      }
+    : {
+        // Pour "Tous les dispensaires" : patients / dispensaires / users = totals globaux,
+        // consultations et moyenne/jour viennent de periodStats (période sélectionnée).
+        totalPatients: globalStats?.totalPatients ?? 0,
+        totalConsultations: periodStats?.total ?? (globalStats?.totalConsultations ?? 0),
+        totalDispensaires: globalStats?.totalDispensaires ?? (dispensaires?.length || 0),
+        totalUsers: globalStats?.totalUsers ?? 0
+      };
 
   if (loading && !displayStats) {
     return (

@@ -4,6 +4,47 @@ import { AuthenticationError } from 'apollo-server-express';
 const reportsResolvers = {
   Query: {
 
+    reports: async (_, __, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Patient, Dispensaire, User } = await import('../../models/index.js');
+
+      // Si l'utilisateur est un agent, limiter aux données du dispensaire de l'agent
+      if (user.role === 'agent' && user.dispensaireId) {
+        const dispensaireId = user.dispensaireId;
+
+        const [totalPatients, totalConsultations, totalDispensaires, totalUsers] = await Promise.all([
+          Patient.count({ where: { dispensaireId, isActive: true } }),
+          DataEntry.count({ where: { dispensaireId, isActive: true } }),
+          Dispensaire.count({ where: { id: dispensaireId, isActive: true } }), // normalement = 1
+          User.count({ where: { dispensaireId, isActive: true } })
+        ]);
+
+        return {
+          totalPatients,
+          totalConsultations,
+          totalDispensaires,
+          totalUsers
+        };
+      }
+
+      // Pour admin/manager : totaux globaux
+      const [totalPatients, totalConsultations, totalDispensaires, totalUsers] = await Promise.all([
+        Patient.count({ where: { isActive: true } }),
+        DataEntry.count({ where: { isActive: true } }),
+        Dispensaire.count({ where: { isActive: true } }),
+        User.count({ where: { isActive: true } })
+      ]);
+
+      return {
+        totalPatients,
+        totalConsultations,
+        totalDispensaires,
+        totalUsers
+      };
+    },
     /**
      * Top diagnostics avec filtres
      */
@@ -50,86 +91,97 @@ const reportsResolvers = {
     /**
      * Évolution des consultations
      */
-    consultationsEvolution: async (_, { period, dispensaireId, startDate, endDate }, { user }) => {
-      if (!user) {
-        throw new AuthenticationError('Non authentifié');
-      }
+    // Remplace l'implémentation actuelle de consultationsEvolution par ceci
+consultationsEvolution: async (_, { period, dispensaireId, startDate, endDate }, { user }) => {
+  if (!user) {
+    throw new AuthenticationError('Non authentifié');
+  }
 
-      const { DataEntry } = await import('../../models/index.js');
+  const { DataEntry } = await import('../../models/index.js');
 
-      const whereClause = { isActive: true };
-      
-      if (dispensaireId) {
-        whereClause.dispensaireId = dispensaireId;
-      }
+  const whereClause = { isActive: true };
 
-      // Déterminer la plage de dates selon la période
-      let dateFrom, dateTo;
-      const now = new Date();
+  if (dispensaireId) {
+    whereClause.dispensaireId = dispensaireId;
+  }
 
-      if (startDate && endDate) {
-        dateFrom = new Date(startDate);
-        dateTo = new Date(endDate);
-      } else {
-        switch (period) {
-          case 'day':
-            dateFrom = new Date(now.setDate(now.getDate() - 30));
-            break;
-          case 'week':
-            dateFrom = new Date(now.setDate(now.getDate() - 12 * 7));
-            break;
-          case 'month':
-            dateFrom = new Date(now.setMonth(now.getMonth() - 12));
-            break;
-          case 'year':
-            dateFrom = new Date(now.setFullYear(now.getFullYear() - 5));
-            break;
-          default:
-            dateFrom = new Date(now.setMonth(now.getMonth() - 12));
-        }
-        dateTo = new Date();
-      }
+  // Déterminer la plage de dates selon la période
+  let dateFrom, dateTo;
+  const now = new Date();
 
-      whereClause.dateConsultation = {
-        [Op.between]: [dateFrom, dateTo]
-      };
+  if (startDate && endDate) {
+    dateFrom = new Date(startDate);
+    dateTo = new Date(endDate);
+  } else {
+    switch (period) {
+      case 'day':
+        dateFrom = new Date(now);
+        dateFrom.setDate(now.getDate() - 30);
+        break;
+      case 'week':
+        dateFrom = new Date(now);
+        dateFrom.setDate(now.getDate() - 12 * 7);
+        break;
+      case 'month':
+        dateFrom = new Date(now);
+        dateFrom.setMonth(now.getMonth() - 12);
+        break;
+      case 'year':
+        dateFrom = new Date(now);
+        dateFrom.setFullYear(now.getFullYear() - 5);
+        break;
+      default:
+        dateFrom = new Date(now);
+        dateFrom.setMonth(now.getMonth() - 12);
+    }
+    dateTo = new Date();
+  }
 
-      // Format de groupement selon la période
-      let dateFormat;
-      switch (period) {
-        case 'day':
-          dateFormat = '%Y-%m-%d';
-          break;
-        case 'week':
-          dateFormat = '%Y-W%U';
-          break;
-        case 'month':
-          dateFormat = '%Y-%m';
-          break;
-        case 'year':
-          dateFormat = '%Y';
-          break;
-        default:
-          dateFormat = '%Y-%m';
-      }
+  whereClause.dateConsultation = {
+    [Op.between]: [dateFrom, dateTo]
+  };
 
-      const evolution = await DataEntry.findAll({
-        where: whereClause,
-        attributes: [
-          [DataEntry.sequelize.fn('DATE_FORMAT', DataEntry.sequelize.col('dateConsultation'), dateFormat), 'period'],
-          [DataEntry.sequelize.fn('COUNT', '*'), 'count']
-        ],
-        group: [DataEntry.sequelize.fn('DATE_FORMAT', DataEntry.sequelize.col('dateConsultation'), dateFormat)],
-        order: [[DataEntry.sequelize.fn('DATE_FORMAT', DataEntry.sequelize.col('dateConsultation'), dateFormat), 'ASC']],
-        raw: true
-      });
+  // Format Postgres pour to_char
+  let pgFormat;
+  switch (period) {
+    case 'day':
+      pgFormat = 'YYYY-MM-DD';
+      break;
+    case 'week':
+      // ISO week: IYYY-IW (ex: 2024-09). Ici on formatte en 'YYYY-"W"WW' pour lisibilité
+      pgFormat = 'IYYY-"W"IW';
+      break;
+    case 'month':
+      pgFormat = 'YYYY-MM';
+      break;
+    case 'year':
+      pgFormat = 'YYYY';
+      break;
+    default:
+      pgFormat = 'YYYY-MM';
+  }
 
-      return evolution.map(e => ({
-        period: e.period,
-        date: e.period,
-        count: parseInt(e.count)
-      }));
-    },
+  // Utiliser to_char pour Postgres (compatible). Grouper par la même expression.
+  const periodExpr = DataEntry.sequelize.fn('to_char', DataEntry.sequelize.col('dateConsultation'), pgFormat);
+
+  const evolution = await DataEntry.findAll({
+    where: whereClause,
+    attributes: [
+      [periodExpr, 'period'],
+      [DataEntry.sequelize.fn('COUNT', '*'), 'count']
+    ],
+    group: [DataEntry.sequelize.literal(`to_char("dateConsultation", '${pgFormat}')`)],
+    order: [[DataEntry.sequelize.literal(`to_char("dateConsultation", '${pgFormat}')`), 'ASC']],
+    raw: true
+  });
+
+  // Normaliser la sortie
+  return evolution.map(e => ({
+    period: e.period,
+    date: e.period,
+    count: parseInt(e.count, 10)
+  }));
+},
 
     /**
      * Statistiques par dispensaire
