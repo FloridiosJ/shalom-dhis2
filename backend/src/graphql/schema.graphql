@@ -791,7 +791,42 @@ input ActiviteSprituelleFilterInput {
   search: String
 }
 
-# Queries
+# Ajoutez ces types si pas déjà présents
+type TopDiagnostic {
+  diagnostic: String!
+  count: Int!
+  percentage: Float!
+}
+
+type ConsultationEvolution {
+  period: String!
+  date: String!
+  count: Int!
+}
+
+type DispensaireStats {
+  dispensaire: Dispensaire!
+  totalConsultations: Int!
+  totalPatients: Int!
+  consultationsByType: [ConsultationByType!]!
+  topCategories: [CategoryStat!]!
+}
+
+type ExportResult {
+  success: Boolean!
+  message: String!
+  url: String
+  fileName: String
+}
+
+input ReportFiltersInput {
+  dispensaireId: ID
+  startDate: String
+  endDate: String
+  typeConsultation: String
+  categorieId: ID
+}
+
 type Query {
   # Auth
   me: User
@@ -859,6 +894,28 @@ type Query {
   reportsByPeriod(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): PeriodReports!
   reportsByConsultationType(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): [ConsultationTypeReport!]!
   dashboard(dispensaireId: ID): Dashboard!
+
+  # Rapports avec filtres
+  
+  topDiagnostics(
+    limit: Int
+    dispensaireId: ID
+    startDate: String
+    endDate: String
+  ): [TopDiagnostic!]!
+  
+  consultationsEvolution(
+    period: String!
+    dispensaireId: ID
+    startDate: String
+    endDate: String
+  ): [ConsultationEvolution!]!
+  
+  dispensaireStats(
+    dispensaireId: ID!
+    startDate: String
+    endDate: String
+  ): DispensaireStats!
 }
 
 # Mutations
@@ -912,4 +969,40 @@ type Mutation {
   createActiviteSpirituelle(input: CreateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   updateActiviteSpirituelle(id: ID!, input: UpdateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   deleteActiviteSpirituelle(id: ID!): ActiviteSprituelleResponse!
+
+  # Exporter des rapports
+  exportReport(
+    format: String!
+    filters: ReportFiltersInput!
+  ): ExportResult!
+}
+
+# ✅ AJOUTER ces types manquants pour les statistiques de consultation
+
+type ConsultationByType {
+  type: String!
+  count: Int!
+  pourcentage: Float!
+}
+
+type CategoryStat {
+  categorie: CategorieMaladie!
+  nombreConsultations: Int!
+  pourcentage: Float!
+}
+
+type ConsultationByDay {
+  date: String!
+  count: Int!
+}
+
+type ConsultationStatsReport {
+  total: Int!
+  thisMonth: Int!
+  thisWeek: Int!
+  today: Int!
+  avgPerDay: Float!
+  topCategories: [CategoryStat!]!
+  consultationsByDay: [ConsultationByDay!]!
+  consultationsByType: [ConsultationByType!]!
 }

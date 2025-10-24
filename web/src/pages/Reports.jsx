@@ -10,6 +10,7 @@ const Reports = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [globalStats, setGlobalStats] = useState(null);
+  const [dispensaireStats, setDispensaireStats] = useState(null);
   const [dispensaires, setDispensaires] = useState([]);
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
@@ -28,26 +29,51 @@ const Reports = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [ diagnostics, evo] = await Promise.all([
-        // dispensaireService.getAll(),
-        // reportService.getTopDiagnostics(10),
-        // reportService.getConsultationsEvolution(period),
-      ]);
-      const stats = await reportService.getGlobalStats();
+      // Dispensaires
       const disps = await dispensaireService.getAll();
-      setGlobalStats(stats);
       setDispensaires(disps);
-      // setTopDiagnostics(diagnostics);
-      // setEvolution(evo);
 
-      // Charger les stats de période
-      if (dateRange.startDate && dateRange.endDate) {
-        const pStats = await reportService.getStatsByPeriod(
+      // Si un dispensaire est sélectionné, récupérer ses stats spécifiques
+      if (selectedDispensaire !== 'all') {
+        const dispStats = await reportService.getStatsByDispensaire(
+          selectedDispensaire,
           dateRange.startDate,
           dateRange.endDate
         );
-        setPeriodStats(pStats);
+        setDispensaireStats(dispStats);
+        setGlobalStats(null); // Reset global stats
+      } else {
+        // Stats globales tous dispensaires
+        const stats = await reportService.getGlobalStats();
+        setGlobalStats(stats);
+        setDispensaireStats(null);
       }
+
+      // Stats filtrées (communes)
+      const [diagnostics, evo, pStats] = await Promise.all([
+        reportService.getTopDiagnostics(
+          10, 
+          selectedDispensaire !== 'all' ? selectedDispensaire : null,
+          dateRange.startDate,
+          dateRange.endDate
+        ),
+        reportService.getConsultationsEvolution(
+          period,
+          selectedDispensaire !== 'all' ? selectedDispensaire : null,
+          dateRange.startDate,
+          dateRange.endDate
+        ),
+        reportService.getStatsByPeriod(
+          dateRange.startDate,
+          dateRange.endDate,
+          selectedDispensaire !== 'all' ? selectedDispensaire : null
+        )
+      ]);
+
+      setTopDiagnostics(diagnostics);
+      setEvolution(evo);
+      setPeriodStats(pStats);
+
     } catch (error) {
       console.error('Erreur chargement rapports:', error);
     } finally {
@@ -60,7 +86,15 @@ const Reports = () => {
     console.log(`Export en ${format}`);
   };
 
-  if (loading && !globalStats) {
+  // Déterminer quelles stats afficher
+  const displayStats = selectedDispensaire !== 'all' ? {
+    totalPatients: dispensaireStats?.totalPatients || 0,
+    totalConsultations: dispensaireStats?.totalConsultations || 0,
+    totalDispensaires: 1, // Le dispensaire sélectionné
+    totalUsers: globalStats?.totalUsers || 0 // Garde les users globaux
+  } : globalStats;
+
+  if (loading && !displayStats) {
     return (
       <div className={styles.pageBg}>
         <div className={styles.container}>
@@ -85,7 +119,14 @@ const Reports = () => {
             </svg>
             Retour au dashboard
           </button>
-          <h1 className={styles.title}>📊 Rapports & Analytics</h1>
+          <div>
+            <h1 className={styles.title}>📊 Rapports & Analytics</h1>
+            {selectedDispensaire !== 'all' && dispensaireStats && (
+              <p className={styles.subtitle}>
+                {dispensaireStats.dispensaire.name} - {dispensaireStats.dispensaire.code}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Filtres */}
@@ -99,7 +140,7 @@ const Reports = () => {
             >
               <option value="all">Tous les dispensaires</option>
               {dispensaires.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+                <option key={d.id} value={d.id}> {d.name}</option>
               ))}
             </select>
           </div>
@@ -111,10 +152,10 @@ const Reports = () => {
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
             >
-              <option value="day">Jour</option>
-              <option value="week">Semaine</option>
-              <option value="month">Mois</option>
-              <option value="year">Année</option>
+              <option value="day">📅 Jour</option>
+              <option value="week">📆 Semaine</option>
+              <option value="month">📊 Mois</option>
+              <option value="year">📈 Année</option>
             </select>
           </div>
 
@@ -146,105 +187,164 @@ const Reports = () => {
           </button>
         </div>
 
-        {/* Statistiques globales */}
+        {/* Statistiques globales ou du dispensaire */}
         <div className={styles.statsGrid}>
           <StatCard
             title="Total Patients"
-            value={globalStats?.totalPatients || 0}
+            value={displayStats?.totalPatients || 0}
             icon="👥"
             color="blue"
             trend={{ value: 12, isPositive: true }}
-            subtitle="Depuis le début"
+            subtitle={selectedDispensaire !== 'all' ? 'De ce dispensaire' : 'Tous dispensaires'}
           />
           <StatCard
             title="Consultations"
-            value={globalStats?.totalConsultations || 0}
+            value={displayStats?.totalConsultations || 0}
             icon="🏥"
             color="green"
             trend={{ value: 8, isPositive: true }}
-            subtitle={`Ce ${period === 'month' ? 'mois' : period === 'week' ? 'semaine' : 'jour'}`}
+            subtitle={`Période sélectionnée`}
           />
           <StatCard
             title="Dispensaires"
-            value={globalStats?.totalDispensaires || 0}
+            value={displayStats?.totalDispensaires || 0}
             icon="🏢"
             color="purple"
-            subtitle="Actifs"
+            subtitle={selectedDispensaire !== 'all' ? 'Sélectionné' : 'Actifs'}
           />
           <StatCard
-            title="Utilisateurs"
-            value={globalStats?.totalUsers || 0}
-            icon="👨‍⚕️"
+            title="Moyenne/jour"
+            value={periodStats ? (periodStats.total / (periodStats.consultationsByDay?.length || 1)).toFixed(1) : 0}
+            icon="📊"
             color="orange"
-            subtitle="Agents de santé"
+            subtitle="Sur la période"
           />
         </div>
+
+        {/* Consultations par type (pour dispensaire sélectionné) */}
+        {selectedDispensaire !== 'all' && dispensaireStats?.consultationsByType && (
+          <div className={styles.chartsGrid}>
+            <ChartCard title="Répartition par type de consultation">
+              <div className={styles.typesList}>
+                {dispensaireStats.consultationsByType.map((item, index) => (
+                  <div key={index} className={styles.typeItem}>
+                    <div className={styles.typeInfo}>
+                      <div className={styles.typeName}>{item.type}</div>
+                      <div className={styles.typeBar}>
+                        <div 
+                          className={styles.typeProgress}
+                          style={{ width: `${item.pourcentage}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.typeStats}>
+                      <span className={styles.typeCount}>{item.count}</span>
+                      <span className={styles.typePercent}>{item.pourcentage}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ChartCard>
+          </div>
+        )}
 
         {/* Graphiques */}
         <div className={styles.chartsGrid}>
           {/* Évolution des consultations */}
           <ChartCard 
-            title="Évolution des consultations"
+            title={`Évolution ${selectedDispensaire !== 'all' ? 'du dispensaire' : 'globale'}`}
             actions={
               <button className={styles.chartBtn}>Voir détails</button>
             }
           >
             <div className={styles.barChart}>
-              {evolution.map((item, index) => (
-                <div key={index} className={styles.barItem}>
-                  <div 
-                    className={styles.bar}
-                    style={{
-                      height: `${(item.count / Math.max(...evolution.map(e => e.count))) * 100}%`
-                    }}
-                  >
-                    <span className={styles.barValue}>{item.count}</span>
+              {evolution && evolution.length > 0 ? (
+                evolution.map((item, index) => (
+                  <div key={index} className={styles.barItem}>
+                    <div 
+                      className={styles.bar}
+                      style={{
+                        height: `${(item.count / Math.max(...evolution.map(e => e.count))) * 100}%`
+                      }}
+                    >
+                      <span className={styles.barValue}>{item.count}</span>
+                    </div>
+                    <div className={styles.barLabel}>{item.period}</div>
                   </div>
-                  <div className={styles.barLabel}>{item.period}</div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className={styles.noData}>Aucune donnée pour cette période</div>
+              )}
             </div>
           </ChartCard>
 
           {/* Top diagnostics */}
           <ChartCard title="Top 10 Diagnostics">
             <div className={styles.diagnosticsList}>
-              {topDiagnostics.map((item, index) => (
-                <div key={index} className={styles.diagnosticItem}>
-                  <div className={styles.diagnosticRank}>{index + 1}</div>
-                  <div className={styles.diagnosticInfo}>
-                    <div className={styles.diagnosticName}>{item.diagnostic}</div>
-                    <div className={styles.diagnosticBar}>
-                      <div 
-                        className={styles.diagnosticProgress}
-                        style={{ width: `${item.percentage}%` }}
-                      />
+              {topDiagnostics && topDiagnostics.length > 0 ? (
+                topDiagnostics.map((item, index) => (
+                  <div key={index} className={styles.diagnosticItem}>
+                    <div className={styles.diagnosticRank}>{index + 1}</div>
+                    <div className={styles.diagnosticInfo}>
+                      <div className={styles.diagnosticName}>{item.diagnostic}</div>
+                      <div className={styles.diagnosticBar}>
+                        <div 
+                          className={styles.diagnosticProgress}
+                          style={{ width: `${item.percentage}%` }}
+                        />
+                      </div>
                     </div>
+                    <div className={styles.diagnosticCount}>{item.count}</div>
                   </div>
-                  <div className={styles.diagnosticCount}>{item.count}</div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className={styles.noData}>Aucun diagnostic pour cette période</div>
+              )}
             </div>
           </ChartCard>
         </div>
 
+        {/* Top catégories de maladies (pour dispensaire sélectionné) */}
+        {selectedDispensaire !== 'all' && dispensaireStats?.topCategories && (
+          <ChartCard title="Top catégories de maladies">
+            <div className={styles.categoriesList}>
+              {dispensaireStats.topCategories.map((item, index) => (
+                <div key={index} className={styles.categoryItem}>
+                  <div className={styles.categoryRank}>{index + 1}</div>
+                  <div className={styles.categoryInfo}>
+                    <div className={styles.categoryName}>{item.categorie.nom}</div>
+                    <div className={styles.categoryCode}>{item.categorie.code}</div>
+                  </div>
+                  <div className={styles.categoryCount}>{item.nombreConsultations}</div>
+                </div>
+              ))}
+            </div>
+          </ChartCard>
+        )}
+
         {/* Tableau de statistiques détaillées */}
         {periodStats && (
-          <ChartCard title="Statistiques détaillées de la période">
+          <ChartCard title={`Statistiques détaillées ${selectedDispensaire !== 'all' ? 'du dispensaire' : 'globales'}`}>
             <div className={styles.statsTable}>
               <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>Total consultations</div>
-                <div className={styles.statsValue}>{periodStats.totalConsultations}</div>
+                <div className={styles.statsLabel}>📊 Total consultations</div>
+                <div className={styles.statsValue}>{periodStats.total}</div>
               </div>
               <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>Nouveaux patients</div>
-                <div className={styles.statsValue}>{periodStats.totalPatients}</div>
+                <div className={styles.statsLabel}>📅 Ce mois</div>
+                <div className={styles.statsValue}>{periodStats.thisMonth}</div>
               </div>
               <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>Moyenne par jour</div>
-                <div className={styles.statsValue}>
-                  {(periodStats.totalConsultations / periodStats.consultationsByDay?.length || 0).toFixed(1)}
-                </div>
+                <div className={styles.statsLabel}>🗓️ Cette semaine</div>
+                <div className={styles.statsValue}>{periodStats.thisWeek}</div>
+              </div>
+              <div className={styles.statsRow}>
+                <div className={styles.statsLabel}>📆 Aujourd'hui</div>
+                <div className={styles.statsValue}>{periodStats.today}</div>
+              </div>
+              <div className={styles.statsRow}>
+                <div className={styles.statsLabel}>📈 Moyenne par jour</div>
+                <div className={styles.statsValue}>{periodStats.avgPerDay}</div>
               </div>
             </div>
           </ChartCard>
