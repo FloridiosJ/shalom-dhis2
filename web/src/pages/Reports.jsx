@@ -32,7 +32,6 @@ const Reports = () => {
       // Dispensaires
       const disps = await dispensaireService.getAll();
       setDispensaires(disps);
-
       // Si un dispensaire est sélectionné, récupérer ses stats spécifiques
       if (selectedDispensaire !== 'all') {
         const dispStats = await reportService.getStatsByDispensaire(
@@ -48,27 +47,28 @@ const Reports = () => {
         setGlobalStats(stats);
         setDispensaireStats(null);
       }
-
       // Stats filtrées (communes)
-      const [diagnostics, evo, pStats] = await Promise.all([
-        reportService.getTopDiagnostics(
-          10, 
-          selectedDispensaire !== 'all' ? selectedDispensaire : null,
-          dateRange.startDate,
-          dateRange.endDate
-        ),
-        reportService.getConsultationsEvolution(
-          period,
-          selectedDispensaire !== 'all' ? selectedDispensaire : null,
-          dateRange.startDate,
-          dateRange.endDate
-        ),
-        reportService.getStatsByPeriod(
-          dateRange.startDate,
-          dateRange.endDate,
-          selectedDispensaire !== 'all' ? selectedDispensaire : null
-        )
-      ]);
+      // const [diagnostics, evo, pStats] = await Promise.all([
+      //   reportService.getTopDiagnostics(
+      //     10, 
+      //     selectedDispensaire !== 'all' ? selectedDispensaire : null,
+      //     dateRange.startDate,
+      //     dateRange.endDate
+      //   ),
+      //   reportService.getConsultationsEvolution(
+      //     period,
+      //     selectedDispensaire !== 'all' ? selectedDispensaire : null,
+      //     dateRange.startDate,
+      //     dateRange.endDate
+      //   ),
+      //   reportService.getStatsByPeriod(
+      //     dateRange.startDate,
+      //     dateRange.endDate,
+      //     selectedDispensaire !== 'all' ? selectedDispensaire : null
+      //   )
+      // ]);
+      const diagnostics = await reportService.getTopDiagnostics(5, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
+      console.log('Diagnostics:', diagnostics);
 
       setTopDiagnostics(diagnostics);
       setEvolution(evo);
@@ -219,13 +219,13 @@ const Reports = () => {
             color="purple"
             subtitle={selectedDispensaire !== 'all' ? 'Sélectionné' : 'Actifs'}
           />
-          <StatCard
+          {/* <StatCard
             title="Moyenne/jour"
             value={periodStats ? (periodStats.total / (periodStats.consultationsByDay?.length || 1)).toFixed(1) : 0}
             icon="📊"
             color="orange"
             subtitle="Sur la période"
-          />
+          /> */}
         </div>
 
         {/* Consultations par type (pour dispensaire sélectionné) */}
