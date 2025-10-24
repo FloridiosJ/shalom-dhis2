@@ -267,13 +267,63 @@ type StatusCount {
 }
 
 # Statistiques globales
-type ConsultationOverallStats {
+type GlobalReports {
+  totalPatients: Int!
   totalConsultations: Int!
+  totalDispensaires: Int!
+  totalUsers: Int!
+}
+
+# Statistiques par dispensaire
+type DispensaireReports {
+  dispensaire: Dispensaire!
+  totalPatients: Int!
+  totalConsultations: Int!
+  totalUsers: Int!
+  activeUsers: Int!
+}
+
+# Statistiques par période
+type PeriodReports {
+  dateFrom: DateTime
+  dateTo: DateTime
+  consultationsPeriod: Int!
+  newPatientsPeriod: Int!
   consultationsByStatus: [StatusCount!]!
-  consultationsByType: [ConsultationStatsByType!]!
-  consultationsThisMonth: Int!
+}
+
+# Statistiques par type de consultation
+type ConsultationTypeReport {
+  typeConsultation: String!
+  typeDetails: TypeConsultation
+  count: Int!
+}
+
+# Dashboard complet
+type Dashboard {
+  totalPatients: Int!
+  totalConsultations: Int!
   consultationsToday: Int!
-  patientsSeen: Int!
+  consultationsThisMonth: Int!
+  newPatientsThisMonth: Int!
+  upcomingEvents: [Event!]!
+  recentConsultations: [DataEntry!]!
+}
+
+# ✅ AJOUTER ICI
+# Statistiques globales des consultations
+type ConsultationOverallStats {
+  total: Int!
+  thisMonth: Int!
+  thisWeek: Int!
+  today: Int!
+  byStatus: [StatusCount!]!
+  byType: [ConsultationTypeReport!]!
+  averagePerDay: Float!
+  averagePerWeek: Float!
+  averagePerMonth: Float!
+  topCategories: [CategorieStats!]!
+  recentConsultations: [DataEntry!]!
 }
 
 # Auth payload type
@@ -802,6 +852,13 @@ type Query {
   dispensaireActivites(dispensaireId: ID!, limit: Int): [ActiviteSpirituelle!]!
   recentesActivitesSpiritulles(limit: Int): [ActiviteSpirituelle!]!
   activitesSpirituellesStats(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): [ActiviteSprituelleStats!]!
+
+  # Reports & Statistics
+  reports: GlobalReports!
+  reportsByDispensaire(dispensaireId: ID!): DispensaireReports!
+  reportsByPeriod(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): PeriodReports!
+  reportsByConsultationType(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): [ConsultationTypeReport!]!
+  dashboard(dispensaireId: ID): Dashboard!
 }
 
 # Mutations

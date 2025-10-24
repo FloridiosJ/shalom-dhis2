@@ -1,13 +1,14 @@
 import authResolvers from './auth.js';
 import userResolvers from './user.js';
 import dispensaireResolvers from './dispensaire.js';
-import dataEntryResolvers from './dataEntry.js';
 import patientResolvers from './patient.js';
+import dataEntryResolvers from './dataEntry.js';
 import eventResolvers from './event.js';
-import typeConsultationResolvers from './typeConsultation.js';
 import categorieMaladieResolvers from './categorieMaladie.js';
+import typeConsultationResolvers from './typeConsultation.js';
 import vaccinationResolvers from './vaccination.js';
 import activiteSprituelleResolvers from './activiteSpirituelle.js';
+import reportsResolvers from './reports.js'; // ✅ NOUVEAU
 import { GraphQLScalarType, Kind } from 'graphql';
 
 // Custom DateTime scalar
@@ -64,6 +65,9 @@ export const resolvers = {
 
     // ActiviteSpirituelle queries
     ...activiteSprituelleResolvers.Query,
+
+    // Reports queries
+    ...reportsResolvers.Query, // ✅ NOUVEAU
   },
   
   Mutation: {
@@ -99,14 +103,16 @@ export const resolvers = {
   },
   
   // Field resolvers
-  User: userResolvers.User || {},
-  Dispensaire: dispensaireResolvers.Dispensaire || {},
-  Patient: patientResolvers.Patient || {},
-  DataEntry: dataEntryResolvers.DataEntry || {},
-  Event: eventResolvers.Event || {},
-  TypeConsultation: typeConsultationResolvers.TypeConsultation || {},
-  CategorieMaladie: categorieMaladieResolvers.CategorieMaladie || {},
-  ArbreCategorie: categorieMaladieResolvers.ArbreCategorie || {},
-  Vaccination: vaccinationResolvers.Vaccination || {},
-  ActiviteSpirituelle: activiteSprituelleResolvers.ActiviteSpirituelle || {}
+  User: userResolvers.User,
+  Dispensaire: dispensaireResolvers.Dispensaire,
+  Patient: patientResolvers.Patient,
+  DataEntry: dataEntryResolvers.DataEntry,
+  Event: eventResolvers.Event,
+  TypeConsultation: typeConsultationResolvers.TypeConsultation,
+  CategorieMaladie: categorieMaladieResolvers.CategorieMaladie,
+  ArbreCategorie: categorieMaladieResolvers.ArbreCategorie,
+  Vaccination: vaccinationResolvers.Vaccination,
+  ActiviteSpirituelle: activiteSprituelleResolvers.ActiviteSpirituelle,
 };
+
+export default resolvers;
