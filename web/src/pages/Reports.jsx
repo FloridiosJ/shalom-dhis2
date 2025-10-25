@@ -47,29 +47,9 @@ const Reports = () => {
         setGlobalStats(stats);
         setDispensaireStats(null);
       }
-      // Stats filtrées (communes)
-      // const [diagnostics, evo, pStats] = await Promise.all([
-      //   reportService.getTopDiagnostics(
-      //     10, 
-      //     selectedDispensaire !== 'all' ? selectedDispensaire : null,
-      //     dateRange.startDate,
-      //     dateRange.endDate
-      //   ),
-      //   reportService.getConsultationsEvolution(
-      //     period,
-      //     selectedDispensaire !== 'all' ? selectedDispensaire : null,
-      //     dateRange.startDate,
-      //     dateRange.endDate
-      //   ),
-      //   reportService.getStatsByPeriod(
-      //     dateRange.startDate,
-      //     dateRange.endDate,
-      //     selectedDispensaire !== 'all' ? selectedDispensaire : null
-      //   )
-      // ]);
       const diagnostics = await reportService.getTopDiagnostics(5, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
-      console.log('Diagnostics:', diagnostics);
-
+      const evo = await reportService.getConsultationsEvolution(period, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
+      // const pStats = await reportService.getPeriodStats(selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
       setTopDiagnostics(diagnostics);
       setEvolution(evo);
       setPeriodStats(pStats);
