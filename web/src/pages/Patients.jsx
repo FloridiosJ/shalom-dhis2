@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import patientService from '../services/patients';
 import dispensaireService from '../services/dispensaires';
@@ -19,6 +19,8 @@ const Patients = () => {
   const [deleteError, setDeleteError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [sortField, setSortField] = useState('nom');
+  const [sortDirection, setSortDirection] = useState('asc');
   const navigate = useNavigate();
 
   // Récupère la liste des patients
@@ -51,6 +53,17 @@ const Patients = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   const handleDelete = async () => {
     setDeleteLoading(true);
     setDeleteError('');
@@ -77,11 +90,32 @@ const Patients = () => {
     );
   });
 
+  // Apply sorting with useMemo for performance
+  const sortedPatients = useMemo(() => {
+    return [...filteredPatients].sort((a, b) => {
+      let aVal, bVal;
+      
+      if (sortField === 'nom') {
+        aVal = a.nom || '';
+        bVal = b.nom || '';
+      } else if (sortField === 'prenom') {
+        aVal = a.prenom || '';
+        bVal = b.prenom || '';
+      } else if (sortField === 'dispensaire') {
+        aVal = a.dispensaire?.name || '';
+        bVal = b.dispensaire?.name || '';
+      }
+      
+      const comparison = aVal.localeCompare(bVal, 'fr', { sensitivity: 'base' });
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredPatients, sortField, sortDirection]);
+
   // Pagination logic
-  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedPatients.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPatients = filteredPatients.slice(indexOfFirstItem, indexOfLastItem);
+  const currentPatients = sortedPatients.slice(indexOfFirstItem, indexOfLastItem);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -185,11 +219,39 @@ const Patients = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className={styles.th}>Nom</th>
-                <th className={styles.th}>Prénom</th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort('nom')}>
+                  <div className={styles.thContent}>
+                    Nom
+                    {sortField === 'nom' && (
+                      <span className={styles.sortIcon}>
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort('prenom')}>
+                  <div className={styles.thContent}>
+                    Prénom
+                    {sortField === 'prenom' && (
+                      <span className={styles.sortIcon}>
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th className={styles.th}>Âge</th>
+                <th className={styles.th}>Âge légal</th>
                 <th className={styles.th}>Sexe</th>
-                <th className={styles.th}>Dispensaire</th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort('dispensaire')}>
+                  <div className={styles.thContent}>
+                    Dispensaire
+                    {sortField === 'dispensaire' && (
+                      <span className={styles.sortIcon}>
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th className={styles.th}>Statut</th>
                 <th className={styles.th} style={{ textAlign: 'right' }}>Actions</th>
               </tr>
@@ -197,7 +259,7 @@ const Patients = () => {
             <tbody>
               {currentPatients.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className={styles.td} style={{ textAlign: 'center', color: '#64748b', background: '#f9fafb', padding: '2.5rem 0' }}>
+                  <td colSpan={8} className={styles.td} style={{ textAlign: 'center', color: '#64748b', background: '#f9fafb', padding: '2.5rem 0' }}>
                     Aucun patient trouvé
                   </td>
                 </tr>
@@ -207,6 +269,11 @@ const Patients = () => {
                     <td className={styles.td}>{patient.nom}</td>
                     <td className={styles.td}>{patient.prenom}</td>
                     <td className={styles.td}>{patient.age}</td>
+                    <td className={styles.td}>
+                      <span className={patient.isMineur ? styles.badgeMineur : styles.badgeMajeur}>
+                        {patient.isMineur ? 'Mineur' : 'Majeur'}
+                      </span>
+                    </td>
                     <td className={styles.td}>{patient.sexe}</td>
                     <td className={styles.td}>{patient.dispensaire?.name || '-'}</td>
                     <td className={styles.td}>
@@ -250,10 +317,10 @@ const Patients = () => {
           </table>
 
           {/* Pagination Controls */}
-          {filteredPatients.length > 0 && (
+          {sortedPatients.length > 0 && (
             <div className={styles.paginationWrapper}>
               <div className={styles.paginationInfo}>
-                Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, filteredPatients.length)} sur {filteredPatients.length} patients
+                Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, sortedPatients.length)} sur {sortedPatients.length} patients
               </div>
               <div className={styles.paginationControls}>
                 <button

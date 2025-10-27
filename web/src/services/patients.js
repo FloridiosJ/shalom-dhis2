@@ -35,6 +35,7 @@ const patientFields = `
   village
   numeroPatient
   isActive
+  isMineur
   dispensaire {
     id
     name
