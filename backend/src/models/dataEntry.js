@@ -103,28 +103,28 @@ DataEntry.prototype.canBeModifiedBy = function(user) {
 };
 
 DataEntry.prototype.getCategoriesWithMeta = async function() {
-  const { DataEntryCatégorieMaladie } = await import('./index.js');
-  return await DataEntryCatégorieMaladie.getCategoriesWithMeta(this.id);
+  const { DataEntryCategorieMaladie } = await import('./index.js');
+  return await DataEntryCategorieMaladie.getCategoriesWithMeta(this.id);
 };
 
 DataEntry.prototype.getPrincipalCategorie = async function() {
-  const { DataEntryCatégorieMaladie } = await import('./index.js');
-  return await DataEntryCatégorieMaladie.getPrincipalCategorie(this.id);
+  const { DataEntryCategorieMaladie } = await import('./index.js');
+  return await DataEntryCategorieMaladie.getPrincipalCategorie(this.id);
 };
 
 DataEntry.prototype.setPrincipalCategorie = async function(categorieMaladieId) {
-  const { DataEntryCatégorieMaladie } = await import('./index.js');
-  return await DataEntryCatégorieMaladie.setPrincipal(this.id, categorieMaladieId);
+  const { DataEntryCategorieMaladie } = await import('./index.js');
+  return await DataEntryCategorieMaladie.setPrincipal(this.id, categorieMaladieId);
 };
 
 DataEntry.prototype.addCategorie = async function(categorieMaladieId, options) {
-  const { DataEntryCatégorieMaladie } = await import('./index.js');
-  return await DataEntryCatégorieMaladie.addCategorie(this.id, categorieMaladieId, options);
+  const { DataEntryCategorieMaladie } = await import('./index.js');
+  return await DataEntryCategorieMaladie.addCategorie(this.id, categorieMaladieId, options);
 };
 
 DataEntry.prototype.removeCategorie = async function(categorieMaladieId) {
-  const { DataEntryCatégorieMaladie } = await import('./index.js');
-  return await DataEntryCatégorieMaladie.removeCategorie(this.id, categorieMaladieId);
+  const { DataEntryCategorieMaladie } = await import('./index.js');
+  return await DataEntryCategorieMaladie.removeCategorie(this.id, categorieMaladieId);
 };
 
 // Méthodes statiques
@@ -267,13 +267,13 @@ DataEntry.associate = (models) => {
 
   // Association Many-to-Many avec CategorieMaladie via table de jointure
   DataEntry.belongsToMany(models.CategorieMaladie, {
-    through: models.DataEntryCatégorieMaladie,
+    through: models.DataEntryCategorieMaladie,
     foreignKey: 'dataEntryId',
     otherKey: 'categorieMaladieId',
     as: 'categories'
   });
 
-  DataEntry.hasMany(models.DataEntryCatégorieMaladie, {
+  DataEntry.hasMany(models.DataEntryCategorieMaladie, {
     foreignKey: 'dataEntryId',
     as: 'categoriesAssociations'
   });

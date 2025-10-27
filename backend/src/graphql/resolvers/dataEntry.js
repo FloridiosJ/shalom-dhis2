@@ -288,7 +288,7 @@ const dataEntryResolvers = {
           throw new AuthenticationError('Non authentifié');
         }
         
-        const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCatégorieMaladie } = await import('../../models/index.js');
+        const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCategorieMaladie } = await import('../../models/index.js');
 
         // Valider le type de consultation
         const typeConsultation = await TypeConsultation.findOne({
@@ -340,7 +340,7 @@ const dataEntryResolvers = {
         // Gérer les catégories avec métadonnées
         if (input.categories && input.categories.length > 0) {
           for (const cat of input.categories) {
-            await DataEntryCatégorieMaladie.addCategorie(
+            await DataEntryCategorieMaladie.addCategorie(
               entry.id,
               cat.categorieMaladieId,
               {
@@ -353,7 +353,7 @@ const dataEntryResolvers = {
         // Gérer les catégories simples (rétrocompatibilité)
         else if (input.categorieIds && input.categorieIds.length > 0) {
           for (let i = 0; i < input.categorieIds.length; i++) {
-            await DataEntryCatégorieMaladie.addCategorie(
+            await DataEntryCategorieMaladie.addCategorie(
               entry.id,
               input.categorieIds[i],
               {
@@ -397,7 +397,7 @@ const dataEntryResolvers = {
           throw new AuthenticationError('Non authentifié');
         }
 
-        const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCatégorieMaladie } = await import('../../models/index.js');
+        const { DataEntry, Patient, User, Dispensaire, TypeConsultation, DataEntryCategorieMaladie } = await import('../../models/index.js');
 
         const entry = await DataEntry.findByPk(id);
         if (!entry) {
@@ -444,13 +444,13 @@ const dataEntryResolvers = {
         // Mettre à jour les catégories avec métadonnées si fourni
         if (input.categories && input.categories.length > 0) {
           // Supprimer les anciennes associations
-          await DataEntryCatégorieMaladie.destroy({
+          await DataEntryCategorieMaladie.destroy({
             where: { dataEntryId: id }
           });
 
           // Ajouter les nouvelles
           for (const cat of input.categories) {
-            await DataEntryCatégorieMaladie.addCategorie(
+            await DataEntryCategorieMaladie.addCategorie(
               entry.id,
               cat.categorieMaladieId,
               {
@@ -462,12 +462,12 @@ const dataEntryResolvers = {
         }
         // Ou mettre à jour avec la méthode simple
         else if (input.categorieIds && input.categorieIds.length > 0) {
-          await DataEntryCatégorieMaladie.destroy({
+          await DataEntryCategorieMaladie.destroy({
             where: { dataEntryId: id }
           });
 
           for (let i = 0; i < input.categorieIds.length; i++) {
-            await DataEntryCatégorieMaladie.addCategorie(
+            await DataEntryCategorieMaladie.addCategorie(
               entry.id,
               input.categorieIds[i],
               {
