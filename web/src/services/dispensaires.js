@@ -93,7 +93,6 @@ async function update(id, input) {
 }
 
 async function remove(id) {
-  console.log('In remove function, id:', id);
   const mutation = `
     mutation DeleteDispensaire($id: ID!) {
       deleteDispensaire(id: $id) {
@@ -105,7 +104,6 @@ async function remove(id) {
   `;
   const variables = { id };
   const response = await api.post('/graphql', { query: mutation, variables });
-  console.log('Response from deleteDispensaire:', response);
   
   const data = response.data;
   if (data.errors) throw new Error(data.errors[0].message);
