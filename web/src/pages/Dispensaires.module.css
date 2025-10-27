@@ -178,6 +178,29 @@
   background: #f1f5f9;
 }
 
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable:hover {
+  background: #e2e8f0;
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.sortIcon {
+  font-size: 0.9rem;
+  color: #2563eb;
+  font-weight: bold;
+}
+
 .td, td {
   padding: 0.85em 1em;
   color: #334155;
@@ -211,6 +234,26 @@
 .badgeInactive {
   display: inline-block;
   background-color: #6b7280;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeMineur {
+  display: inline-block;
+  background-color: #f59e0b;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeMajeur {
+  display: inline-block;
+  background-color: #8b5cf6;
   color: #fff;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
