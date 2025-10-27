@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import patientService from '../services/patients';
 import dispensaireService from '../services/dispensaires';
@@ -90,24 +90,26 @@ const Patients = () => {
     );
   });
 
-  // Apply sorting
-  const sortedPatients = [...filteredPatients].sort((a, b) => {
-    let aVal, bVal;
-    
-    if (sortField === 'nom') {
-      aVal = a.nom || '';
-      bVal = b.nom || '';
-    } else if (sortField === 'prenom') {
-      aVal = a.prenom || '';
-      bVal = b.prenom || '';
-    } else if (sortField === 'dispensaire') {
-      aVal = a.dispensaire?.name || '';
-      bVal = b.dispensaire?.name || '';
-    }
-    
-    const comparison = aVal.localeCompare(bVal, 'fr', { sensitivity: 'base' });
-    return sortDirection === 'asc' ? comparison : -comparison;
-  });
+  // Apply sorting with useMemo for performance
+  const sortedPatients = useMemo(() => {
+    return [...filteredPatients].sort((a, b) => {
+      let aVal, bVal;
+      
+      if (sortField === 'nom') {
+        aVal = a.nom || '';
+        bVal = b.nom || '';
+      } else if (sortField === 'prenom') {
+        aVal = a.prenom || '';
+        bVal = b.prenom || '';
+      } else if (sortField === 'dispensaire') {
+        aVal = a.dispensaire?.name || '';
+        bVal = b.dispensaire?.name || '';
+      }
+      
+      const comparison = aVal.localeCompare(bVal, 'fr', { sensitivity: 'base' });
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredPatients, sortField, sortDirection]);
 
   // Pagination logic
   const totalPages = Math.ceil(sortedPatients.length / itemsPerPage);
