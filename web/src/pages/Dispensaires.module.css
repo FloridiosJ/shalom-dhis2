@@ -198,6 +198,26 @@
   font-weight: 500;
 }
 
+.badgeActive {
+  display: inline-block;
+  background-color: #10b981;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeInactive {
+  display: inline-block;
+  background-color: #6b7280;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .iconBtnEdit,
 .iconBtnDelete {
   padding: 0.5rem;
@@ -299,4 +319,64 @@
   .statsGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Pagination styles */
+.paginationWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.paginationInfo {
+  font-size: 0.95rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pageBtn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 36px;
+  text-align: center;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f9fafb;
+}
+
+.pageBtn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.pageBtn.active:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }

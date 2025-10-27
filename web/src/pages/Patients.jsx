@@ -9,8 +9,6 @@ import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 const Patients = () => {
   const [patients, setPatients] = useState([]);
   const [dispensaires, setDispensaires] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -19,20 +17,17 @@ const Patients = () => {
   const [patientToDelete, setPatientToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const navigate = useNavigate();
 
   // Récupère la liste des patients
   const fetchPatients = async () => {
-    setLoading(true);
     try {
       const list = await patientService.getAll();
       setPatients(list);
-      setError('');
-    } catch (e) {
-      setError(e.message || 'Erreur lors du chargement');
+    } catch {
       setPatients([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -41,7 +36,7 @@ const Patients = () => {
     try {
       const list = await dispensaireService.getAll();
       setDispensaires(list);
-    } catch (e) {
+    } catch {
       setDispensaires([]);
     }
   };
@@ -51,11 +46,10 @@ const Patients = () => {
     fetchDispensaires();
   }, []);
 
-  const openDeleteModal = (patient) => {
-    setPatientToDelete(patient);
-    setDeleteError('');
-    setShowDeleteModal(true);
-  };
+  useEffect(() => {
+    // Reset to first page when search term changes
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleDelete = async () => {
     setDeleteLoading(true);
@@ -82,6 +76,64 @@ const Patients = () => {
       p.numeroPatient?.toLowerCase().includes(term)
     );
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPatients = filteredPatients.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
 
   return (
     <div className={styles.pageBg}>
@@ -143,14 +195,14 @@ const Patients = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredPatients.length === 0 ? (
+              {currentPatients.length === 0 ? (
                 <tr>
                   <td colSpan={7} className={styles.td} style={{ textAlign: 'center', color: '#64748b', background: '#f9fafb', padding: '2.5rem 0' }}>
                     Aucun patient trouvé
                   </td>
                 </tr>
               ) : (
-                filteredPatients.map((patient) => (
+                currentPatients.map((patient) => (
                   <tr key={patient.id} className={styles.tr}>
                     <td className={styles.td}>{patient.nom}</td>
                     <td className={styles.td}>{patient.prenom}</td>
@@ -196,6 +248,49 @@ const Patients = () => {
               )}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          {filteredPatients.length > 0 && (
+            <div className={styles.paginationWrapper}>
+              <div className={styles.paginationInfo}>
+                Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, filteredPatients.length)} sur {filteredPatients.length} patients
+              </div>
+              <div className={styles.paginationControls}>
+                <button
+                  className={styles.pageBtn}
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  type="button"
+                >
+                  Précédent
+                </button>
+                {getPageNumbers().map((page, index) => (
+                  page === '...' ? (
+                    <span key={`ellipsis-${index}`} className={styles.pageBtn} style={{ cursor: 'default', border: 'none', background: 'transparent' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      className={`${styles.pageBtn} ${currentPage === page ? styles.active : ''}`}
+                      onClick={() => handlePageChange(page)}
+                      type="button"
+                    >
+                      {page}
+                    </button>
+                  )
+                ))}
+                <button
+                  className={styles.pageBtn}
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  type="button"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal création */}
