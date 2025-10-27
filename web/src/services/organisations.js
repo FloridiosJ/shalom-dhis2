@@ -1,23 +1,4 @@
-import axios from 'axios';
-
-// Create axios instance
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
-});
-
-// Add token to requests if it exists
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+import apiClient from './apiClient';
 
 // Organisation service methods
 export const organisationService = {
@@ -39,7 +20,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query
     });
 
@@ -68,7 +49,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query,
       variables: { id }
     });
@@ -93,7 +74,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query: mutation,
       variables: { input: organisationData }
     });
@@ -118,7 +99,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query: mutation,
       variables: { id, input: organisationData }
     });
@@ -138,7 +119,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query: mutation,
       variables: { id }
     });
@@ -163,7 +144,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query,
       variables: { type }
     });
@@ -199,7 +180,7 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const { data } = await apiClient.post('/graphql', {
       query
     });
 
