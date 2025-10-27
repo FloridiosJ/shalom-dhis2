@@ -7,7 +7,7 @@ import Patient from './patient.js';
 import TypeConsultation from './typeConsultation.js';
 import CategorieMaladie from './categorieMaladie.js';
 import DataEntry from './dataEntry.js';
-import DataEntryCatégorieMaladie from './dataEntryCatégorieMaladie.js';
+import DataEntryCategorieMaladie from './dataEntryCategorieMaladie.js';
 import Vaccination from './vaccination.js';
 import ActiviteSpirituelle from './activiteSpirituelle.js';
 import Event from './event.js';
@@ -20,7 +20,7 @@ const models = {
   TypeConsultation,
   CategorieMaladie,
   DataEntry,
-  DataEntryCatégorieMaladie,
+  DataEntryCategorieMaladie,
   Vaccination,
   ActiviteSpirituelle,
   Event
@@ -42,7 +42,7 @@ export {
   TypeConsultation,
   CategorieMaladie,
   DataEntry,
-  DataEntryCatégorieMaladie,
+  DataEntryCategorieMaladie,
   Vaccination,
   ActiviteSpirituelle,
   Event

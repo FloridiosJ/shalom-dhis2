@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { handleGraphQLErrors } from './graphqlUtils';
 
 // Create axios instance
 const api = axios.create({
@@ -107,7 +106,10 @@ async function remove(id) {
   const variables = { id };
   const response = await api.post('/graphql', { query: mutation, variables });
   console.log('Response from deleteDispensaire:', response);
-  return handleGraphQLErrors(response).deleteDispensaire;
+  
+  const data = response.data;
+  if (data.errors) throw new Error(data.errors[0].message);
+  return data.data.deleteDispensaire;
 }
 
 async function getByOrganisation(organisationId) {

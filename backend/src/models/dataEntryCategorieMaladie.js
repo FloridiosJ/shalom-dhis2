@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
-const DataEntryCatégorieMaladie = sequelize.define('DataEntryCatégorieMaladie', {
+const DataEntryCategorieMaladie = sequelize.define('DataEntryCategorieMaladie', {
   dataEntryId: {
     type: DataTypes.UUID,
     allowNull: false,
@@ -66,7 +66,7 @@ const DataEntryCatégorieMaladie = sequelize.define('DataEntryCatégorieMaladie'
     beforeSave: async (instance) => {
       if (instance.isPrincipal) {
         // Réinitialiser les autres catégories principales pour ce dataEntry
-        await DataEntryCatégorieMaladie.update(
+        await DataEntryCategorieMaladie.update(
           { isPrincipal: false },
           {
             where: {
@@ -83,7 +83,7 @@ const DataEntryCatégorieMaladie = sequelize.define('DataEntryCatégorieMaladie'
 /**
  * Récupère toutes les catégories d'un dataEntry avec leurs métadonnées
  */
-DataEntryCatégorieMaladie.getCategoriesWithMeta = async function(dataEntryId) {
+DataEntryCategorieMaladie.getCategoriesWithMeta = async function(dataEntryId) {
   const { CategorieMaladie } = await import('./index.js');
   
   const associations = await this.findAll({
@@ -117,7 +117,7 @@ DataEntryCatégorieMaladie.getCategoriesWithMeta = async function(dataEntryId) {
 /**
  * Récupère la catégorie principale d'un dataEntry
  */
-DataEntryCatégorieMaladie.getPrincipalCategorie = async function(dataEntryId) {
+DataEntryCategorieMaladie.getPrincipalCategorie = async function(dataEntryId) {
   const { CategorieMaladie } = await import('./index.js');
   
   const principal = await this.findOne({
@@ -139,7 +139,7 @@ DataEntryCatégorieMaladie.getPrincipalCategorie = async function(dataEntryId) {
 /**
  * Définit une catégorie comme principale pour un dataEntry
  */
-DataEntryCatégorieMaladie.setPrincipal = async function(dataEntryId, categorieMaladieId) {
+DataEntryCategorieMaladie.setPrincipal = async function(dataEntryId, categorieMaladieId) {
   const transaction = await sequelize.transaction();
   
   try {
@@ -179,7 +179,7 @@ DataEntryCatégorieMaladie.setPrincipal = async function(dataEntryId, categorieM
 /**
  * Ajoute une catégorie à un dataEntry
  */
-DataEntryCatégorieMaladie.addCategorie = async function(dataEntryId, categorieMaladieId, options = {}) {
+DataEntryCategorieMaladie.addCategorie = async function(dataEntryId, categorieMaladieId, options = {}) {
   const { isPrincipal = false, notes = null } = options;
 
   // Si on définit cette catégorie comme principale, réinitialiser les autres
@@ -212,7 +212,7 @@ DataEntryCatégorieMaladie.addCategorie = async function(dataEntryId, categorieM
 /**
  * Retire une catégorie d'un dataEntry
  */
-DataEntryCatégorieMaladie.removeCategorie = async function(dataEntryId, categorieMaladieId) {
+DataEntryCategorieMaladie.removeCategorie = async function(dataEntryId, categorieMaladieId) {
   const deleted = await this.destroy({
     where: {
       dataEntryId,
@@ -226,7 +226,7 @@ DataEntryCatégorieMaladie.removeCategorie = async function(dataEntryId, categor
 /**
  * Compte le nombre de dataEntries utilisant une catégorie
  */
-DataEntryCatégorieMaladie.countByCategorie = async function(categorieMaladieId) {
+DataEntryCategorieMaladie.countByCategorie = async function(categorieMaladieId) {
   return await this.count({
     where: { categorieMaladieId },
     distinct: true,
@@ -237,7 +237,7 @@ DataEntryCatégorieMaladie.countByCategorie = async function(categorieMaladieId)
 /**
  * Obtient les statistiques d'utilisation des catégories
  */
-DataEntryCatégorieMaladie.getUsageStats = async function(options = {}) {
+DataEntryCategorieMaladie.getUsageStats = async function(options = {}) {
   const { 
     dateFrom, 
     dateTo, 
@@ -296,15 +296,15 @@ DataEntryCatégorieMaladie.getUsageStats = async function(options = {}) {
 };
 
 // Définition des associations
-DataEntryCatégorieMaladie.associate = (models) => {
-  DataEntryCatégorieMaladie.belongsTo(models.DataEntry, {
+DataEntryCategorieMaladie.associate = (models) => {
+  DataEntryCategorieMaladie.belongsTo(models.DataEntry, {
     foreignKey: 'dataEntryId',
     as: 'dataEntry',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE'
   });
 
-  DataEntryCatégorieMaladie.belongsTo(models.CategorieMaladie, {
+  DataEntryCategorieMaladie.belongsTo(models.CategorieMaladie, {
     foreignKey: 'categorieMaladieId',
     as: 'categorie',
     onDelete: 'RESTRICT',
@@ -312,4 +312,4 @@ DataEntryCatégorieMaladie.associate = (models) => {
   });
 };
 
-export default DataEntryCatégorieMaladie;
+export default DataEntryCategorieMaladie;
