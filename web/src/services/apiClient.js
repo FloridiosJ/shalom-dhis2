@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+// Constants
+const AUTH_TOKEN_KEY = 'auth-token';
+
 // Create shared axios instance
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
@@ -8,7 +11,7 @@ const apiClient = axios.create({
 // Add token to requests if it exists
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth-token');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,4 +29,5 @@ export const handleGraphQLResponse = (response) => {
   return data.data;
 };
 
+export { AUTH_TOKEN_KEY };
 export default apiClient;
