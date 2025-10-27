@@ -99,10 +99,10 @@ Le projet est composé de trois parties principales :
 
 ## 📦 Prérequis
 
-- **Node.js** >= 20.x
+- **Node.js** >= 20.0.0
 - **npm** ou **yarn**
 - **Docker** et **Docker Compose** (pour le déploiement)
-- **PostgreSQL** 17 (si exécution locale sans Docker)
+- **PostgreSQL** 13+ (testé avec PostgreSQL 17, si exécution locale sans Docker)
 
 Pour le développement mobile :
 - **Android Studio** (pour Android)
