@@ -88,13 +88,13 @@ const Patients = () => {
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1) {
+    if (currentPage > 1 && totalPages > 0) {
       setCurrentPage(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
+    if (currentPage < totalPages && totalPages > 0) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -259,7 +259,7 @@ const Patients = () => {
                 <button
                   className={styles.pageBtn}
                   onClick={handlePrevPage}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || totalPages === 0}
                   type="button"
                 >
                   Précédent
@@ -283,7 +283,7 @@ const Patients = () => {
                 <button
                   className={styles.pageBtn}
                   onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || totalPages === 0}
                   type="button"
                 >
                   Suivant
