@@ -45,7 +45,7 @@ const Users = () => {
   useEffect(() => {
     fetchUsers();
     fetchDispensaires();
-    // eslint-disable-next-line
+     
   }, []);
 
   // Rafraîchir la liste après création ou modification
