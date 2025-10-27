@@ -1,23 +1,4 @@
-import axios from 'axios';
-
-// Create axios instance
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
-});
-
-// Add token to requests if it exists
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+import apiClient, { handleGraphQLResponse } from './apiClient';
 
 // Organisation service methods
 export const organisationService = {
@@ -39,15 +20,9 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
-      query
-    });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
-
-    return data.data.organisations;
+    const response = await apiClient.post('/graphql', { query });
+    const data = handleGraphQLResponse(response);
+    return data.organisations;
   },
 
   // Get organisation by ID
@@ -68,16 +43,12 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const response = await apiClient.post('/graphql', {
       query,
       variables: { id }
     });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
-
-    return data.data.organisation;
+    const data = handleGraphQLResponse(response);
+    return data.organisation;
   },
 
   // Create new organisation
@@ -93,16 +64,12 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const response = await apiClient.post('/graphql', {
       query: mutation,
       variables: { input: organisationData }
     });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
-
-    return data.data.createOrganisation;
+    const data = handleGraphQLResponse(response);
+    return data.createOrganisation;
   },
 
   // Update organisation
@@ -118,16 +85,12 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const response = await apiClient.post('/graphql', {
       query: mutation,
       variables: { id, input: organisationData }
     });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
-
-    return data.data.updateOrganisation;
+    const data = handleGraphQLResponse(response);
+    return data.updateOrganisation;
   },
 
   // Delete organisation
@@ -138,16 +101,12 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const response = await apiClient.post('/graphql', {
       query: mutation,
       variables: { id }
     });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
-
-    return data.data.deleteOrganisation;
+    const data = handleGraphQLResponse(response);
+    return data.deleteOrganisation;
   },
 
   // Get organisations by type
@@ -163,17 +122,13 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
+    const response = await apiClient.post('/graphql', {
       query,
       variables: { type }
     });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
-
+    const data = handleGraphQLResponse(response);
     // Filter by type on client side (since GraphQL schema might not support filtering)
-    return data.data.organisations.filter(org => org.type === type);
+    return data.organisations.filter(org => org.type === type);
   },
 
   // Get organisation hierarchy (parent with all children)
@@ -199,16 +154,11 @@ export const organisationService = {
       }
     `;
 
-    const { data } = await api.post('/graphql', {
-      query
-    });
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message);
-    }
+    const response = await apiClient.post('/graphql', { query });
+    const data = handleGraphQLResponse(response);
 
     // Build hierarchy tree
-    const organisations = data.data.organisations;
+    const organisations = data.organisations;
     const buildTree = (parentId) => {
       return organisations
         .filter(org => org.parentId === parentId)

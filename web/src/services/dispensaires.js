@@ -1,22 +1,4 @@
-import axios from 'axios';
-import { handleGraphQLErrors } from './graphqlUtils';
-
-// Create axios instance
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
-});
-
-// Add token to requests if it exists
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth-token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+import apiClient, { handleGraphQLResponse } from './apiClient';
 
 // --- Méthodes du service ---
 async function getAll() {
@@ -32,9 +14,9 @@ async function getAll() {
       }
     }
   `;
-  const { data } = await api.post('/graphql', { query });
-  if (data.errors) throw new Error(data.errors[0].message);
-  return data.data.dispensaires.dispensaires;
+  const response = await apiClient.post('/graphql', { query });
+  const data = handleGraphQLResponse(response);
+  return data.dispensaires.dispensaires;
 }
 
 async function getById(id) {
@@ -52,9 +34,9 @@ async function getById(id) {
       }
     }
   `;
-  const { data } = await api.post('/graphql', { query, variables: { id } });
-  if (data.errors) throw new Error(data.errors[0].message);
-  return data.data.dispensaire;
+  const response = await apiClient.post('/graphql', { query, variables: { id } });
+  const data = handleGraphQLResponse(response);
+  return data.dispensaire;
 }
 
 async function create(dispensaireData) {
@@ -70,9 +52,9 @@ async function create(dispensaireData) {
       }
     }
   `;
-  const { data } = await api.post('/graphql', { query: mutation, variables: { input: dispensaireData } });
-  if (data.errors) throw new Error(data.errors[0].message);
-  return data.data.createDispensaire.dispensaire;
+  const response = await apiClient.post('/graphql', { query: mutation, variables: { input: dispensaireData } });
+  const data = handleGraphQLResponse(response);
+  return data.createDispensaire.dispensaire;
 }
 
 async function update(id, input) {
@@ -85,16 +67,15 @@ async function update(id, input) {
       }
     }
   `;
-  const { data } = await api.post('/graphql', {
+  const response = await apiClient.post('/graphql', {
     query: mutation,
     variables: { id, input }
   });
-  if (data.errors) throw new Error(data.errors[0].message);
-  return data.data.updateDispensaire;
+  const data = handleGraphQLResponse(response);
+  return data.updateDispensaire;
 }
 
 async function remove(id) {
-  console.log('In remove function, id:', id);
   const mutation = `
     mutation DeleteDispensaire($id: ID!) {
       deleteDispensaire(id: $id) {
@@ -105,9 +86,9 @@ async function remove(id) {
     }
   `;
   const variables = { id };
-  const response = await api.post('/graphql', { query: mutation, variables });
-  console.log('Response from deleteDispensaire:', response);
-  return handleGraphQLErrors(response).deleteDispensaire;
+  const response = await apiClient.post('/graphql', { query: mutation, variables });
+  const data = handleGraphQLResponse(response);
+  return data.deleteDispensaire;
 }
 
 async function getByOrganisation(organisationId) {
@@ -125,9 +106,9 @@ async function getByOrganisation(organisationId) {
       }
     }
   `;
-  const { data } = await api.post('/graphql', { query, variables: { organisationId } });
-  if (data.errors) throw new Error(data.errors[0].message);
-  return data.data.dispensaires.filter(
+  const response = await apiClient.post('/graphql', { query, variables: { organisationId } });
+  const data = handleGraphQLResponse(response);
+  return data.dispensaires.filter(
     dispensaire => dispensaire.organisationId === organisationId
   );
 }
@@ -147,10 +128,10 @@ async function search(searchTerm) {
       }
     }
   `;
-  const { data } = await api.post('/graphql', { query });
-  if (data.errors) throw new Error(data.errors[0].message);
+  const response = await apiClient.post('/graphql', { query });
+  const data = handleGraphQLResponse(response);
   const searchTermLower = searchTerm.toLowerCase();
-  return data.data.dispensaires.filter(dispensaire =>
+  return data.dispensaires.filter(dispensaire =>
     dispensaire.name.toLowerCase().includes(searchTermLower) ||
     dispensaire.organisation.name.toLowerCase().includes(searchTermLower)
   );

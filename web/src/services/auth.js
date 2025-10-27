@@ -1,13 +1,7 @@
 import { gql } from '@apollo/client';
 import client from './apolloClient';
+import { AUTH_TOKEN_KEY } from './apiClient';
 
-// ✅ Configuration
-const config = {
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:4000',
-  isDevelopment: import.meta.env.DEV,
-};
-
-// Vos mutations et queries restent identiques...
 const LOGIN_MUTATION = gql`
   mutation Login($login: String!, $password: String!) {
     login(input: { login: $login, password: $password }) {
@@ -56,7 +50,7 @@ const GET_CURRENT_USER = gql`
 
 class AuthService {
   constructor() {
-    this.tokenKey = 'auth-token';
+    this.tokenKey = AUTH_TOKEN_KEY;
     this.userKey = 'auth-user';
   }
 

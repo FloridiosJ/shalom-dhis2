@@ -7,7 +7,7 @@ import eventResolvers from './event.js';
 import categorieMaladieResolvers from './categorieMaladie.js';
 import typeConsultationResolvers from './typeConsultation.js';
 import vaccinationResolvers from './vaccination.js';
-import activiteSprituelleResolvers from './activiteSpirituelle.js';
+import activiteSpirituelleResolvers from './activiteSpirituelle.js';
 import reportsResolvers from './reports.js'; // ✅ NOUVEAU
 import { GraphQLScalarType, Kind } from 'graphql';
 
@@ -64,7 +64,7 @@ export const resolvers = {
     ...vaccinationResolvers.Query,
 
     // ActiviteSpirituelle queries
-    ...activiteSprituelleResolvers.Query,
+    ...activiteSpirituelleResolvers.Query,
 
     // Reports queries
     ...reportsResolvers.Query, // ✅ NOUVEAU
@@ -99,7 +99,7 @@ export const resolvers = {
     ...vaccinationResolvers.Mutation,
 
     // ActiviteSpirituelle mutations
-    ...activiteSprituelleResolvers.Mutation,
+    ...activiteSpirituelleResolvers.Mutation,
   },
   
   // Field resolvers
@@ -112,7 +112,7 @@ export const resolvers = {
   CategorieMaladie: categorieMaladieResolvers.CategorieMaladie,
   ArbreCategorie: categorieMaladieResolvers.ArbreCategorie,
   Vaccination: vaccinationResolvers.Vaccination,
-  ActiviteSpirituelle: activiteSprituelleResolvers.ActiviteSpirituelle,
+  ActiviteSpirituelle: activiteSpirituelleResolvers.ActiviteSpirituelle,
 };
 
 export default resolvers;
