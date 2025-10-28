@@ -172,6 +172,8 @@ type DataEntry {
   prescription: String
   notes: String
   dateConsultation: DateTime!
+  dateOnly: String
+  timeConsultation: String
   dispensaireId: ID!
   dispensaire: Dispensaire!
   userId: ID!

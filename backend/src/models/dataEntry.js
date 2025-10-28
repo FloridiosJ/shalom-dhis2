@@ -45,6 +45,16 @@ const DataEntry = sequelize.define('DataEntry', {
     allowNull: false,
     defaultValue: DataTypes.NOW
   },
+  dateOnly: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: 'Date de consultation (YYYY-MM-DD) pour agrégations analytics'
+  },
+  timeConsultation: {
+    type: DataTypes.TIME,
+    allowNull: true,
+    comment: 'Heure de consultation (HH:MM:SS) optionnelle'
+  },
   dispensaireId: {
     type: DataTypes.UUID,
     allowNull: false,
@@ -80,11 +90,16 @@ const DataEntry = sequelize.define('DataEntry', {
     { fields: ['dispensaireId'] },
     { fields: ['userId'] },
     { fields: ['dateConsultation'] },
+    { fields: ['dateOnly'] },
     { fields: ['status'] },
     { fields: ['isActive'] },
     { 
       fields: ['patientId', 'dateConsultation'],
       name: 'idx_patient_date'
+    },
+    { 
+      fields: ['dateOnly', 'dispensaireId'],
+      name: 'idx_date_only_dispensaire'
     }
   ]
 });
