@@ -232,69 +232,64 @@ const CreateDataEntryModal = ({
             {errors.dateConsultation && <div className={styles.errorField}>{errors.dateConsultation}</div>}
           </div>
 
-          {/* Numéro patient */}
-          <div className={styles.formGroup} style={{ position: "relative" }}>
-            <label htmlFor="numeroPatient" className={styles.label}>
-              Numéro patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
-            </label>
-            <input
-              id="numeroPatient"
-              name="numeroPatient"
-              className={styles.input}
-              value={form.numeroPatient || ""}
-              readOnly
-              disabled={loading || isEdit}
-              style={{ backgroundColor: form.patientId ? '#e0f2fe' : '#f8fafc', cursor: 'not-allowed' }}
-              title={form.patientId ? "Numéro patient (non modifiable)" : "Sélectionnez d'abord un patient"}
-            />
-            {errors.patientId && <div className={styles.errorField}>{errors.patientId}</div>}
-          </div>
-
-          {/* Nom et prénom - Patient Selector */}
+          {/* Patient Selector - Nom et prénom avec numéro */}
           <div className={styles.formGroup} style={{ position: "relative" }}>
             <label htmlFor="fullName" className={styles.label}>
-              Nom et prénom <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+              Patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
             </label>
             <input
               id="fullName"
               name="fullName"
               className={styles.input}
-              value={form.fullName || ""}
+              value={form.patientId && form.numeroPatient 
+                ? `${form.fullName} (${form.numeroPatient})`
+                : form.fullName || ""
+              }
               onChange={e => {
                 const value = e.target.value;
+                // Remove patient number from search if present
+                const searchValue = value.replace(/\s*\([^)]*\)\s*$/, '').trim();
+                
                 const filtered = patients.filter(
                   p =>
-                    `${p.nom} ${p.prenom}`.toLowerCase().includes(value.toLowerCase()) ||
-                    p.nom?.toLowerCase().includes(value.toLowerCase()) ||
-                    p.prenom?.toLowerCase().includes(value.toLowerCase()) ||
-                    p.numeroPatient?.toLowerCase().includes(value.toLowerCase())
+                    `${p.nom} ${p.prenom}`.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    p.nom?.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    p.prenom?.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    p.numeroPatient?.toLowerCase().includes(searchValue.toLowerCase())
                 );
                 // Only clear patient selection if the value doesn't match the current selection
                 const currentPatientMatch = form.patientId && patients.find(p => 
                   p.id === form.patientId && 
-                  `${p.nom} ${p.prenom}` === value
+                  `${p.nom} ${p.prenom}` === searchValue
                 );
                 setForm(f => ({
                   ...f,
-                  fullName: value,
+                  fullName: searchValue,
                   patientId: currentPatientMatch ? f.patientId : "",
                   numeroPatient: currentPatientMatch ? f.numeroPatient : "",
                 }));
-                setShowAutocomplete(value.length > 0);
+                setShowAutocomplete(searchValue.length > 0);
                 setFilteredPatients(filtered);
-                setShowCreatePatientButton(filtered.length === 0 && value.length > 0);
+                setShowCreatePatientButton(filtered.length === 0 && searchValue.length > 0);
               }}
               autoComplete="off"
               disabled={loading || isEdit}
               placeholder="Rechercher un patient par nom, prénom ou numéro..."
+              style={{ 
+                backgroundColor: form.patientId ? '#e0f2fe' : '#f8fafc',
+                cursor: form.patientId && isEdit ? 'not-allowed' : 'text'
+              }}
               onFocus={() => {
-                if (form.fullName && filteredPatients?.length > 0) setShowAutocomplete(true);
+                if (!form.patientId && form.fullName && filteredPatients?.length > 0) {
+                  setShowAutocomplete(true);
+                }
               }}
               onBlur={() => setTimeout(() => {
                 setShowAutocomplete(false);
                 setShowCreatePatientButton(false);
               }, 200)}
             />
+            {errors.patientId && <div className={styles.errorField}>{errors.patientId}</div>}
             {showAutocomplete && filteredPatients.length > 0 && (
               <ul className={styles.autocompleteList}>
                 {filteredPatients.map((p) => (
