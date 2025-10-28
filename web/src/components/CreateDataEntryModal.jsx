@@ -25,6 +25,7 @@ const CreateDataEntryModal = ({
     dispensaireId: "",
     typeConsultation: "",
     diagnostic: "",
+    diagnosticDetails: "", // ✅ Nouveau champ pour détails textuels
     prescription: "",
     notes: "",
     // ✅ Nouvelles catégories
@@ -43,8 +44,28 @@ const CreateDataEntryModal = ({
   // ✅ État pour gérer les catégories sélectionnées
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategorySelector, setShowCategorySelector] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState(""); // ✅ Nouveau: recherche de catégorie
   
   const firstInputRef = useRef();
+  const categorySearchRef = useRef(); // ✅ Référence pour l'input de recherche
+  const categoryDropdownRef = useRef(); // ✅ Référence pour le dropdown
+
+  // ✅ Fermer le dropdown quand on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCategorySelector && 
+          categoryDropdownRef.current && 
+          !categoryDropdownRef.current.contains(event.target)) {
+        setShowCategorySelector(false);
+        setCategorySearchTerm("");
+      }
+    };
+
+    if (showCategorySelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showCategorySelector]);
 
   useEffect(() => {
     if (open) {
@@ -83,6 +104,7 @@ const CreateDataEntryModal = ({
         dispensaireId: defaultDispensaireId,
         typeConsultation: initialData?.typeConsultation || "CURATIF",
         diagnostic: initialData?.diagnostic || "",
+        diagnosticDetails: "", // ✅ Reset diagnostic details
         prescription: initialData?.prescription || "",
         notes: initialData?.notes || "",
         categories: existingCategories,
@@ -105,13 +127,23 @@ const CreateDataEntryModal = ({
     if (!form.patientId) e.patientId = "Patient requis";
     if (!isAgent && !form.dispensaireId) e.dispensaireId = "Dispensaire requis";
     if (!form.typeConsultation) e.typeConsultation = "Type de consultation requis";
-    if (!form.diagnostic.trim()) e.diagnostic = "Diagnostic requis";
     
-    // ✅ Validation des catégories (optionnel mais recommandé)
-    if (selectedCategories.length > 0) {
-      const principalCount = selectedCategories.filter(c => c.isPrincipal).length;
-      if (principalCount > 1) {
-        e.categories = "Une seule catégorie principale autorisée";
+    // ✅ CHANGEMENT : Validation des catégories au lieu du diagnostic libre
+    if (selectedCategories.length === 0) {
+      e.categories = "Au moins une catégorie de maladie est requise";
+    } else {
+      // Si plusieurs catégories, vérifier qu'il y a exactement une principale
+      if (selectedCategories.length > 1) {
+        const principalCount = selectedCategories.filter(c => c.isPrincipal).length;
+        if (principalCount === 0) {
+          e.categories = "Vous devez sélectionner une catégorie principale";
+        } else if (principalCount > 1) {
+          e.categories = "Une seule catégorie principale autorisée";
+        }
+      }
+      // Si une seule catégorie, elle doit être principale
+      if (selectedCategories.length === 1 && !selectedCategories[0].isPrincipal) {
+        setSelectedCategories([{ ...selectedCategories[0], isPrincipal: true }]);
       }
     }
     
@@ -144,6 +176,7 @@ const CreateDataEntryModal = ({
 
     setSelectedCategories([...selectedCategories, newCategory]);
     setShowCategorySelector(false);
+    setCategorySearchTerm(""); // ✅ Réinitialiser la recherche
   };
 
   // ✅ Retirer une catégorie
@@ -191,12 +224,23 @@ const CreateDataEntryModal = ({
         dateConsultationISO = new Date(`${form.dateConsultation}T00:00:00`).toISOString();
       }
 
+      // ✅ Générer le diagnostic à partir de la catégorie principale
+      const principalCategory = selectedCategories.find(c => c.isPrincipal);
+      let diagnosticText = principalCategory ? principalCategory.nom : "";
+      if (principalCategory && principalCategory.code) {
+        diagnosticText = `${principalCategory.code} - ${principalCategory.nom}`;
+      }
+      // Ajouter les détails si présents
+      if (form.diagnosticDetails?.trim()) {
+        diagnosticText += ` (${form.diagnosticDetails.trim()})`;
+      }
+
       const payload = {
         dateConsultation: dateConsultationISO,
         patientId: form.patientId,
         dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId,
         typeConsultation: form.typeConsultation,
-        diagnostic: form.diagnostic,
+        diagnostic: diagnosticText, // ✅ Généré automatiquement
         prescription: form.prescription || "",
         notes: form.notes || "",
       };
@@ -229,6 +273,14 @@ const CreateDataEntryModal = ({
   const availableCategories = categories.filter(
     cat => !selectedCategories.some(sc => sc.categorieMaladieId === cat.id)
   );
+
+  // ✅ Filtrer les catégories selon le terme de recherche
+  const filteredCategories = availableCategories.filter(cat => {
+    if (!categorySearchTerm.trim()) return true;
+    const searchLower = categorySearchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const nomLower = (cat.nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return nomLower.includes(searchLower);
+  });
 
   return (
     <div className={styles.overlay} aria-modal="true" role="dialog" tabIndex={-1} onClick={onClose}>
@@ -437,28 +489,11 @@ const CreateDataEntryModal = ({
             {errors.typeConsultation && <div className={styles.errorField}>{errors.typeConsultation}</div>}
           </div>
 
-          {/* Diagnostic */}
-          <div className={styles.formGroup}>
-            <label htmlFor="diagnostic" className={styles.label}>
-              Diagnostic <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
-            </label>
-            <input
-              id="diagnostic"
-              name="diagnostic"
-              className={styles.input}
-              value={form.diagnostic}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-            {errors.diagnostic && <div className={styles.errorField}>{errors.diagnostic}</div>}
-          </div>
-
-          {/* ✅ Catégories de maladies */}
+          {/* ✅ Catégories de maladies - DÉPLACÉ EN PREMIER */}
           {categories.length > 0 && (
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Catégories de maladies
+                Catégories de maladies <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
               </label>
               
               {/* Liste des catégories sélectionnées */}
@@ -472,10 +507,9 @@ const CreateDataEntryModal = ({
                             <span className={styles.principalBadge}>★ Principale</span>
                           )}
                           <strong>{cat.nom}</strong>
-                          <span className={styles.categoryCode}>{cat.code}</span>
                         </div>
                         <div className={styles.categoryActions}>
-                          {!cat.isPrincipal && (
+                          {!cat.isPrincipal && selectedCategories.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleSetPrincipal(cat.categorieMaladieId)}
@@ -509,28 +543,104 @@ const CreateDataEntryModal = ({
 
               {/* Bouton ajouter catégorie */}
               {availableCategories.length > 0 && (
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative' }} ref={categoryDropdownRef}>
                   <button
                     type="button"
-                    onClick={() => setShowCategorySelector(!showCategorySelector)}
+                    onClick={() => {
+                      setShowCategorySelector(!showCategorySelector);
+                      if (!showCategorySelector) {
+                        setTimeout(() => categorySearchRef.current?.focus(), 100);
+                      }
+                    }}
                     className={styles.addCategoryBtn}
                     disabled={loading}
+                    aria-expanded={showCategorySelector}
+                    aria-haspopup="listbox"
                   >
                     + Ajouter une catégorie
                   </button>
 
                   {showCategorySelector && (
-                    <div className={styles.categorySelectorDropdown}>
-                      {availableCategories.map((cat) => (
-                        <div
-                          key={cat.id}
-                          className={styles.categorySelectorItem}
-                          onClick={() => handleAddCategory(cat.id)}
+                    <div 
+                      className={styles.categorySelectorDropdown}
+                      role="listbox"
+                      aria-label="Sélecteur de catégories"
+                    >
+                      {/* ✅ Champ de recherche */}
+                      <div className={styles.categorySearchContainer}>
+                        <input
+                          ref={categorySearchRef}
+                          type="text"
+                          className={styles.categorySearchInput}
+                          placeholder="Rechercher une catégorie..."
+                          value={categorySearchTerm}
+                          onChange={(e) => setCategorySearchTerm(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowCategorySelector(false);
+                              setCategorySearchTerm("");
+                            } else if (e.key === 'Enter' && filteredCategories.length === 1) {
+                              e.preventDefault();
+                              handleAddCategory(filteredCategories[0].id);
+                            }
+                          }}
+                          aria-label="Rechercher une catégorie"
+                        />
+                        <svg 
+                          className={styles.categorySearchIcon}
+                          width="16" 
+                          height="16" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
                         >
-                          <strong>{cat.nom}</strong>
-                          <span className={styles.categoryCode}>{cat.code}</span>
-                        </div>
-                      ))}
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+
+                      {/* ✅ Liste des catégories filtrées */}
+                      <div className={styles.categoryListContainer}>
+                        {filteredCategories.length > 0 ? (
+                          filteredCategories.map((cat) => (
+                            <div
+                              key={cat.id}
+                              className={styles.categorySelectorItem}
+                              onClick={() => handleAddCategory(cat.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  handleAddCategory(cat.id);
+                                }
+                              }}
+                              role="option"
+                              tabIndex={0}
+                              aria-selected="false"
+                            >
+                              <div className={styles.categoryItemContent}>
+                                <strong className={styles.categoryItemName}>{cat.nom}</strong>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className={styles.categoryNoResults}>
+                            Aucune catégorie trouvée
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ✅ Bouton de fermeture */}
+                      <div className={styles.categoryDropdownFooter}>
+                        <button
+                          type="button"
+                          className={styles.categoryCloseBtn}
+                          onClick={() => {
+                            setShowCategorySelector(false);
+                            setCategorySearchTerm("");
+                          }}
+                        >
+                          Fermer (Échap)
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -539,6 +649,26 @@ const CreateDataEntryModal = ({
               {errors.categories && <div className={styles.errorField}>{errors.categories}</div>}
             </div>
           )}
+
+          {/* ✅ Détails du diagnostic (optionnel) */}
+          <div className={styles.formGroup}>
+            <label htmlFor="diagnosticDetails" className={styles.label}>
+              Détails du diagnostic <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal" }}>(optionnel)</span>
+            </label>
+            <textarea
+              id="diagnosticDetails"
+              name="diagnosticDetails"
+              className={styles.input}
+              value={form.diagnosticDetails}
+              onChange={handleChange}
+              disabled={loading}
+              rows={2}
+              placeholder="Observations ou précisions complémentaires sur le diagnostic..."
+            />
+            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+              💡 Ces détails seront ajoutés au diagnostic principal basé sur la catégorie sélectionnée
+            </div>
+          </div>
 
           {/* Prescription */}
           <div className={styles.formGroup}>
