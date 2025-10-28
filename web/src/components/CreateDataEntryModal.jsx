@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from '../hooks/useAuth';
-import { TYPES_CONSULTATION, COMMON_MEDICATIONS, COMMON_FREQUENCIES, COMMON_DURATIONS } from "../constants";
+import { TYPES_CONSULTATION } from "../constants";
+import PrescriptionItemCard from './prescription/PrescriptionItemCard';
 import styles from "./CreateDataEntryModal.module.css";
 
 const CreateDataEntryModal = ({
@@ -48,18 +49,10 @@ const CreateDataEntryModal = ({
   
   // ✅ État pour gérer les prescriptions structurées
   const [prescriptionItems, setPrescriptionItems] = useState([]);
-  const [showMedicationSelector, setShowMedicationSelector] = useState({});
-  const [showDurationSelector, setShowDurationSelector] = useState({});
-  const [medicationSearchTerms, setMedicationSearchTerms] = useState({});
-  const [durationSearchTerms, setDurationSearchTerms] = useState({});
   
   const firstInputRef = useRef();
   const categorySearchRef = useRef(); // ✅ Référence pour l'input de recherche
   const categoryDropdownRef = useRef(); // ✅ Référence pour le dropdown
-  const medicationSearchRefs = useRef({});
-  const medicationDropdownRefs = useRef({});
-  const durationSearchRefs = useRef({});
-  const durationDropdownRefs = useRef({});
 
   // ✅ Fermer le dropdown quand on clique à l'extérieur
   useEffect(() => {
@@ -77,46 +70,6 @@ const CreateDataEntryModal = ({
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showCategorySelector]);
-
-  // ✅ Fermer les dropdowns de médicaments quand on clique à l'extérieur
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      Object.keys(showMedicationSelector).forEach(itemId => {
-        if (showMedicationSelector[itemId] && 
-            medicationDropdownRefs.current[itemId] && 
-            !medicationDropdownRefs.current[itemId].contains(event.target)) {
-          setShowMedicationSelector(prev => ({ ...prev, [itemId]: false }));
-          setMedicationSearchTerms(prev => ({ ...prev, [itemId]: "" }));
-        }
-      });
-    };
-
-    const hasOpenDropdown = Object.values(showMedicationSelector).some(v => v);
-    if (hasOpenDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showMedicationSelector]);
-
-  // ✅ Fermer les dropdowns de durée quand on clique à l'extérieur
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      Object.keys(showDurationSelector).forEach(itemId => {
-        if (showDurationSelector[itemId] && 
-            durationDropdownRefs.current[itemId] && 
-            !durationDropdownRefs.current[itemId].contains(event.target)) {
-          setShowDurationSelector(prev => ({ ...prev, [itemId]: false }));
-          setDurationSearchTerms(prev => ({ ...prev, [itemId]: "" }));
-        }
-      });
-    };
-
-    const hasOpenDropdown = Object.values(showDurationSelector).some(v => v);
-    if (hasOpenDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showDurationSelector]);
 
   useEffect(() => {
     if (open) {
@@ -291,18 +244,6 @@ const CreateDataEntryModal = ({
         item.id === itemId ? { ...item, [field]: value } : item
       )
     );
-  };
-
-  const handleSelectMedication = (itemId, medication) => {
-    handlePrescriptionItemChange(itemId, 'medicament', medication);
-    setShowMedicationSelector({ ...showMedicationSelector, [itemId]: false });
-    setMedicationSearchTerms({ ...medicationSearchTerms, [itemId]: "" });
-  };
-
-  const handleSelectDuration = (itemId, duration) => {
-    handlePrescriptionItemChange(itemId, 'duree', duration);
-    setShowDurationSelector({ ...showDurationSelector, [itemId]: false });
-    setDurationSearchTerms({ ...durationSearchTerms, [itemId]: "" });
   };
 
   const handleSubmit = async (e) => {
