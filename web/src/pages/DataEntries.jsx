@@ -150,11 +150,13 @@ const DataEntries = () => {
 
   const handleCreatePatient = (patientName) => {
     // Extract first and last name from the search input
+    // In French convention: "prenom" = first name, "nom" = family/last name
     const names = patientName.trim().split(' ');
-    const prenom = names[0] || '';
-    const nom = names.slice(1).join(' ') || '';
+    const prenom = names[0] || ''; // First word = given name
+    const nom = names.slice(1).join(' ') || ''; // Remaining = family name
     setPrefilledPatientName({ nom, prenom });
-    setCreatePatientModalOpen(true);
+    setModalOpen(false); // Close data entry modal first
+    setCreatePatientModalOpen(true); // Then open patient creation modal
   };
 
   const handlePatientSaved = () => {

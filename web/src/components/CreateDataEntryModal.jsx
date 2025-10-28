@@ -269,11 +269,16 @@ const CreateDataEntryModal = ({
                     p.prenom?.toLowerCase().includes(value.toLowerCase()) ||
                     p.numeroPatient?.toLowerCase().includes(value.toLowerCase())
                 );
+                // Only clear patient selection if the value doesn't match the current selection
+                const currentPatientMatch = form.patientId && patients.find(p => 
+                  p.id === form.patientId && 
+                  `${p.nom} ${p.prenom}` === value
+                );
                 setForm(f => ({
                   ...f,
                   fullName: value,
-                  patientId: "",
-                  numeroPatient: "",
+                  patientId: currentPatientMatch ? f.patientId : "",
+                  numeroPatient: currentPatientMatch ? f.numeroPatient : "",
                 }));
                 setShowAutocomplete(value.length > 0);
                 setFilteredPatients(filtered);
@@ -327,8 +332,10 @@ const CreateDataEntryModal = ({
                   type="button"
                   className={styles.createPatientBtn}
                   onMouseDown={() => {
-                    onCreatePatient(form.fullName);
-                    onClose();
+                    const searchValue = form.fullName;
+                    setShowCreatePatientButton(false);
+                    setShowAutocomplete(false);
+                    onCreatePatient(searchValue);
                   }}
                 >
                   + Créer un nouveau patient
