@@ -221,6 +221,13 @@ query {
 />
 ```
 
+**Note on Timezone Handling:**
+- Backend stores all dates in UTC (ISO 8601 format)
+- Frontend uses browser's local timezone for display
+- When user selects date/time, it's converted to UTC before sending to backend
+- Example: User selects "15/01/2024 14:30" in Paris (UTC+1) → stored as "2024-01-15T13:30:00.000Z"
+- When displaying, UTC is converted back to user's local timezone
+
 ### Data Submission
 
 **Before:**
