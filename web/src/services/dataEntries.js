@@ -28,6 +28,8 @@ function handleGraphQLErrors(response) {
 const entryFields = `
   id
   dateConsultation
+  dateOnly
+  timeConsultation
   typeConsultation
   diagnostic
   prescription

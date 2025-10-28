@@ -20,6 +20,7 @@ const CreateDataEntryModal = ({
 
   const [form, setForm] = useState({
     dateConsultation: "",
+    heureConsultation: "",
     patientId: "",
     dispensaireId: "",
     typeConsultation: "",
@@ -62,10 +63,22 @@ const CreateDataEntryModal = ({
         code: cat.code,
       })) || [];
 
+      // Extraire date et heure séparément si dateConsultation existe
+      let dateStr = "";
+      let heureStr = "";
+      if (initialData?.dateConsultation) {
+        const dt = new Date(initialData.dateConsultation);
+        dateStr = dt.toISOString().split('T')[0]; // YYYY-MM-DD
+        heureStr = dt.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+      } else {
+        const now = new Date();
+        dateStr = now.toISOString().split('T')[0];
+        heureStr = now.toTimeString().split(' ')[0].substring(0, 5);
+      }
+
       setForm({
-        dateConsultation: initialData?.dateConsultation
-          ? new Date(initialData.dateConsultation).toISOString().slice(0, 16)
-          : new Date().toISOString().slice(0, 16),
+        dateConsultation: dateStr,
+        heureConsultation: heureStr,
         patientId: patient?.id || "",
         dispensaireId: defaultDispensaireId,
         typeConsultation: initialData?.typeConsultation || "CURATIF",
@@ -168,8 +181,18 @@ const CreateDataEntryModal = ({
     }
     setLoading(true);
     try {
+      // Combiner date et heure pour créer dateConsultation ISO
+      let dateConsultationISO;
+      if (form.heureConsultation) {
+        // Si l'heure est fournie, combiner date + heure
+        dateConsultationISO = new Date(`${form.dateConsultation}T${form.heureConsultation}:00`).toISOString();
+      } else {
+        // Si seulement la date, utiliser minuit UTC
+        dateConsultationISO = new Date(`${form.dateConsultation}T00:00:00`).toISOString();
+      }
+
       const payload = {
-        dateConsultation: new Date(form.dateConsultation).toISOString(),
+        dateConsultation: dateConsultationISO,
         patientId: form.patientId,
         dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId,
         typeConsultation: form.typeConsultation,
@@ -222,7 +245,7 @@ const CreateDataEntryModal = ({
               ref={firstInputRef}
               id="dateConsultation"
               name="dateConsultation"
-              type="datetime-local"
+              type="date"
               className={styles.input}
               value={form.dateConsultation}
               onChange={handleChange}
@@ -230,6 +253,22 @@ const CreateDataEntryModal = ({
               disabled={loading}
             />
             {errors.dateConsultation && <div className={styles.errorField}>{errors.dateConsultation}</div>}
+          </div>
+
+          {/* Heure consultation (optionnelle) */}
+          <div className={styles.formGroup}>
+            <label htmlFor="heureConsultation" className={styles.label}>
+              Heure de consultation <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal" }}>(optionnel)</span>
+            </label>
+            <input
+              id="heureConsultation"
+              name="heureConsultation"
+              type="time"
+              className={styles.input}
+              value={form.heureConsultation}
+              onChange={handleChange}
+              disabled={loading}
+            />
           </div>
 
           {/* Patient Selector - Nom et prénom avec numéro */}

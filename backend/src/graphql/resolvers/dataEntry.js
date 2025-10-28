@@ -325,13 +325,23 @@ const dataEntryResolvers = {
         }
 
         // Créer la consultation
+        const consultationDate = input.dateConsultation ? new Date(input.dateConsultation) : new Date();
+        
+        // Extraire la date seule (YYYY-MM-DD) pour analytics
+        const dateOnly = consultationDate.toISOString().split('T')[0];
+        
+        // Extraire l'heure (HH:MM:SS) si disponible
+        const timeConsultation = consultationDate.toISOString().split('T')[1]?.split('.')[0] || null;
+
         const entry = await DataEntry.create({
           patientId: input.patientId,
           typeConsultation: input.typeConsultation,
           diagnostic: input.diagnostic,
           prescription: input.prescription,
           notes: input.notes,
-          dateConsultation: input.dateConsultation || new Date(),
+          dateConsultation: consultationDate,
+          dateOnly: dateOnly,
+          timeConsultation: timeConsultation,
           dispensaireId: input.dispensaireId || user.dispensaireId,
           userId: user.id,
           status: 'active'
@@ -433,13 +443,22 @@ const dataEntryResolvers = {
         }
 
         // Mettre à jour les champs de base
-        await entry.update({
+        const updateData = {
           diagnostic: input.diagnostic || entry.diagnostic,
           prescription: input.prescription !== undefined ? input.prescription : entry.prescription,
           notes: input.notes !== undefined ? input.notes : entry.notes,
-          dateConsultation: input.dateConsultation || entry.dateConsultation,
           status: input.status || entry.status
-        });
+        };
+
+        // Si dateConsultation est mise à jour, recalculer dateOnly et timeConsultation
+        if (input.dateConsultation) {
+          const consultationDate = new Date(input.dateConsultation);
+          updateData.dateConsultation = consultationDate;
+          updateData.dateOnly = consultationDate.toISOString().split('T')[0];
+          updateData.timeConsultation = consultationDate.toISOString().split('T')[1]?.split('.')[0] || null;
+        }
+
+        await entry.update(updateData);
 
         // Mettre à jour les catégories avec métadonnées si fourni
         if (input.categories && input.categories.length > 0) {
