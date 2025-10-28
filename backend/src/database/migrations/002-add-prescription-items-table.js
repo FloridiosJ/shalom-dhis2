@@ -18,8 +18,7 @@ export async function up(queryInterface) {
         key: 'id'
       },
       onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
-      field: 'dataEntryId'
+      onUpdate: 'CASCADE'
     },
     medicament: {
       type: DataTypes.STRING(500),
@@ -55,15 +54,9 @@ export async function up(queryInterface) {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false
     }
+  }, {
+    timestamps: true
   });
 
   // Create indexes

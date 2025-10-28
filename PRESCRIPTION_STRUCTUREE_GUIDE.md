@@ -283,6 +283,6 @@ Pour toute question ou problème :
 
 ---
 
-**Date de création** : Octobre 2025  
+**Date de création** : 28 Octobre 2025  
 **Version** : 1.0.0  
 **Auteur** : GitHub Copilot pour FloridiosJ/shalom-dhis2
