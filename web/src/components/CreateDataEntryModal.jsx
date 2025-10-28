@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from '../hooks/useAuth';
 import { TYPES_CONSULTATION } from "../constants";
+import PrescriptionItemCard from './prescription/PrescriptionItemCard';
 import styles from "./CreateDataEntryModal.module.css";
 
 const CreateDataEntryModal = ({
@@ -45,6 +46,9 @@ const CreateDataEntryModal = ({
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategorySelector, setShowCategorySelector] = useState(false);
   const [categorySearchTerm, setCategorySearchTerm] = useState(""); // ✅ Nouveau: recherche de catégorie
+  
+  // ✅ État pour gérer les prescriptions structurées
+  const [prescriptionItems, setPrescriptionItems] = useState([]);
   
   const firstInputRef = useRef();
   const categorySearchRef = useRef(); // ✅ Référence pour l'input de recherche
@@ -114,6 +118,19 @@ const CreateDataEntryModal = ({
       });
       
       setSelectedCategories(existingCategories);
+      
+      // ✅ Initialiser les prescriptions structurées
+      const existingPrescriptions = initialData?.prescriptionItems?.map((item, index) => ({
+        id: item.id || `temp-${index}`,
+        medicament: item.medicament || "",
+        dose: item.dose || "",
+        frequence: item.frequence || "",
+        duree: item.duree || "",
+        notes: item.notes || "",
+        ordre: item.ordre !== undefined ? item.ordre : index
+      })) || [];
+      setPrescriptionItems(existingPrescriptions);
+      
       setErrors({});
       setServerError("");
       setLoading(false);
@@ -203,6 +220,32 @@ const CreateDataEntryModal = ({
     );
   };
 
+  // ✅ Handlers pour les prescriptions structurées
+  const handleAddPrescriptionItem = () => {
+    const newItem = {
+      id: `temp-${Date.now()}`,
+      medicament: "",
+      dose: "",
+      frequence: "",
+      duree: "",
+      notes: "",
+      ordre: prescriptionItems.length
+    };
+    setPrescriptionItems([...prescriptionItems, newItem]);
+  };
+
+  const handleRemovePrescriptionItem = (itemId) => {
+    setPrescriptionItems(prescriptionItems.filter(item => item.id !== itemId));
+  };
+
+  const handlePrescriptionItemChange = (itemId, field, value) => {
+    setPrescriptionItems(
+      prescriptionItems.map(item =>
+        item.id === itemId ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -227,9 +270,6 @@ const CreateDataEntryModal = ({
       // ✅ Générer le diagnostic à partir de la catégorie principale
       const principalCategory = selectedCategories.find(c => c.isPrincipal);
       let diagnosticText = principalCategory ? principalCategory.nom : "";
-      if (principalCategory && principalCategory.code) {
-        diagnosticText = `${principalCategory.code} - ${principalCategory.nom}`;
-      }
       // Ajouter les détails si présents
       if (form.diagnosticDetails?.trim()) {
         diagnosticText += ` (${form.diagnosticDetails.trim()})`;
@@ -241,7 +281,7 @@ const CreateDataEntryModal = ({
         dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId,
         typeConsultation: form.typeConsultation,
         diagnostic: diagnosticText, // ✅ Généré automatiquement
-        prescription: form.prescription || "",
+        // prescription: form.prescription || "", // ✅ Commenté - utiliser prescriptionItems
         notes: form.notes || "",
       };
 
@@ -252,6 +292,22 @@ const CreateDataEntryModal = ({
           isPrincipal: c.isPrincipal,
           notes: c.notes || ""
         }));
+      }
+
+      // ✅ Ajouter les prescriptions structurées si présentes
+      if (prescriptionItems.length > 0) {
+        // Filtrer les items vides et nettoyer les données
+        const validItems = prescriptionItems.filter(item => item.medicament.trim());
+        if (validItems.length > 0) {
+          payload.prescriptionItems = validItems.map((item, index) => ({
+            medicament: item.medicament.trim(),
+            dose: item.dose?.trim() || null,
+            frequence: item.frequence?.trim() || null,
+            duree: item.duree?.trim() || null,
+            notes: item.notes?.trim() || null,
+            ordre: index
+          }));
+        }
       }
 
       console.log('📤 Payload consultation:', payload);
@@ -670,18 +726,64 @@ const CreateDataEntryModal = ({
             </div>
           </div>
 
-          {/* Prescription */}
+          {/* ✅ Prescriptions structurées */}
           <div className={styles.formGroup}>
-            <label htmlFor="prescription" className={styles.label}>Prescription</label>
-            <input
+            <label className={styles.label}>
+              Prescriptions structurées
+              <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal", marginLeft: "0.5rem" }}>
+                (Recommandé pour analyse)</span>
+            </label>
+            
+            {/* Liste des médicaments prescrits */}
+            {prescriptionItems.length > 0 && (
+              <div className={styles.prescriptionsList}>
+                {prescriptionItems.map((item, index) => (
+                  <PrescriptionItemCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onRemove={handleRemovePrescriptionItem}
+                    onChange={handlePrescriptionItemChange}
+                    loading={loading}
+                  />
+                ))}
+              </div>
+            )}
+            
+            {/* Bouton ajouter médicament */}
+            <button
+              type="button"
+              onClick={handleAddPrescriptionItem}
+              className={styles.addCategoryBtn}
+              disabled={loading}
+              style={{ marginTop: prescriptionItems.length > 0 ? '0.5rem' : '0' }}
+            >
+              + Ajouter un médicament
+            </button>
+          </div>
+
+          {/* Prescription libre (cas exceptionnels) - COMMENTÉ POUR L'INSTANT */}
+          {/* <div className={styles.formGroup}>
+            <label htmlFor="prescription" className={styles.label}>
+              Prescription libre
+              <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal", marginLeft: "0.5rem" }}>
+                (Cas exceptionnels uniquement)
+              </span>
+            </label>
+            <textarea
               id="prescription"
               name="prescription"
               className={styles.input}
               value={form.prescription}
               onChange={handleChange}
               disabled={loading}
+              rows={2}
+              placeholder="Utilisez la prescription structurée ci-dessus. Ce champ est uniquement pour des cas exceptionnels."
             />
-          </div>
+            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+              💡 Privilégiez la prescription structurée pour une meilleure analyse des données
+            </div>
+          </div> */}
 
           {/* Notes */}
           <div className={styles.formGroup}>

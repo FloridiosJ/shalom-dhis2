@@ -11,6 +11,7 @@ import DataEntryCategorieMaladie from './dataEntryCategorieMaladie.js';
 import Vaccination from './vaccination.js';
 import ActiviteSpirituelle from './activiteSpirituelle.js';
 import Event from './event.js';
+import PrescriptionItem from './prescriptionItem.js';
 
 // Définir les associations après que tous les modèles soient importés
 const models = {
@@ -23,7 +24,8 @@ const models = {
   DataEntryCategorieMaladie,
   Vaccination,
   ActiviteSpirituelle,
-  Event
+  Event,
+  PrescriptionItem
 };
 
 // Configuration des associations
@@ -45,7 +47,8 @@ export {
   DataEntryCategorieMaladie,
   Vaccination,
   ActiviteSpirituelle,
-  Event
+  Event,
+  PrescriptionItem
 };
 
 // Export par défaut de tous les modèles

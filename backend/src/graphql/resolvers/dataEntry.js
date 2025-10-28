@@ -1,5 +1,5 @@
 // filepath: /home/jacob/WORK_SPACE/Floridios/shalom-dhis2/backend/src/graphql/resolvers/dataEntry.js
-import { DataEntry, Patient, User, Dispensaire, TypeConsultation } from '../../models/index.js';
+import { DataEntry, Patient, User, Dispensaire, TypeConsultation, PrescriptionItem } from '../../models/index.js';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { Op } from 'sequelize';
 
@@ -420,6 +420,23 @@ const dataEntryResolvers = {
           }
         }
 
+        // ✅ Gérer les prescriptions structurées
+        if (input.prescriptionItems && input.prescriptionItems.length > 0) {
+          const { PrescriptionItem } = await import('../../models/index.js');
+          for (let i = 0; i < input.prescriptionItems.length; i++) {
+            const item = input.prescriptionItems[i];
+            await PrescriptionItem.create({
+              dataEntryId: entry.id,
+              medicament: item.medicament,
+              dose: item.dose || null,
+              frequence: item.frequence || null,
+              duree: item.duree || null,
+              notes: item.notes || null,
+              ordre: item.ordre !== undefined ? item.ordre : i
+            });
+          }
+        }
+
         // Récupérer l'entrée complète avec toutes les relations
         const createdEntry = await DataEntry.findByPk(entry.id, {
           include: [
@@ -576,6 +593,32 @@ const dataEntryResolvers = {
                 notes: null
               }
             );
+          }
+        }
+
+        // ✅ Mettre à jour les prescriptions structurées si fourni
+        if (input.prescriptionItems !== undefined) {
+          const { PrescriptionItem } = await import('../../models/index.js');
+          
+          // Supprimer les anciennes prescriptions
+          await PrescriptionItem.destroy({
+            where: { dataEntryId: id }
+          });
+
+          // Ajouter les nouvelles prescriptions
+          if (input.prescriptionItems.length > 0) {
+            for (let i = 0; i < input.prescriptionItems.length; i++) {
+              const item = input.prescriptionItems[i];
+              await PrescriptionItem.create({
+                dataEntryId: entry.id,
+                medicament: item.medicament,
+                dose: item.dose || null,
+                frequence: item.frequence || null,
+                duree: item.duree || null,
+                notes: item.notes || null,
+                ordre: item.ordre !== undefined ? item.ordre : i
+              });
+            }
           }
         }
 
@@ -786,6 +829,17 @@ const dataEntryResolvers = {
           dataEntryId: dataEntry.id,
           isActive: true 
         }
+      });
+    },
+
+    prescriptionItems: async (dataEntry) => {
+      const { PrescriptionItem } = await import('../../models/index.js');
+      return await PrescriptionItem.findAll({
+        where: { 
+          dataEntryId: dataEntry.id,
+          isActive: true 
+        },
+        order: [['ordre', 'ASC'], ['createdAt', 'ASC']]
       });
     },
 
