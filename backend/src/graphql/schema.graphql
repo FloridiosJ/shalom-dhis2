@@ -920,6 +920,9 @@ type Query {
   recentesActivitesSpiritulles(limit: Int): [ActiviteSpirituelle!]!
   activitesSpirituellesStats(dispensaireId: ID, dateFrom: DateTime, dateTo: DateTime): [ActiviteSprituelleStats!]!
 
+  # PrescriptionItem queries
+  prescriptionItems(dataEntryId: ID!): [PrescriptionItem!]!
+
   # Reports & Statistics
   reports: GlobalReports!
   reportsByDispensaire(dispensaireId: ID!): DispensaireReports!
