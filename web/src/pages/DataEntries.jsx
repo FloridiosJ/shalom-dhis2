@@ -3,6 +3,10 @@ import styles from "./DataEntries.module.css";
 import CreateDataEntryModal from "../components/CreateDataEntryModal";
 import CreatePatientModal from "../components/CreatePatientModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import SearchBar from "../components/SearchBar";
+import Pagination from "../components/Pagination";
+import DataEntryRow from "../components/DataEntryRow";
+import useSortedPaginatedData from "../hooks/useSortedPaginatedData";
 import dataEntryService from "../services/dataEntries";
 import patientService from "../services/patients";
 import dispensaireService from "../services/dispensaires";
@@ -22,10 +26,6 @@ const DataEntries = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [search, setSearch] = useState("");
-  const [sortColumn, setSortColumn] = useState("dateConsultation");
-  const [sortDirection, setSortDirection] = useState("desc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
   const [fetchError, setFetchError] = useState("");
   const [createPatientModalOpen, setCreatePatientModalOpen] = useState(false);
   const [prefilledPatientName, setPrefilledPatientName] = useState("");
@@ -66,64 +66,41 @@ const DataEntries = () => {
     );
   });
 
-  // Handle sorting
-  const handleSort = (column) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
-    setCurrentPage(1); // Reset to first page when sorting
-  };
-
-  const sortedEntries = [...filteredEntries].sort((a, b) => {
-    let aVal, bVal;
-    
-    switch (sortColumn) {
+  // Function to get sort value for a given entry and column
+  const getSortValue = (entry, column) => {
+    switch (column) {
       case "dateConsultation":
-        aVal = a.dateConsultation ? new Date(a.dateConsultation).getTime() : 0;
-        bVal = b.dateConsultation ? new Date(b.dateConsultation).getTime() : 0;
-        break;
+        return entry.dateConsultation ? new Date(entry.dateConsultation).getTime() : 0;
       case "patient":
-        aVal = a.patient ? `${a.patient.nom} ${a.patient.prenom}`.toLowerCase() : "";
-        bVal = b.patient ? `${b.patient.nom} ${b.patient.prenom}`.toLowerCase() : "";
-        break;
+        return entry.patient ? `${entry.patient.nom} ${entry.patient.prenom}`.toLowerCase() : "";
       case "dispensaire":
-        aVal = (a.dispensaire?.name || "").toLowerCase();
-        bVal = (b.dispensaire?.name || "").toLowerCase();
-        break;
+        return (entry.dispensaire?.name || "").toLowerCase();
       case "diagnostic":
-        aVal = (a.diagnostic || "").toLowerCase();
-        bVal = (b.diagnostic || "").toLowerCase();
-        break;
+        return (entry.diagnostic || "").toLowerCase();
       case "prescription":
-        aVal = (a.prescription || "").toLowerCase();
-        bVal = (b.prescription || "").toLowerCase();
-        break;
+        return (entry.prescription || "").toLowerCase();
       default:
-        return 0;
+        return "";
     }
-
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
-
-  // Pagination logic
-  const totalPages = Math.ceil(sortedEntries.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentEntries = sortedEntries.slice(indexOfFirstItem, indexOfLastItem);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
   };
 
-  // Reset to first page when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search]);
+  // Use the custom hook for sorting and pagination
+  const {
+    currentItems: currentEntries,
+    sortColumn,
+    sortDirection,
+    handleSort,
+    currentPage,
+    totalPages,
+    indexOfFirstItem,
+    indexOfLastItem,
+    handlePageChange,
+  } = useSortedPaginatedData(filteredEntries, {
+    itemsPerPage: 10,
+    initialSortColumn: "dateConsultation",
+    initialSortDirection: "desc",
+    getSortValue,
+  });
 
   // CRUD handlers
   const handleCreate = async (input) => {
@@ -188,15 +165,11 @@ const DataEntries = () => {
             Ajouter une consultation
           </button>
         </div>
-        <div className={styles.searchBar}>
-          <input
-            className={styles.searchInput}
-            type="text"
-            placeholder="Rechercher par patient, diagnostic, date..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher par patient, diagnostic, date..."
+        />
         {fetchError && (
           <div className={styles.errorBanner}>
             ⚠️ {fetchError}
@@ -278,124 +251,34 @@ const DataEntries = () => {
                   </td>
                 </tr>
               ) : (
-                currentEntries.map((entry) => {
-                  // Extraire date et heure pour affichage
-                  const dateObj = entry.dateConsultation ? new Date(entry.dateConsultation) : null;
-                  const dateStr = dateObj ? dateObj.toLocaleDateString("fr-FR") : "-";
-                  const timeStr = dateObj ? dateObj.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }) : "";
-                  const fullDateTime = dateObj ? `${dateStr} à ${timeStr}` : "-";
-
-                  // Extract diagnostic code if present (pattern: CODE - Description)
-                  const diagnosticText = entry.diagnostic || "-";
-                  const diagnosticMatch = diagnosticText.match(/^([A-Z0-9_]+)\s*-\s*(.+)$/);
-                  const diagnosticCode = diagnosticMatch ? diagnosticMatch[1] : null;
-                  const diagnosticLabel = diagnosticMatch ? diagnosticMatch[2] : diagnosticText;
-
-                  // Patient name
-                  const patientName = entry.patient ? `${entry.patient.nom} ${entry.patient.prenom}` : "-";
-
-                  return (
-                    <tr key={entry.id}>
-                      <td className={`${styles.td} ${styles.tdDate}`} title={fullDateTime}>
-                        {dateStr}
-                      </td>
-                      <td className={`${styles.td} ${styles.tdPatient}`} title={patientName}>
-                        {patientName}
-                      </td>
-                      <td className={`${styles.td} ${styles.tdDispensaire}`} title={entry.dispensaire?.name || "-"}>
-                        {entry.dispensaire?.name || "-"}
-                      </td>
-                      <td className={`${styles.td} ${styles.tdDiagnostic}`}>
-                        <div className={styles.diagnosticContainer} title={diagnosticText}>
-                          <span className={styles.diagnosticText}>{diagnosticLabel}</span>
-                          {diagnosticCode && (
-                            <span className={styles.diagnosticCode}>{diagnosticCode}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className={`${styles.td} ${styles.tdPrescription}`}>
-                        {entry.prescriptionItems && entry.prescriptionItems.length > 0 ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                            {entry.prescriptionItems.map((item, idx) => (
-                              <div key={item.id || idx} style={{ fontSize: '0.875rem' }}>
-                                <strong>{item.medicament}</strong>
-                                {item.dose && ` - ${item.dose}`}
-                                {item.frequence && ` - ${item.frequence}`}
-                                {item.duree && ` (${item.duree})`}
-                              </div>
-                            ))}
-                            {entry.prescription && (
-                              <div style={{ marginTop: '0.25rem', fontStyle: 'italic', color: '#64748b', fontSize: '0.8rem' }}>
-                                Note: {entry.prescription}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span title={entry.prescription || "-"}>{entry.prescription || "-"}</span>
-                        )}
-                      </td>
-                      <td className={`${styles.td} ${styles.tdActions}`}>
-                        <button
-                          className={`${styles.iconBtn} ${styles.iconBtnEdit}`}
-                          aria-label={`Modifier la consultation du ${dateStr}`}
-                          onClick={() => {
-                            setEntryToEdit(entry);
-                            setEditModalOpen(true);
-                          }}
-                          type="button"
-                        >
-                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 0 0 .707-.293l9.414-9.414a2 2 0 0 0 0-2.828l-3.172-3.172a2 2 0 0 0-2.828 0L4.293 14.879A1 1 0 0 0 4 15.586V20z"/>
-                          </svg>
-                        </button>
-                        <button
-                          className={`${styles.iconBtn} ${styles.iconBtnDelete}`}
-                          aria-label={`Supprimer la consultation du ${dateStr}`}
-                          onClick={() => {
-                            setEntryToDelete(entry);
-                            setDeleteModalOpen(true);
-                          }}
-                          type="button"
-                        >
-                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m5 0H4"/>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                currentEntries.map((entry) => (
+                  <DataEntryRow
+                    key={entry.id}
+                    entry={entry}
+                    onEdit={(entry) => {
+                      setEntryToEdit(entry);
+                      setEditModalOpen(true);
+                    }}
+                    onDelete={(entry) => {
+                      setEntryToDelete(entry);
+                      setDeleteModalOpen(true);
+                    }}
+                  />
+                ))
               )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <nav className={styles.pagination} role="navigation" aria-label="Pagination de la table">
-            <button 
-              className={styles.paginationBtn}
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              aria-label="Page précédente"
-              aria-disabled={currentPage === 1}
-            >
-              ← Précédent
-            </button>
-            <div className={styles.paginationInfo} aria-live="polite" aria-atomic="true">
-              Page {currentPage} sur {totalPages} — Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, sortedEntries.length)} sur {sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''}
-            </div>
-            <button 
-              className={styles.paginationBtn}
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              aria-label="Page suivante"
-              aria-disabled={currentPage === totalPages}
-            >
-              Suivant →
-            </button>
-          </nav>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredEntries.length}
+          startIndex={indexOfFirstItem}
+          endIndex={indexOfLastItem}
+          onPageChange={handlePageChange}
+        />
 
         {/* Modale création */}
         <CreateDataEntryModal
