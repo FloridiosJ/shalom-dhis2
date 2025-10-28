@@ -23,6 +23,7 @@ const DataEntries = () => {
   const [sortDirection, setSortDirection] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [fetchError, setFetchError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +31,7 @@ const DataEntries = () => {
   }, []);
 
   const fetchAll = async () => {
+    setFetchError("");
     try {
       const [entries, pats, disps] = await Promise.all([
         dataEntryService.getAll(),
@@ -41,6 +43,7 @@ const DataEntries = () => {
       setDispensaires(disps);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setFetchError("Erreur lors du chargement des données. Veuillez réessayer.");
     }
   };
 
@@ -169,24 +172,75 @@ const DataEntries = () => {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
+        {fetchError && (
+          <div className={styles.errorBanner}>
+            ⚠️ {fetchError}
+            <button onClick={fetchAll} className={styles.retryBtn}>Réessayer</button>
+          </div>
+        )}
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className={styles.th} onClick={() => handleSort("dateConsultation")} style={{ cursor: "pointer" }}>
-                  Date {sortColumn === "dateConsultation" && (sortDirection === "asc" ? "↑" : "↓")}
+                <th 
+                  className={`${styles.th} ${styles.thSortable}`} 
+                  onClick={() => handleSort("dateConsultation")}
+                  aria-sort={sortColumn === "dateConsultation" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                >
+                  Date
+                  {sortColumn === "dateConsultation" && (
+                    <span className={styles.sortIndicator} aria-hidden="true">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
-                <th className={styles.th} onClick={() => handleSort("patient")} style={{ cursor: "pointer", minWidth: "200px" }}>
-                  Patient {sortColumn === "patient" && (sortDirection === "asc" ? "↑" : "↓")}
+                <th 
+                  className={`${styles.th} ${styles.thSortable} ${styles.thPatient}`}
+                  onClick={() => handleSort("patient")}
+                  aria-sort={sortColumn === "patient" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                >
+                  Patient
+                  {sortColumn === "patient" && (
+                    <span className={styles.sortIndicator} aria-hidden="true">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
-                <th className={styles.th} onClick={() => handleSort("dispensaire")} style={{ cursor: "pointer" }}>
-                  Dispensaire {sortColumn === "dispensaire" && (sortDirection === "asc" ? "↑" : "↓")}
+                <th 
+                  className={`${styles.th} ${styles.thSortable}`}
+                  onClick={() => handleSort("dispensaire")}
+                  aria-sort={sortColumn === "dispensaire" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                >
+                  Dispensaire
+                  {sortColumn === "dispensaire" && (
+                    <span className={styles.sortIndicator} aria-hidden="true">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
-                <th className={styles.th} onClick={() => handleSort("diagnostic")} style={{ cursor: "pointer" }}>
-                  Diagnostic {sortColumn === "diagnostic" && (sortDirection === "asc" ? "↑" : "↓")}
+                <th 
+                  className={`${styles.th} ${styles.thSortable}`}
+                  onClick={() => handleSort("diagnostic")}
+                  aria-sort={sortColumn === "diagnostic" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                >
+                  Diagnostic
+                  {sortColumn === "diagnostic" && (
+                    <span className={styles.sortIndicator} aria-hidden="true">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
-                <th className={styles.th} onClick={() => handleSort("prescription")} style={{ cursor: "pointer" }}>
-                  Prescription {sortColumn === "prescription" && (sortDirection === "asc" ? "↑" : "↓")}
+                <th 
+                  className={`${styles.th} ${styles.thSortable}`}
+                  onClick={() => handleSort("prescription")}
+                  aria-sort={sortColumn === "prescription" ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                >
+                  Prescription
+                  {sortColumn === "prescription" && (
+                    <span className={styles.sortIndicator} aria-hidden="true">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
                 <th className={styles.th} style={{ textAlign: "right" }}>Actions</th>
               </tr>
