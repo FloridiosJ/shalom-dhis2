@@ -38,6 +38,13 @@ const entryFields = `
   dispensaire { id name }
   patient { id nom prenom numeroPatient displayName }
   typeConsultationDetails { code libelle }
+  categoriesWithMeta {
+    id
+    nom
+    code
+    isPrincipal
+    notes
+  }
 `;
 
 // 1. Liste des consultations
