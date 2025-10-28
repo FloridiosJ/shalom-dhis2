@@ -706,26 +706,6 @@ const CreateDataEntryModal = ({
             </div>
           )}
 
-          {/* ✅ Détails du diagnostic (optionnel) */}
-          <div className={styles.formGroup}>
-            <label htmlFor="diagnosticDetails" className={styles.label}>
-              Détails du diagnostic <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal" }}>(optionnel)</span>
-            </label>
-            <textarea
-              id="diagnosticDetails"
-              name="diagnosticDetails"
-              className={styles.input}
-              value={form.diagnosticDetails}
-              onChange={handleChange}
-              disabled={loading}
-              rows={2}
-              placeholder="Observations ou précisions complémentaires sur le diagnostic..."
-            />
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
-              💡 Ces détails seront ajoutés au diagnostic principal basé sur la catégorie sélectionnée
-            </div>
-          </div>
-
           {/* ✅ Prescriptions structurées */}
           <div className={styles.formGroup}>
             <label className={styles.label}>
@@ -761,29 +741,6 @@ const CreateDataEntryModal = ({
               + Ajouter un médicament
             </button>
           </div>
-
-          {/* Prescription libre (cas exceptionnels) - COMMENTÉ POUR L'INSTANT */}
-          {/* <div className={styles.formGroup}>
-            <label htmlFor="prescription" className={styles.label}>
-              Prescription libre
-              <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal", marginLeft: "0.5rem" }}>
-                (Cas exceptionnels uniquement)
-              </span>
-            </label>
-            <textarea
-              id="prescription"
-              name="prescription"
-              className={styles.input}
-              value={form.prescription}
-              onChange={handleChange}
-              disabled={loading}
-              rows={2}
-              placeholder="Utilisez la prescription structurée ci-dessus. Ce champ est uniquement pour des cas exceptionnels."
-            />
-            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
-              💡 Privilégiez la prescription structurée pour une meilleure analyse des données
-            </div>
-          </div> */}
 
           {/* Notes */}
           <div className={styles.formGroup}>
