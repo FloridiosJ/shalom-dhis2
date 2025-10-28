@@ -279,8 +279,7 @@ const CreateDataEntryModal = ({
     if (!categorySearchTerm.trim()) return true;
     const searchLower = categorySearchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const nomLower = (cat.nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const codeLower = (cat.code || '').toLowerCase();
-    return nomLower.includes(searchLower) || codeLower.includes(searchLower);
+    return nomLower.includes(searchLower);
   });
 
   return (
@@ -508,7 +507,6 @@ const CreateDataEntryModal = ({
                             <span className={styles.principalBadge}>★ Principale</span>
                           )}
                           <strong>{cat.nom}</strong>
-                          <span className={styles.categoryCode}>{cat.code}</span>
                         </div>
                         <div className={styles.categoryActions}>
                           {!cat.isPrincipal && selectedCategories.length > 1 && (
@@ -620,9 +618,6 @@ const CreateDataEntryModal = ({
                             >
                               <div className={styles.categoryItemContent}>
                                 <strong className={styles.categoryItemName}>{cat.nom}</strong>
-                                {cat.code && (
-                                  <span className={styles.categoryItemCode}>{cat.code}</span>
-                                )}
                               </div>
                             </div>
                           ))
