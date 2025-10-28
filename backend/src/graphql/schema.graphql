@@ -170,6 +170,7 @@ type DataEntry {
   typeConsultationDetails: TypeConsultation
   diagnostic: String!
   prescription: String
+  prescriptionItems: [PrescriptionItem!]!
   notes: String
   dateConsultation: DateTime!
   dateOnly: String
@@ -371,6 +372,23 @@ type CouvertureVaccinale {
   totalVaccinations: Int!
   parVaccin: [VaccinationStats!]!
   tauxCouverture: Float!
+}
+
+# PrescriptionItem type (médicament structuré)
+type PrescriptionItem {
+  id: ID!
+  dataEntryId: ID!
+  dataEntry: DataEntry
+  medicament: String!
+  dose: String
+  frequence: String
+  duree: String
+  notes: String
+  ordre: Int!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  formattedPrescription: String!
 }
 
 # ActiviteSpirituelle type
@@ -594,11 +612,22 @@ input CategorieAssociationInput {
   notes: String
 }
 
+# Input pour créer un item de prescription structurée
+input PrescriptionItemInput {
+  medicament: String!
+  dose: String
+  frequence: String
+  duree: String
+  notes: String
+  ordre: Int
+}
+
 input CreateDataEntryInput {
   patientId: ID!
   typeConsultation: String!
   diagnostic: String!
   prescription: String
+  prescriptionItems: [PrescriptionItemInput!]
   notes: String
   dateConsultation: DateTime
   dispensaireId: ID
@@ -609,6 +638,7 @@ input CreateDataEntryInput {
 input UpdateDataEntryInput {
   diagnostic: String
   prescription: String
+  prescriptionItems: [PrescriptionItemInput!]
   notes: String
   dateConsultation: DateTime
   status: ConsultationStatus

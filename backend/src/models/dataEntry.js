@@ -299,6 +299,13 @@ DataEntry.associate = (models) => {
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE'
   });
+
+  DataEntry.hasMany(models.PrescriptionItem, {
+    foreignKey: 'dataEntryId',
+    as: 'prescriptionItems',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  });
 };
 
 export default DataEntry;

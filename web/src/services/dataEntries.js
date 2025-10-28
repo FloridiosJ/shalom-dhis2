@@ -33,6 +33,15 @@ const entryFields = `
   typeConsultation
   diagnostic
   prescription
+  prescriptionItems {
+    id
+    medicament
+    dose
+    frequence
+    duree
+    notes
+    ordre
+  }
   notes
   status
   dispensaire { id name }

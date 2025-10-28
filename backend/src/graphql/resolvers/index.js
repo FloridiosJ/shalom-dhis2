@@ -9,6 +9,7 @@ import typeConsultationResolvers from './typeConsultation.js';
 import vaccinationResolvers from './vaccination.js';
 import activiteSpirituelleResolvers from './activiteSpirituelle.js';
 import reportsResolvers from './reports.js'; // ✅ NOUVEAU
+import prescriptionItemResolvers from './prescriptionItem.js';
 import { GraphQLScalarType, Kind } from 'graphql';
 
 // Custom DateTime scalar
@@ -68,6 +69,9 @@ export const resolvers = {
 
     // Reports queries
     ...reportsResolvers.Query, // ✅ NOUVEAU
+
+    // PrescriptionItem queries
+    ...prescriptionItemResolvers.Query,
   },
   
   Mutation: {
@@ -113,6 +117,7 @@ export const resolvers = {
   ArbreCategorie: categorieMaladieResolvers.ArbreCategorie,
   Vaccination: vaccinationResolvers.Vaccination,
   ActiviteSpirituelle: activiteSpirituelleResolvers.ActiviteSpirituelle,
+  PrescriptionItem: prescriptionItemResolvers.PrescriptionItem,
 };
 
 export default resolvers;
