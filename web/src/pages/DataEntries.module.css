@@ -2,7 +2,7 @@
   min-height: 100vh;
   width: 100%;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
-  padding: 0;
+  padding: 1rem 0;
   box-sizing: border-box;
 }
 .card {
@@ -10,11 +10,11 @@
   border-radius: 1.5rem;
   box-shadow: 0 8px 32px #0002;
   max-width: 1400px;
-  margin: 2rem auto;
-  padding: 2.5rem 2rem;
+  margin: 1rem auto;
+  padding: 1.5rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 .header {
   display: flex;
@@ -43,7 +43,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 .searchInput {
   border: 1.5px solid #cbd5e1;
@@ -208,8 +207,7 @@
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  padding: 1.5rem 0 0.5rem 0;
-  margin-top: 1rem;
+  padding: 1rem 0;
   border-top: 1px solid #e5e7eb;
 }
 
