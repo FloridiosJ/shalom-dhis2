@@ -285,17 +285,35 @@ const DataEntries = () => {
                   const timeStr = dateObj ? dateObj.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }) : "";
                   const fullDateTime = dateObj ? `${dateStr} à ${timeStr}` : "-";
 
+                  // Extract diagnostic code if present (pattern: CODE - Description)
+                  const diagnosticText = entry.diagnostic || "-";
+                  const diagnosticMatch = diagnosticText.match(/^([A-Z_]+)\s*-\s*(.+)$/);
+                  const diagnosticCode = diagnosticMatch ? diagnosticMatch[1] : null;
+                  const diagnosticLabel = diagnosticMatch ? diagnosticMatch[2] : diagnosticText;
+
+                  // Patient name
+                  const patientName = entry.patient ? `${entry.patient.nom} ${entry.patient.prenom}` : "-";
+
                   return (
                     <tr key={entry.id}>
-                      <td className={styles.td} title={fullDateTime}>
+                      <td className={`${styles.td} ${styles.tdDate}`} title={fullDateTime}>
                         {dateStr}
                       </td>
-                      <td className={styles.td}>
-                        {entry.patient ? `${entry.patient.nom} ${entry.patient.prenom}` : "-"}
+                      <td className={`${styles.td} ${styles.tdPatient}`} title={patientName}>
+                        {patientName}
                       </td>
-                      <td className={styles.td}>{entry.dispensaire?.name || "-"}</td>
-                      <td className={styles.td}>{entry.diagnostic}</td>
-                      <td className={styles.td}>
+                      <td className={`${styles.td} ${styles.tdDispensaire}`} title={entry.dispensaire?.name || "-"}>
+                        {entry.dispensaire?.name || "-"}
+                      </td>
+                      <td className={`${styles.td} ${styles.tdDiagnostic}`}>
+                        <div className={styles.diagnosticContainer} title={diagnosticText}>
+                          <span className={styles.diagnosticText}>{diagnosticLabel}</span>
+                          {diagnosticCode && (
+                            <span className={styles.diagnosticCode}>{diagnosticCode}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className={`${styles.td} ${styles.tdPrescription}`}>
                         {entry.prescriptionItems && entry.prescriptionItems.length > 0 ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                             {entry.prescriptionItems.map((item, idx) => (
@@ -313,13 +331,13 @@ const DataEntries = () => {
                             )}
                           </div>
                         ) : (
-                          entry.prescription || "-"
+                          <span title={entry.prescription || "-"}>{entry.prescription || "-"}</span>
                         )}
                       </td>
                       <td className={`${styles.td} ${styles.tdActions}`}>
                         <button
                           className={`${styles.iconBtn} ${styles.iconBtnEdit}`}
-                          aria-label="Modifier"
+                          aria-label={`Modifier la consultation du ${dateStr}`}
                           onClick={() => {
                             setEntryToEdit(entry);
                             setEditModalOpen(true);
@@ -332,7 +350,7 @@ const DataEntries = () => {
                         </button>
                         <button
                           className={`${styles.iconBtn} ${styles.iconBtnDelete}`}
-                          aria-label="Supprimer"
+                          aria-label={`Supprimer la consultation du ${dateStr}`}
                           onClick={() => {
                             setEntryToDelete(entry);
                             setDeleteModalOpen(true);
@@ -354,25 +372,29 @@ const DataEntries = () => {
         
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className={styles.pagination}>
+          <nav className={styles.pagination} role="navigation" aria-label="Pagination de la table">
             <button 
               className={styles.paginationBtn}
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              aria-label="Page précédente"
+              aria-disabled={currentPage === 1}
             >
               ← Précédent
             </button>
-            <div className={styles.paginationInfo}>
-              Page {currentPage} sur {totalPages} ({sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''})
+            <div className={styles.paginationInfo} aria-live="polite" aria-atomic="true">
+              Page {currentPage} sur {totalPages} — {sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''}
             </div>
             <button 
               className={styles.paginationBtn}
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              aria-label="Page suivante"
+              aria-disabled={currentPage === totalPages}
             >
               Suivant →
             </button>
-          </div>
+          </nav>
         )}
 
         {/* Modale création */}
