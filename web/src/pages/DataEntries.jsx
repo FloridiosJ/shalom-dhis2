@@ -287,7 +287,7 @@ const DataEntries = () => {
 
                   // Extract diagnostic code if present (pattern: CODE - Description)
                   const diagnosticText = entry.diagnostic || "-";
-                  const diagnosticMatch = diagnosticText.match(/^([A-Z_]+)\s*-\s*(.+)$/);
+                  const diagnosticMatch = diagnosticText.match(/^([A-Z0-9_]+)\s*-\s*(.+)$/);
                   const diagnosticCode = diagnosticMatch ? diagnosticMatch[1] : null;
                   const diagnosticLabel = diagnosticMatch ? diagnosticMatch[2] : diagnosticText;
 
@@ -383,7 +383,7 @@ const DataEntries = () => {
               ← Précédent
             </button>
             <div className={styles.paginationInfo} aria-live="polite" aria-atomic="true">
-              Page {currentPage} sur {totalPages} — {sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''}
+              Page {currentPage} sur {totalPages} — Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, sortedEntries.length)} sur {sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''}
             </div>
             <button 
               className={styles.paginationBtn}

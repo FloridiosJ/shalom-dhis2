@@ -152,7 +152,10 @@
   font-size: 0.875rem;
 }
 .td { color: #1e293b; }
-.tdActions { text-align: right; }
+.tdActions { 
+  text-align: right;
+  white-space: nowrap;
+}
 .iconBtn {
   background: none;
   border: none;
