@@ -1,7 +1,6 @@
 .pageBg {
   min-height: 100vh;
-  width: 100vw;
-  overflow-x: hidden;
+  width: 100%;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
   padding: 0;
   box-sizing: border-box;
@@ -10,7 +9,7 @@
   background: #fff;
   border-radius: 1.5rem;
   box-shadow: 0 8px 32px #0002;
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 2rem auto;
   padding: 2.5rem 2rem;
   display: flex;
@@ -54,18 +53,72 @@
   background: #f8fafc;
   width: 260px;
 }
-.tableWrapper { overflow-x: auto; }
+
+/* Error Banner */
+.errorBanner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.retryBtn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retryBtn:hover {
+  background: #b91c1c;
+}
+
+.tableWrapper { 
+  overflow-x: auto;
+  border-radius: 0.5rem;
+}
 .table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
+  table-layout: auto;
 }
 .th, .td {
   padding: 1rem;
   font-size: 1rem;
   border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
 }
-.th { color: #334155; font-weight: 600; background: #f9fafb; }
+.th { 
+  color: #334155; 
+  font-weight: 600; 
+  background: #f9fafb; 
+  user-select: none;
+}
+.th:hover:not(:last-child) {
+  background: #f1f5f9;
+}
+.thSortable {
+  cursor: pointer;
+}
+.thPatient {
+  min-width: 200px;
+}
+.sortIndicator {
+  margin-left: 0.25rem;
+  font-size: 0.875rem;
+}
 .td { color: #1e293b; }
 .tdActions { text-align: right; }
 .iconBtn {
@@ -90,8 +143,54 @@
   background: #f1f5f9;
   color: #2563eb;
 }
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.paginationBtn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paginationBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.paginationBtn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.paginationInfo {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 700px) {
   .card { padding: 1rem 0.5rem; }
   .th, .td { padding: 0.5rem; font-size: 0.95rem; }
   .searchInput { width: 100%; }
+  .pagination {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .paginationBtn {
+    width: 100%;
+  }
 }
