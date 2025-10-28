@@ -13,6 +13,7 @@ const CreateDataEntryModal = ({
   initialData = null,
   onSubmit,
   isEdit = false,
+  onCreatePatient, // ✅ Callback to open patient creation modal
 }) => {
   const { user } = useAuth();
   const isAgent = user?.role === 'agent';
@@ -36,8 +37,7 @@ const CreateDataEntryModal = ({
   const [loading, setLoading] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [filteredPatients, setFilteredPatients] = useState([]);
-  const [showNumAutocomplete, setShowNumAutocomplete] = useState(false);
-  const [filteredNumPatients, setFilteredNumPatients] = useState([]);
+  const [showCreatePatientButton, setShowCreatePatientButton] = useState(false);
   
   // ✅ État pour gérer les catégories sélectionnées
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -232,98 +232,65 @@ const CreateDataEntryModal = ({
             {errors.dateConsultation && <div className={styles.errorField}>{errors.dateConsultation}</div>}
           </div>
 
-          {/* Numéro patient */}
-          <div className={styles.formGroup} style={{ position: "relative" }}>
-            <label htmlFor="numeroPatient" className={styles.label}>
-              Numéro patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
-            </label>
-            <input
-              id="numeroPatient"
-              name="numeroPatient"
-              className={styles.input}
-              value={form.numeroPatient || ""}
-              onChange={e => {
-                const numero = e.target.value;
-                const filtered = patients.filter(p =>
-                  p.numeroPatient?.toLowerCase().includes(numero.toLowerCase())
-                );
-                const patient = patients.find(p => p.numeroPatient === numero);
-                setForm(f => ({
-                  ...f,
-                  numeroPatient: numero,
-                  patientId: patient ? patient.id : "",
-                  fullName: patient ? `${patient.nom} ${patient.prenom}` : "",
-                }));
-                setShowNumAutocomplete(filtered.length > 0 && numero.length > 0);
-                setFilteredNumPatients(filtered);
-              }}
-              autoComplete="off"
-              disabled={loading || isEdit}
-              onFocus={() => {
-                if (form.numeroPatient && filteredNumPatients?.length > 0) setShowNumAutocomplete(true);
-              }}
-              onBlur={() => setTimeout(() => setShowNumAutocomplete(false), 200)}
-            />
-            {showNumAutocomplete && (
-              <ul className={styles.autocompleteList}>
-                {filteredNumPatients.map((p) => (
-                  <li
-                    key={p.id}
-                    className={styles.autocompleteItem}
-                    onMouseDown={() => {
-                      setForm(f => ({
-                        ...f,
-                        numeroPatient: p.numeroPatient,
-                        patientId: p.id,
-                        fullName: `${p.nom} ${p.prenom}`,
-                      }));
-                      setShowNumAutocomplete(false);
-                    }}
-                  >
-                    <span style={{ fontWeight: 500 }}>{p.numeroPatient}</span>
-                    <span style={{ color: "#64748b", marginLeft: 8 }}>{p.nom} {p.prenom}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {errors.patientId && <div className={styles.errorField}>{errors.patientId}</div>}
-          </div>
-
-          {/* Nom et prénom */}
+          {/* Patient Selector - Nom et prénom avec numéro */}
           <div className={styles.formGroup} style={{ position: "relative" }}>
             <label htmlFor="fullName" className={styles.label}>
-              Nom et prénom <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
+              Patient <span aria-hidden="true" style={{ color: "#dc2626" }}>*</span>
             </label>
             <input
               id="fullName"
               name="fullName"
               className={styles.input}
-              value={form.fullName || ""}
+              value={form.patientId && form.numeroPatient 
+                ? `${form.fullName} (${form.numeroPatient})`
+                : form.fullName || ""
+              }
               onChange={e => {
                 const value = e.target.value;
+                // Remove patient number from search if present
+                const searchValue = value.replace(/\s*\([^)]*\)\s*$/, '').trim();
+                
                 const filtered = patients.filter(
                   p =>
-                    `${p.nom} ${p.prenom}`.toLowerCase().includes(value.toLowerCase()) ||
-                    p.nom?.toLowerCase().includes(value.toLowerCase()) ||
-                    p.prenom?.toLowerCase().includes(value.toLowerCase())
+                    `${p.nom} ${p.prenom}`.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    p.nom?.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    p.prenom?.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    p.numeroPatient?.toLowerCase().includes(searchValue.toLowerCase())
+                );
+                // Only clear patient selection if the value doesn't match the current selection
+                const currentPatientMatch = form.patientId && patients.find(p => 
+                  p.id === form.patientId && 
+                  `${p.nom} ${p.prenom}` === searchValue
                 );
                 setForm(f => ({
                   ...f,
-                  fullName: value,
-                  patientId: filtered.length === 1 ? filtered[0].id : "",
-                  numeroPatient: filtered.length === 1 ? filtered[0].numeroPatient : "",
+                  fullName: searchValue,
+                  patientId: currentPatientMatch ? f.patientId : "",
+                  numeroPatient: currentPatientMatch ? f.numeroPatient : "",
                 }));
-                setShowAutocomplete(filtered.length > 0 && value.length > 0);
+                setShowAutocomplete(searchValue.length > 0);
                 setFilteredPatients(filtered);
+                setShowCreatePatientButton(filtered.length === 0 && searchValue.length > 0);
               }}
               autoComplete="off"
               disabled={loading || isEdit}
-              onFocus={() => {
-                if (form.fullName && filteredPatients?.length > 0) setShowAutocomplete(true);
+              placeholder="Rechercher un patient par nom, prénom ou numéro..."
+              style={{ 
+                backgroundColor: form.patientId ? '#e0f2fe' : '#f8fafc',
+                cursor: form.patientId && isEdit ? 'not-allowed' : 'text'
               }}
-              onBlur={() => setTimeout(() => setShowAutocomplete(false), 200)}
+              onFocus={() => {
+                if (!form.patientId && form.fullName && filteredPatients?.length > 0) {
+                  setShowAutocomplete(true);
+                }
+              }}
+              onBlur={() => setTimeout(() => {
+                setShowAutocomplete(false);
+                setShowCreatePatientButton(false);
+              }, 200)}
             />
-            {showAutocomplete && (
+            {errors.patientId && <div className={styles.errorField}>{errors.patientId}</div>}
+            {showAutocomplete && filteredPatients.length > 0 && (
               <ul className={styles.autocompleteList}>
                 {filteredPatients.map((p) => (
                   <li
@@ -337,12 +304,38 @@ const CreateDataEntryModal = ({
                         numeroPatient: p.numeroPatient,
                       }));
                       setShowAutocomplete(false);
+                      setShowCreatePatientButton(false);
                     }}
                   >
-                    {p.nom} {p.prenom} <span style={{ color: "#64748b", marginLeft: 8 }}>{p.numeroPatient}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ fontWeight: 500 }}>
+                        {p.nom} {p.prenom}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '0.75rem' }}>
+                        <span>📋 {p.numeroPatient}</span>
+                        {p.dispensaire && <span>🏥 {p.dispensaire.name}</span>}
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
+            )}
+            {showCreatePatientButton && onCreatePatient && (
+              <div className={styles.createPatientPrompt}>
+                <span>Patient introuvable.</span>
+                <button
+                  type="button"
+                  className={styles.createPatientBtn}
+                  onMouseDown={() => {
+                    const searchValue = form.fullName;
+                    setShowCreatePatientButton(false);
+                    setShowAutocomplete(false);
+                    onCreatePatient(searchValue);
+                  }}
+                >
+                  + Créer un nouveau patient
+                </button>
+              </div>
             )}
           </div>
 
