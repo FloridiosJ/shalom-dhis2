@@ -324,6 +324,52 @@ const dataEntryResolvers = {
           };
         }
 
+        // ✅ VALIDATION : Catégories de maladies
+        if (input.categories && input.categories.length > 0) {
+          // Vérifier que toutes les catégories ont un ID
+          for (const cat of input.categories) {
+            if (!cat.categorieMaladieId) {
+              return {
+                dataEntry: null,
+                success: false,
+                message: 'Chaque catégorie doit avoir un ID',
+                errors: ['INVALID_CATEGORY']
+              };
+            }
+          }
+
+          // Si plusieurs catégories, vérifier qu'il y a exactement une principale
+          if (input.categories.length > 1) {
+            const principalCount = input.categories.filter(c => c.isPrincipal).length;
+            if (principalCount === 0) {
+              return {
+                dataEntry: null,
+                success: false,
+                message: 'Vous devez sélectionner une catégorie principale lorsque plusieurs catégories sont définies',
+                errors: ['MISSING_PRINCIPAL_CATEGORY']
+              };
+            }
+            if (principalCount > 1) {
+              return {
+                dataEntry: null,
+                success: false,
+                message: 'Une seule catégorie peut être marquée comme principale',
+                errors: ['MULTIPLE_PRINCIPAL_CATEGORIES']
+              };
+            }
+          }
+        } else if (!input.categorieIds || input.categorieIds.length === 0) {
+          // Si aucune catégorie n'est fournie, le diagnostic libre doit être présent
+          if (!input.diagnostic || !input.diagnostic.trim()) {
+            return {
+              dataEntry: null,
+              success: false,
+              message: 'Au moins une catégorie de maladie est requise',
+              errors: ['MISSING_CATEGORIES']
+            };
+          }
+        }
+
         // Créer la consultation
         const consultationDate = input.dateConsultation ? new Date(input.dateConsultation) : new Date();
         
@@ -439,6 +485,42 @@ const dataEntryResolvers = {
               message: 'Type de consultation invalide',
               errors: ['INVALID_TYPE']
             };
+          }
+        }
+
+        // ✅ VALIDATION : Catégories de maladies (lors de la mise à jour)
+        if (input.categories && input.categories.length > 0) {
+          // Vérifier que toutes les catégories ont un ID
+          for (const cat of input.categories) {
+            if (!cat.categorieMaladieId) {
+              return {
+                dataEntry: null,
+                success: false,
+                message: 'Chaque catégorie doit avoir un ID',
+                errors: ['INVALID_CATEGORY']
+              };
+            }
+          }
+
+          // Si plusieurs catégories, vérifier qu'il y a exactement une principale
+          if (input.categories.length > 1) {
+            const principalCount = input.categories.filter(c => c.isPrincipal).length;
+            if (principalCount === 0) {
+              return {
+                dataEntry: null,
+                success: false,
+                message: 'Vous devez sélectionner une catégorie principale lorsque plusieurs catégories sont définies',
+                errors: ['MISSING_PRINCIPAL_CATEGORY']
+              };
+            }
+            if (principalCount > 1) {
+              return {
+                dataEntry: null,
+                success: false,
+                message: 'Une seule catégorie peut être marquée comme principale',
+                errors: ['MULTIPLE_PRINCIPAL_CATEGORIES']
+              };
+            }
           }
         }
 

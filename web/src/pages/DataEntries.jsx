@@ -6,12 +6,14 @@ import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import dataEntryService from "../services/dataEntries";
 import patientService from "../services/patients";
 import dispensaireService from "../services/dispensaires";
+import categoriesService from "../services/categories"; // ✅ Ajout
 import { useNavigate } from 'react-router-dom';
 
 const DataEntries = () => {
   const [dataEntries, setDataEntries] = useState([]);
   const [patients, setPatients] = useState([]);
   const [dispensaires, setDispensaires] = useState([]);
+  const [categories, setCategories] = useState([]); // ✅ Ajout
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState(null);
@@ -36,14 +38,16 @@ const DataEntries = () => {
   const fetchAll = async () => {
     setFetchError("");
     try {
-      const [entries, pats, disps] = await Promise.all([
+      const [entries, pats, disps, cats] = await Promise.all([
         dataEntryService.getAll(),
         patientService.getAll(),
         dispensaireService.getAll(),
+        categoriesService.getAll(), // ✅ Ajout
       ]);
       setDataEntries(entries);
       setPatients(pats);
       setDispensaires(disps);
+      setCategories(cats); // ✅ Ajout
     } catch (error) {
       console.error("Error fetching data:", error);
       setFetchError("Erreur lors du chargement des données. Veuillez réessayer.");
@@ -358,6 +362,7 @@ const DataEntries = () => {
           onSaved={fetchAll}
           dispensaires={dispensaires}
           patients={patients}
+          categories={categories}
           onSubmit={handleCreate}
           isEdit={false}
           onCreatePatient={handleCreatePatient}
@@ -369,6 +374,7 @@ const DataEntries = () => {
           onSaved={fetchAll}
           dispensaires={dispensaires}
           patients={patients}
+          categories={categories}
           initialData={entryToEdit}
           onSubmit={handleEdit}
           isEdit={true}
