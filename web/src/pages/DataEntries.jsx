@@ -11,7 +11,6 @@ const DataEntries = () => {
   const [dataEntries, setDataEntries] = useState([]);
   const [patients, setPatients] = useState([]);
   const [dispensaires, setDispensaires] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState(null);
@@ -20,6 +19,10 @@ const DataEntries = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [search, setSearch] = useState("");
+  const [sortColumn, setSortColumn] = useState("dateConsultation");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +30,6 @@ const DataEntries = () => {
   }, []);
 
   const fetchAll = async () => {
-    setLoading(true);
     try {
       const [entries, pats, disps] = await Promise.all([
         dataEntryService.getAll(),
@@ -37,8 +39,8 @@ const DataEntries = () => {
       setDataEntries(entries);
       setPatients(pats);
       setDispensaires(disps);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -53,6 +55,65 @@ const DataEntries = () => {
       (e.dateConsultation && new Date(e.dateConsultation).toLocaleDateString("fr-FR").includes(term))
     );
   });
+
+  // Handle sorting
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  const sortedEntries = [...filteredEntries].sort((a, b) => {
+    let aVal, bVal;
+    
+    switch (sortColumn) {
+      case "dateConsultation":
+        aVal = a.dateConsultation ? new Date(a.dateConsultation).getTime() : 0;
+        bVal = b.dateConsultation ? new Date(b.dateConsultation).getTime() : 0;
+        break;
+      case "patient":
+        aVal = a.patient ? `${a.patient.nom} ${a.patient.prenom}`.toLowerCase() : "";
+        bVal = b.patient ? `${b.patient.nom} ${b.patient.prenom}`.toLowerCase() : "";
+        break;
+      case "dispensaire":
+        aVal = (a.dispensaire?.name || "").toLowerCase();
+        bVal = (b.dispensaire?.name || "").toLowerCase();
+        break;
+      case "diagnostic":
+        aVal = (a.diagnostic || "").toLowerCase();
+        bVal = (b.diagnostic || "").toLowerCase();
+        break;
+      case "prescription":
+        aVal = (a.prescription || "").toLowerCase();
+        bVal = (b.prescription || "").toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedEntries.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEntries = sortedEntries.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   // CRUD handlers
   const handleCreate = async (input) => {
@@ -112,26 +173,36 @@ const DataEntries = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className={styles.th}>Date</th>
-                <th className={styles.th}>Patient</th>
-                <th className={styles.th}>Dispensaire</th>
-                <th className={styles.th}>Diagnostic</th>
-                <th className={styles.th}>Prescription</th>
+                <th className={styles.th} onClick={() => handleSort("dateConsultation")} style={{ cursor: "pointer" }}>
+                  Date {sortColumn === "dateConsultation" && (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
+                <th className={styles.th} onClick={() => handleSort("patient")} style={{ cursor: "pointer", minWidth: "200px" }}>
+                  Patient {sortColumn === "patient" && (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
+                <th className={styles.th} onClick={() => handleSort("dispensaire")} style={{ cursor: "pointer" }}>
+                  Dispensaire {sortColumn === "dispensaire" && (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
+                <th className={styles.th} onClick={() => handleSort("diagnostic")} style={{ cursor: "pointer" }}>
+                  Diagnostic {sortColumn === "diagnostic" && (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
+                <th className={styles.th} onClick={() => handleSort("prescription")} style={{ cursor: "pointer" }}>
+                  Prescription {sortColumn === "prescription" && (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
                 <th className={styles.th} style={{ textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredEntries.length === 0 ? (
+              {currentEntries.length === 0 ? (
                 <tr>
                   <td colSpan={6} className={styles.td} style={{ textAlign: "center", color: "#64748b", background: "#f9fafb", padding: "2.5rem 0" }}>
                     Aucune consultation trouvée
                   </td>
                 </tr>
               ) : (
-                filteredEntries.map((entry) => (
+                currentEntries.map((entry) => (
                   <tr key={entry.id}>
                     <td className={styles.td}>
-                      {entry.dateConsultation ? new Date(entry.dateConsultation).toLocaleString("fr-FR") : "-"}
+                      {entry.dateConsultation ? new Date(entry.dateConsultation).toLocaleDateString("fr-FR") : "-"}
                     </td>
                     <td className={styles.td}>
                       {entry.patient ? `${entry.patient.nom} ${entry.patient.prenom}` : "-"}
@@ -173,6 +244,30 @@ const DataEntries = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className={styles.pagination}>
+            <button 
+              className={styles.paginationBtn}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ← Précédent
+            </button>
+            <div className={styles.paginationInfo}>
+              Page {currentPage} sur {totalPages} ({sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''})
+            </div>
+            <button 
+              className={styles.paginationBtn}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Suivant →
+            </button>
+          </div>
+        )}
+
         {/* Modale création */}
         <CreateDataEntryModal
           open={modalOpen}
