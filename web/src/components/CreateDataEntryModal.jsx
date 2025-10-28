@@ -48,10 +48,18 @@ const CreateDataEntryModal = ({
   
   // ✅ État pour gérer les prescriptions structurées
   const [prescriptionItems, setPrescriptionItems] = useState([]);
+  const [showMedicationSelector, setShowMedicationSelector] = useState({});
+  const [showDurationSelector, setShowDurationSelector] = useState({});
+  const [medicationSearchTerms, setMedicationSearchTerms] = useState({});
+  const [durationSearchTerms, setDurationSearchTerms] = useState({});
   
   const firstInputRef = useRef();
   const categorySearchRef = useRef(); // ✅ Référence pour l'input de recherche
   const categoryDropdownRef = useRef(); // ✅ Référence pour le dropdown
+  const medicationSearchRefs = useRef({});
+  const medicationDropdownRefs = useRef({});
+  const durationSearchRefs = useRef({});
+  const durationDropdownRefs = useRef({});
 
   // ✅ Fermer le dropdown quand on clique à l'extérieur
   useEffect(() => {
@@ -69,6 +77,46 @@ const CreateDataEntryModal = ({
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showCategorySelector]);
+
+  // ✅ Fermer les dropdowns de médicaments quand on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      Object.keys(showMedicationSelector).forEach(itemId => {
+        if (showMedicationSelector[itemId] && 
+            medicationDropdownRefs.current[itemId] && 
+            !medicationDropdownRefs.current[itemId].contains(event.target)) {
+          setShowMedicationSelector(prev => ({ ...prev, [itemId]: false }));
+          setMedicationSearchTerms(prev => ({ ...prev, [itemId]: "" }));
+        }
+      });
+    };
+
+    const hasOpenDropdown = Object.values(showMedicationSelector).some(v => v);
+    if (hasOpenDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showMedicationSelector]);
+
+  // ✅ Fermer les dropdowns de durée quand on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      Object.keys(showDurationSelector).forEach(itemId => {
+        if (showDurationSelector[itemId] && 
+            durationDropdownRefs.current[itemId] && 
+            !durationDropdownRefs.current[itemId].contains(event.target)) {
+          setShowDurationSelector(prev => ({ ...prev, [itemId]: false }));
+          setDurationSearchTerms(prev => ({ ...prev, [itemId]: "" }));
+        }
+      });
+    };
+
+    const hasOpenDropdown = Object.values(showDurationSelector).some(v => v);
+    if (hasOpenDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDurationSelector]);
 
   useEffect(() => {
     if (open) {
@@ -245,6 +293,18 @@ const CreateDataEntryModal = ({
     );
   };
 
+  const handleSelectMedication = (itemId, medication) => {
+    handlePrescriptionItemChange(itemId, 'medicament', medication);
+    setShowMedicationSelector({ ...showMedicationSelector, [itemId]: false });
+    setMedicationSearchTerms({ ...medicationSearchTerms, [itemId]: "" });
+  };
+
+  const handleSelectDuration = (itemId, duration) => {
+    handlePrescriptionItemChange(itemId, 'duree', duration);
+    setShowDurationSelector({ ...showDurationSelector, [itemId]: false });
+    setDurationSearchTerms({ ...durationSearchTerms, [itemId]: "" });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -269,9 +329,6 @@ const CreateDataEntryModal = ({
       // ✅ Générer le diagnostic à partir de la catégorie principale
       const principalCategory = selectedCategories.find(c => c.isPrincipal);
       let diagnosticText = principalCategory ? principalCategory.nom : "";
-      if (principalCategory && principalCategory.code) {
-        diagnosticText = `${principalCategory.code} - ${principalCategory.nom}`;
-      }
       // Ajouter les détails si présents
       if (form.diagnosticDetails?.trim()) {
         diagnosticText += ` (${form.diagnosticDetails.trim()})`;
@@ -283,7 +340,7 @@ const CreateDataEntryModal = ({
         dispensaireId: isAgent ? user.dispensaire.id : form.dispensaireId,
         typeConsultation: form.typeConsultation,
         diagnostic: diagnosticText, // ✅ Généré automatiquement
-        prescription: form.prescription || "",
+        // prescription: form.prescription || "", // ✅ Commenté - utiliser prescriptionItems
         notes: form.notes || "",
       };
 
@@ -755,26 +812,135 @@ const CreateDataEntryModal = ({
                       </button>
                     </div>
                     
-                    {/* Médicament avec autocomplete */}
+                    {/* Médicament avec dropdown */}
                     <div className={styles.prescriptionField}>
                       <label className={styles.prescriptionFieldLabel}>
                         Médicament <span style={{ color: "#dc2626" }}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        value={item.medicament}
-                        onChange={(e) => handlePrescriptionItemChange(item.id, 'medicament', e.target.value)}
-                        placeholder="Ex: Paracétamol, Amoxicilline..."
-                        list={`medications-list-${item.id}`}
-                        disabled={loading}
-                        required={prescriptionItems.length > 0}
-                      />
-                      <datalist id={`medications-list-${item.id}`}>
-                        {COMMON_MEDICATIONS.map((med) => (
-                          <option key={med} value={med} />
-                        ))}
-                      </datalist>
+                      
+                      {item.medicament ? (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.5rem',
+                          padding: '0.5rem',
+                          background: '#e0f2fe',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #0284c7'
+                        }}>
+                          <span style={{ flex: 1, fontWeight: 500 }}>{item.medicament}</span>
+                          <button
+                            type="button"
+                            onClick={() => handlePrescriptionItemChange(item.id, 'medicament', '')}
+                            style={{
+                              background: '#ef4444',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '0.25rem',
+                              padding: '0.25rem 0.5rem',
+                              cursor: 'pointer',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ position: 'relative' }} ref={el => medicationDropdownRefs.current[item.id] = el}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowMedicationSelector({ ...showMedicationSelector, [item.id]: !showMedicationSelector[item.id] });
+                              if (!showMedicationSelector[item.id]) {
+                                setTimeout(() => medicationSearchRefs.current[item.id]?.focus(), 100);
+                              }
+                            }}
+                            className={styles.addCategoryBtn}
+                            disabled={loading}
+                            style={{ width: '100%' }}
+                          >
+                            + Sélectionner un médicament
+                          </button>
+
+                          {showMedicationSelector[item.id] && (
+                            <div 
+                              className={styles.categorySelectorDropdown}
+                              role="listbox"
+                              aria-label="Sélecteur de médicaments"
+                            >
+                              <div className={styles.categorySearchContainer}>
+                                <input
+                                  ref={el => medicationSearchRefs.current[item.id] = el}
+                                  type="text"
+                                  className={styles.categorySearchInput}
+                                  placeholder="Rechercher un médicament..."
+                                  value={medicationSearchTerms[item.id] || ""}
+                                  onChange={(e) => setMedicationSearchTerms({ ...medicationSearchTerms, [item.id]: e.target.value })}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                      setShowMedicationSelector({ ...showMedicationSelector, [item.id]: false });
+                                      setMedicationSearchTerms({ ...medicationSearchTerms, [item.id]: "" });
+                                    }
+                                  }}
+                                  aria-label="Rechercher un médicament"
+                                />
+                                <svg 
+                                  className={styles.categorySearchIcon}
+                                  width="16" 
+                                  height="16" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                              </div>
+
+                              <div className={styles.categoryListContainer}>
+                                {COMMON_MEDICATIONS
+                                  .filter(med => {
+                                    const searchTerm = (medicationSearchTerms[item.id] || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                                    const medLower = med.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                                    return medLower.includes(searchTerm);
+                                  })
+                                  .map((med) => (
+                                    <div
+                                      key={med}
+                                      className={styles.categorySelectorItem}
+                                      onClick={() => handleSelectMedication(item.id, med)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault();
+                                          handleSelectMedication(item.id, med);
+                                        }
+                                      }}
+                                      role="option"
+                                      tabIndex={0}
+                                      aria-selected="false"
+                                    >
+                                      <div className={styles.categoryItemContent}>
+                                        <strong className={styles.categoryItemName}>{med}</strong>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+
+                              <div className={styles.categoryDropdownFooter}>
+                                <button
+                                  type="button"
+                                  className={styles.categoryCloseBtn}
+                                  onClick={() => {
+                                    setShowMedicationSelector({ ...showMedicationSelector, [item.id]: false });
+                                    setMedicationSearchTerms({ ...medicationSearchTerms, [item.id]: "" });
+                                  }}
+                                >
+                                  Fermer (Échap)
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     {/* Dose */}
@@ -809,23 +975,133 @@ const CreateDataEntryModal = ({
                       </datalist>
                     </div>
                     
-                    {/* Durée avec autocomplete */}
+                    {/* Durée avec dropdown */}
                     <div className={styles.prescriptionField}>
                       <label className={styles.prescriptionFieldLabel}>Durée</label>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        value={item.duree}
-                        onChange={(e) => handlePrescriptionItemChange(item.id, 'duree', e.target.value)}
-                        placeholder="Ex: 7 jours, 2 semaines..."
-                        list={`durations-list-${item.id}`}
-                        disabled={loading}
-                      />
-                      <datalist id={`durations-list-${item.id}`}>
-                        {COMMON_DURATIONS.map((dur) => (
-                          <option key={dur} value={dur} />
-                        ))}
-                      </datalist>
+                      
+                      {item.duree ? (
+                        <div style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.5rem',
+                          padding: '0.5rem',
+                          background: '#e0f2fe',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #0284c7'
+                        }}>
+                          <span style={{ flex: 1, fontWeight: 500 }}>{item.duree}</span>
+                          <button
+                            type="button"
+                            onClick={() => handlePrescriptionItemChange(item.id, 'duree', '')}
+                            style={{
+                              background: '#ef4444',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '0.25rem',
+                              padding: '0.25rem 0.5rem',
+                              cursor: 'pointer',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ position: 'relative' }} ref={el => durationDropdownRefs.current[item.id] = el}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowDurationSelector({ ...showDurationSelector, [item.id]: !showDurationSelector[item.id] });
+                              if (!showDurationSelector[item.id]) {
+                                setTimeout(() => durationSearchRefs.current[item.id]?.focus(), 100);
+                              }
+                            }}
+                            className={styles.addCategoryBtn}
+                            disabled={loading}
+                            style={{ width: '100%' }}
+                          >
+                            + Sélectionner une durée
+                          </button>
+
+                          {showDurationSelector[item.id] && (
+                            <div 
+                              className={styles.categorySelectorDropdown}
+                              role="listbox"
+                              aria-label="Sélecteur de durée"
+                            >
+                              <div className={styles.categorySearchContainer}>
+                                <input
+                                  ref={el => durationSearchRefs.current[item.id] = el}
+                                  type="text"
+                                  className={styles.categorySearchInput}
+                                  placeholder="Rechercher une durée..."
+                                  value={durationSearchTerms[item.id] || ""}
+                                  onChange={(e) => setDurationSearchTerms({ ...durationSearchTerms, [item.id]: e.target.value })}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                      setShowDurationSelector({ ...showDurationSelector, [item.id]: false });
+                                      setDurationSearchTerms({ ...durationSearchTerms, [item.id]: "" });
+                                    }
+                                  }}
+                                  aria-label="Rechercher une durée"
+                                />
+                                <svg 
+                                  className={styles.categorySearchIcon}
+                                  width="16" 
+                                  height="16" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                              </div>
+
+                              <div className={styles.categoryListContainer}>
+                                {COMMON_DURATIONS
+                                  .filter(dur => {
+                                    const searchTerm = (durationSearchTerms[item.id] || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                                    const durLower = dur.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                                    return durLower.includes(searchTerm);
+                                  })
+                                  .map((dur) => (
+                                    <div
+                                      key={dur}
+                                      className={styles.categorySelectorItem}
+                                      onClick={() => handleSelectDuration(item.id, dur)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault();
+                                          handleSelectDuration(item.id, dur);
+                                        }
+                                      }}
+                                      role="option"
+                                      tabIndex={0}
+                                      aria-selected="false"
+                                    >
+                                      <div className={styles.categoryItemContent}>
+                                        <strong className={styles.categoryItemName}>{dur}</strong>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+
+                              <div className={styles.categoryDropdownFooter}>
+                                <button
+                                  type="button"
+                                  className={styles.categoryCloseBtn}
+                                  onClick={() => {
+                                    setShowDurationSelector({ ...showDurationSelector, [item.id]: false });
+                                    setDurationSearchTerms({ ...durationSearchTerms, [item.id]: "" });
+                                  }}
+                                >
+                                  Fermer (Échap)
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     {/* Notes pour ce médicament */}
@@ -857,8 +1133,8 @@ const CreateDataEntryModal = ({
             </button>
           </div>
 
-          {/* Prescription libre (cas exceptionnels) */}
-          <div className={styles.formGroup}>
+          {/* Prescription libre (cas exceptionnels) - COMMENTÉ POUR L'INSTANT */}
+          {/* <div className={styles.formGroup}>
             <label htmlFor="prescription" className={styles.label}>
               Prescription libre
               <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal", marginLeft: "0.5rem" }}>
@@ -878,7 +1154,7 @@ const CreateDataEntryModal = ({
             <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
               💡 Privilégiez la prescription structurée pour une meilleure analyse des données
             </div>
-          </div>
+          </div> */}
 
           {/* Notes */}
           <div className={styles.formGroup}>
