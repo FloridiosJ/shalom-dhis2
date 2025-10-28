@@ -20,6 +20,10 @@ const DataEntries = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+  const itemsPerPage = 10;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +57,68 @@ const DataEntries = () => {
       (e.dateConsultation && new Date(e.dateConsultation).toLocaleDateString("fr-FR").includes(term))
     );
   });
+
+  // Sort entries
+  const sortedEntries = [...filteredEntries].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let aVal, bVal;
+    
+    switch (sortColumn) {
+      case "date":
+        aVal = a.dateConsultation ? new Date(a.dateConsultation).getTime() : 0;
+        bVal = b.dateConsultation ? new Date(b.dateConsultation).getTime() : 0;
+        break;
+      case "patient":
+        aVal = a.patient ? `${a.patient.nom} ${a.patient.prenom}`.toLowerCase() : "";
+        bVal = b.patient ? `${b.patient.nom} ${b.patient.prenom}`.toLowerCase() : "";
+        break;
+      case "dispensaire":
+        aVal = (a.dispensaire?.name || "").toLowerCase();
+        bVal = (b.dispensaire?.name || "").toLowerCase();
+        break;
+      case "diagnostic":
+        aVal = (a.diagnostic || "").toLowerCase();
+        bVal = (b.diagnostic || "").toLowerCase();
+        break;
+      case "prescription":
+        aVal = (a.prescription || "").toLowerCase();
+        bVal = (b.prescription || "").toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Paginate entries
+  const totalPages = Math.ceil(sortedEntries.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedEntries = sortedEntries.slice(startIndex, startIndex + itemsPerPage);
+
+  // Handle sorting
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+    setCurrentPage(1);
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   // CRUD handlers
   const handleCreate = async (input) => {
@@ -112,26 +178,51 @@ const DataEntries = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className={styles.th}>Date</th>
-                <th className={styles.th}>Patient</th>
-                <th className={styles.th}>Dispensaire</th>
-                <th className={styles.th}>Diagnostic</th>
-                <th className={styles.th}>Prescription</th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort("date")}>
+                  Date
+                  {sortColumn === "date" && (
+                    <span className={styles.sortIcon}>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                  )}
+                </th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort("patient")}>
+                  Patient
+                  {sortColumn === "patient" && (
+                    <span className={styles.sortIcon}>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                  )}
+                </th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort("dispensaire")}>
+                  Dispensaire
+                  {sortColumn === "dispensaire" && (
+                    <span className={styles.sortIcon}>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                  )}
+                </th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort("diagnostic")}>
+                  Diagnostic
+                  {sortColumn === "diagnostic" && (
+                    <span className={styles.sortIcon}>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                  )}
+                </th>
+                <th className={`${styles.th} ${styles.sortable}`} onClick={() => handleSort("prescription")}>
+                  Prescription
+                  {sortColumn === "prescription" && (
+                    <span className={styles.sortIcon}>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
+                  )}
+                </th>
                 <th className={styles.th} style={{ textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredEntries.length === 0 ? (
+              {paginatedEntries.length === 0 ? (
                 <tr>
                   <td colSpan={6} className={styles.td} style={{ textAlign: "center", color: "#64748b", background: "#f9fafb", padding: "2.5rem 0" }}>
                     Aucune consultation trouvée
                   </td>
                 </tr>
               ) : (
-                filteredEntries.map((entry) => (
+                paginatedEntries.map((entry) => (
                   <tr key={entry.id}>
                     <td className={styles.td}>
-                      {entry.dateConsultation ? new Date(entry.dateConsultation).toLocaleString("fr-FR") : "-"}
+                      {entry.dateConsultation ? new Date(entry.dateConsultation).toLocaleDateString("fr-FR") : "-"}
                     </td>
                     <td className={styles.td}>
                       {entry.patient ? `${entry.patient.nom} ${entry.patient.prenom}` : "-"}
@@ -173,6 +264,29 @@ const DataEntries = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className={styles.pagination}>
+            <button 
+              className={styles.paginationBtn} 
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ‹ Précédent
+            </button>
+            <div className={styles.paginationInfo}>
+              Page {currentPage} sur {totalPages} ({sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''})
+            </div>
+            <button 
+              className={styles.paginationBtn} 
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Suivant ›
+            </button>
+          </div>
+        )}
         {/* Modale création */}
         <CreateDataEntryModal
           open={modalOpen}
