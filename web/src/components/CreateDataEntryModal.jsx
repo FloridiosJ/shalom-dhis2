@@ -44,8 +44,28 @@ const CreateDataEntryModal = ({
   // ✅ État pour gérer les catégories sélectionnées
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategorySelector, setShowCategorySelector] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState(""); // ✅ Nouveau: recherche de catégorie
   
   const firstInputRef = useRef();
+  const categorySearchRef = useRef(); // ✅ Référence pour l'input de recherche
+  const categoryDropdownRef = useRef(); // ✅ Référence pour le dropdown
+
+  // ✅ Fermer le dropdown quand on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCategorySelector && 
+          categoryDropdownRef.current && 
+          !categoryDropdownRef.current.contains(event.target)) {
+        setShowCategorySelector(false);
+        setCategorySearchTerm("");
+      }
+    };
+
+    if (showCategorySelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showCategorySelector]);
 
   useEffect(() => {
     if (open) {
@@ -156,6 +176,7 @@ const CreateDataEntryModal = ({
 
     setSelectedCategories([...selectedCategories, newCategory]);
     setShowCategorySelector(false);
+    setCategorySearchTerm(""); // ✅ Réinitialiser la recherche
   };
 
   // ✅ Retirer une catégorie
@@ -252,6 +273,15 @@ const CreateDataEntryModal = ({
   const availableCategories = categories.filter(
     cat => !selectedCategories.some(sc => sc.categorieMaladieId === cat.id)
   );
+
+  // ✅ Filtrer les catégories selon le terme de recherche
+  const filteredCategories = availableCategories.filter(cat => {
+    if (!categorySearchTerm.trim()) return true;
+    const searchLower = categorySearchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const nomLower = (cat.nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const codeLower = (cat.code || '').toLowerCase();
+    return nomLower.includes(searchLower) || codeLower.includes(searchLower);
+  });
 
   return (
     <div className={styles.overlay} aria-modal="true" role="dialog" tabIndex={-1} onClick={onClose}>
@@ -515,28 +545,107 @@ const CreateDataEntryModal = ({
 
               {/* Bouton ajouter catégorie */}
               {availableCategories.length > 0 && (
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative' }} ref={categoryDropdownRef}>
                   <button
                     type="button"
-                    onClick={() => setShowCategorySelector(!showCategorySelector)}
+                    onClick={() => {
+                      setShowCategorySelector(!showCategorySelector);
+                      if (!showCategorySelector) {
+                        setTimeout(() => categorySearchRef.current?.focus(), 100);
+                      }
+                    }}
                     className={styles.addCategoryBtn}
                     disabled={loading}
+                    aria-expanded={showCategorySelector}
+                    aria-haspopup="listbox"
                   >
                     + Ajouter une catégorie
                   </button>
 
                   {showCategorySelector && (
-                    <div className={styles.categorySelectorDropdown}>
-                      {availableCategories.map((cat) => (
-                        <div
-                          key={cat.id}
-                          className={styles.categorySelectorItem}
-                          onClick={() => handleAddCategory(cat.id)}
+                    <div 
+                      className={styles.categorySelectorDropdown}
+                      role="listbox"
+                      aria-label="Sélecteur de catégories"
+                    >
+                      {/* ✅ Champ de recherche */}
+                      <div className={styles.categorySearchContainer}>
+                        <input
+                          ref={categorySearchRef}
+                          type="text"
+                          className={styles.categorySearchInput}
+                          placeholder="Rechercher une catégorie..."
+                          value={categorySearchTerm}
+                          onChange={(e) => setCategorySearchTerm(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowCategorySelector(false);
+                              setCategorySearchTerm("");
+                            } else if (e.key === 'Enter' && filteredCategories.length === 1) {
+                              e.preventDefault();
+                              handleAddCategory(filteredCategories[0].id);
+                            }
+                          }}
+                          aria-label="Rechercher une catégorie"
+                        />
+                        <svg 
+                          className={styles.categorySearchIcon}
+                          width="16" 
+                          height="16" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
                         >
-                          <strong>{cat.nom}</strong>
-                          <span className={styles.categoryCode}>{cat.code}</span>
-                        </div>
-                      ))}
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+
+                      {/* ✅ Liste des catégories filtrées */}
+                      <div className={styles.categoryListContainer}>
+                        {filteredCategories.length > 0 ? (
+                          filteredCategories.map((cat) => (
+                            <div
+                              key={cat.id}
+                              className={styles.categorySelectorItem}
+                              onClick={() => handleAddCategory(cat.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  handleAddCategory(cat.id);
+                                }
+                              }}
+                              role="option"
+                              tabIndex={0}
+                              aria-selected="false"
+                            >
+                              <div className={styles.categoryItemContent}>
+                                <strong className={styles.categoryItemName}>{cat.nom}</strong>
+                                {cat.code && (
+                                  <span className={styles.categoryItemCode}>{cat.code}</span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className={styles.categoryNoResults}>
+                            Aucune catégorie trouvée
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ✅ Bouton de fermeture */}
+                      <div className={styles.categoryDropdownFooter}>
+                        <button
+                          type="button"
+                          className={styles.categoryCloseBtn}
+                          onClick={() => {
+                            setShowCategorySelector(false);
+                            setCategorySearchTerm("");
+                          }}
+                        >
+                          Fermer (Échap)
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -266,30 +266,133 @@ textarea:focus {
   left: 0;
   right: 0;
   margin-top: 0.5rem;
-  max-height: 300px;
-  overflow-y: auto;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000; /* ✅ Augmenté pour être au-dessus du modal */
+  overflow: hidden; /* ✅ Pour contenir les éléments enfants */
 }
 
-.categorySelectorItem {
+/* ✅ Nouveau: Conteneur de recherche */
+.categorySearchContainer {
+  position: relative;
   padding: 0.75rem;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
 
-.categorySelectorItem:hover {
+.categorySearchInput {
+  width: 100%;
+  padding: 0.625rem 0.75rem 0.625rem 2.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+.categorySearchInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.categorySearchIcon {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* ✅ Nouveau: Conteneur de liste avec scroll */
+.categoryListContainer {
+  max-height: 250px; /* ✅ Hauteur fixe pour éviter débordement */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ✅ Amélioration: Styles d'items */
+.categorySelectorItem {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  background: transparent;
+}
+
+.categorySelectorItem:hover,
+.categorySelectorItem:focus {
   background: #f1f5f9;
+  outline: none;
+}
+
+.categorySelectorItem:active {
+  background: #e2e8f0;
 }
 
 .categorySelectorItem + .categorySelectorItem {
   border-top: 1px solid #f1f5f9;
+}
+
+/* ✅ Nouveau: Contenu de l'item */
+.categoryItemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.categoryItemName {
+  font-size: 0.9375rem;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.categoryItemCode {
+  font-size: 0.75rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  width: fit-content;
+  font-family: 'Courier New', monospace;
+}
+
+/* ✅ Nouveau: Message sans résultats */
+.categoryNoResults {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* ✅ Nouveau: Footer du dropdown */
+.categoryDropdownFooter {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.categoryCloseBtn {
+  padding: 0.375rem 0.75rem;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: all 0.2s;
+}
+
+.categoryCloseBtn:hover {
+  background: white;
+  border-color: #94a3b8;
+  color: #475569;
 }
 
 .infoText {
