@@ -48,7 +48,6 @@ const CreateDataEntryModal = ({
   
   // ✅ État pour gérer les prescriptions structurées
   const [prescriptionItems, setPrescriptionItems] = useState([]);
-  const [showAddPrescription, setShowAddPrescription] = useState(false);
   
   const firstInputRef = useRef();
   const categorySearchRef = useRef(); // ✅ Référence pour l'input de recherche
@@ -232,7 +231,6 @@ const CreateDataEntryModal = ({
       ordre: prescriptionItems.length
     };
     setPrescriptionItems([...prescriptionItems, newItem]);
-    setShowAddPrescription(false);
   };
 
   const handleRemovePrescriptionItem = (itemId) => {
@@ -730,17 +728,156 @@ const CreateDataEntryModal = ({
             </div>
           </div>
 
-          {/* Prescription */}
+          {/* ✅ Prescriptions structurées */}
           <div className={styles.formGroup}>
-            <label htmlFor="prescription" className={styles.label}>Prescription</label>
-            <input
+            <label className={styles.label}>
+              Prescriptions structurées
+              <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal", marginLeft: "0.5rem" }}>
+                (Recommandé pour analyse)</span>
+            </label>
+            
+            {/* Liste des médicaments prescrits */}
+            {prescriptionItems.length > 0 && (
+              <div className={styles.prescriptionsList}>
+                {prescriptionItems.map((item, index) => (
+                  <div key={item.id} className={styles.prescriptionItem}>
+                    <div className={styles.prescriptionHeader}>
+                      <strong style={{ color: '#0284c7', fontSize: '0.9rem' }}>
+                        Médicament #{index + 1}
+                      </strong>
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePrescriptionItem(item.id)}
+                        className={styles.removeBtn}
+                        title="Retirer ce médicament"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    
+                    {/* Médicament avec autocomplete */}
+                    <div className={styles.prescriptionField}>
+                      <label className={styles.prescriptionFieldLabel}>
+                        Médicament <span style={{ color: "#dc2626" }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        value={item.medicament}
+                        onChange={(e) => handlePrescriptionItemChange(item.id, 'medicament', e.target.value)}
+                        placeholder="Ex: Paracétamol, Amoxicilline..."
+                        list={`medications-list-${item.id}`}
+                        disabled={loading}
+                        required={prescriptionItems.length > 0}
+                      />
+                      <datalist id={`medications-list-${item.id}`}>
+                        {COMMON_MEDICATIONS.map((med) => (
+                          <option key={med} value={med} />
+                        ))}
+                      </datalist>
+                    </div>
+                    
+                    {/* Dose */}
+                    <div className={styles.prescriptionField}>
+                      <label className={styles.prescriptionFieldLabel}>Dose</label>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        value={item.dose}
+                        onChange={(e) => handlePrescriptionItemChange(item.id, 'dose', e.target.value)}
+                        placeholder="Ex: 500mg, 2 comprimés..."
+                        disabled={loading}
+                      />
+                    </div>
+                    
+                    {/* Fréquence avec autocomplete */}
+                    <div className={styles.prescriptionField}>
+                      <label className={styles.prescriptionFieldLabel}>Fréquence</label>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        value={item.frequence}
+                        onChange={(e) => handlePrescriptionItemChange(item.id, 'frequence', e.target.value)}
+                        placeholder="Ex: 3x/jour, matin et soir..."
+                        list={`frequencies-list-${item.id}`}
+                        disabled={loading}
+                      />
+                      <datalist id={`frequencies-list-${item.id}`}>
+                        {COMMON_FREQUENCIES.map((freq) => (
+                          <option key={freq} value={freq} />
+                        ))}
+                      </datalist>
+                    </div>
+                    
+                    {/* Durée avec autocomplete */}
+                    <div className={styles.prescriptionField}>
+                      <label className={styles.prescriptionFieldLabel}>Durée</label>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        value={item.duree}
+                        onChange={(e) => handlePrescriptionItemChange(item.id, 'duree', e.target.value)}
+                        placeholder="Ex: 7 jours, 2 semaines..."
+                        list={`durations-list-${item.id}`}
+                        disabled={loading}
+                      />
+                      <datalist id={`durations-list-${item.id}`}>
+                        {COMMON_DURATIONS.map((dur) => (
+                          <option key={dur} value={dur} />
+                        ))}
+                      </datalist>
+                    </div>
+                    
+                    {/* Notes pour ce médicament */}
+                    <div className={styles.prescriptionField}>
+                      <label className={styles.prescriptionFieldLabel}>Notes</label>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        value={item.notes}
+                        onChange={(e) => handlePrescriptionItemChange(item.id, 'notes', e.target.value)}
+                        placeholder="Précisions pour ce médicament..."
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Bouton ajouter médicament */}
+            <button
+              type="button"
+              onClick={handleAddPrescriptionItem}
+              className={styles.addCategoryBtn}
+              disabled={loading}
+              style={{ marginTop: prescriptionItems.length > 0 ? '0.5rem' : '0' }}
+            >
+              + Ajouter un médicament
+            </button>
+          </div>
+
+          {/* Prescription libre (cas exceptionnels) */}
+          <div className={styles.formGroup}>
+            <label htmlFor="prescription" className={styles.label}>
+              Prescription libre
+              <span style={{ color: "#64748b", fontSize: "0.875rem", fontWeight: "normal", marginLeft: "0.5rem" }}>
+                (Cas exceptionnels uniquement)
+              </span>
+            </label>
+            <textarea
               id="prescription"
               name="prescription"
               className={styles.input}
               value={form.prescription}
               onChange={handleChange}
               disabled={loading}
+              rows={2}
+              placeholder="Utilisez la prescription structurée ci-dessus. Ce champ est uniquement pour des cas exceptionnels."
             />
+            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+              💡 Privilégiez la prescription structurée pour une meilleure analyse des données
+            </div>
           </div>
 
           {/* Notes */}

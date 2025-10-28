@@ -295,7 +295,27 @@ const DataEntries = () => {
                       </td>
                       <td className={styles.td}>{entry.dispensaire?.name || "-"}</td>
                       <td className={styles.td}>{entry.diagnostic}</td>
-                      <td className={styles.td}>{entry.prescription || "-"}</td>
+                      <td className={styles.td}>
+                        {entry.prescriptionItems && entry.prescriptionItems.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            {entry.prescriptionItems.map((item, idx) => (
+                              <div key={item.id || idx} style={{ fontSize: '0.875rem' }}>
+                                <strong>{item.medicament}</strong>
+                                {item.dose && ` - ${item.dose}`}
+                                {item.frequence && ` - ${item.frequence}`}
+                                {item.duree && ` (${item.duree})`}
+                              </div>
+                            ))}
+                            {entry.prescription && (
+                              <div style={{ marginTop: '0.25rem', fontStyle: 'italic', color: '#64748b', fontSize: '0.8rem' }}>
+                                Note: {entry.prescription}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          entry.prescription || "-"
+                        )}
+                      </td>
                       <td className={`${styles.td} ${styles.tdActions}`}>
                         <button
                           className={`${styles.iconBtn} ${styles.iconBtnEdit}`}
