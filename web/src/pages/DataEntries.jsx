@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./DataEntries.module.css";
 import CreateDataEntryModal from "../components/CreateDataEntryModal";
+import CreatePatientModal from "../components/CreatePatientModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import dataEntryService from "../services/dataEntries";
 import patientService from "../services/patients";
@@ -24,6 +25,8 @@ const DataEntries = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [fetchError, setFetchError] = useState("");
+  const [createPatientModalOpen, setCreatePatientModalOpen] = useState(false);
+  const [prefilledPatientName, setPrefilledPatientName] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,6 +146,22 @@ const DataEntries = () => {
     } finally {
       setDeleteLoading(false);
     }
+  };
+
+  const handleCreatePatient = (patientName) => {
+    // Extract first and last name from the search input
+    const names = patientName.trim().split(' ');
+    const prenom = names[0] || '';
+    const nom = names.slice(1).join(' ') || '';
+    setPrefilledPatientName({ nom, prenom });
+    setCreatePatientModalOpen(true);
+  };
+
+  const handlePatientSaved = () => {
+    fetchAll();
+    setCreatePatientModalOpen(false);
+    setPrefilledPatientName("");
+    setModalOpen(true); // Reopen the data entry modal
   };
 
   return (
@@ -331,6 +350,7 @@ const DataEntries = () => {
           patients={patients}
           onSubmit={handleCreate}
           isEdit={false}
+          onCreatePatient={handleCreatePatient}
         />
         {/* Modale édition */}
         <CreateDataEntryModal
@@ -342,6 +362,22 @@ const DataEntries = () => {
           initialData={entryToEdit}
           onSubmit={handleEdit}
           isEdit={true}
+          onCreatePatient={handleCreatePatient}
+        />
+        {/* Modale création patient */}
+        <CreatePatientModal
+          open={createPatientModalOpen}
+          onClose={() => {
+            setCreatePatientModalOpen(false);
+            setPrefilledPatientName("");
+          }}
+          onSaved={handlePatientSaved}
+          dispensaires={dispensaires}
+          patient={prefilledPatientName ? { 
+            nom: prefilledPatientName.nom, 
+            prenom: prefilledPatientName.prenom 
+          } : null}
+          isEdit={false}
         />
         {/* Modale suppression */}
         <ConfirmDeleteModal
