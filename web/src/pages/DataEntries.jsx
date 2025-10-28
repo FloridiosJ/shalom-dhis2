@@ -276,7 +276,7 @@ const DataEntries = () => {
               ‹ Précédent
             </button>
             <div className={styles.paginationInfo}>
-              Page {currentPage} sur {totalPages} ({sortedEntries.length} résultat{sortedEntries.length > 1 ? 's' : ''})
+              Page {currentPage} sur {totalPages} ({sortedEntries.length} résultat{sortedEntries.length !== 1 ? 's' : ''})
             </div>
             <button 
               className={styles.paginationBtn} 
