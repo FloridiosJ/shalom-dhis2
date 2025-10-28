@@ -43,6 +43,7 @@ const DurationSelector = ({ itemId, value, onChange, disabled }) => {
         padding: '0.5rem',
         background: '#fff',
         borderRadius: '0.5rem',
+        color: '#313030ff',
         border: '1px solid #cbd5e1'
       }}>
         <span style={{ flex: 1, fontWeight: 500 }}>{value}</span>

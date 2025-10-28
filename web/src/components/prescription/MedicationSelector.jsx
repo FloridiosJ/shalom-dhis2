@@ -45,7 +45,7 @@ const MedicationSelector = ({ itemId, value, onChange, disabled }) => {
         borderRadius: '0.5rem',
         border: '1px solid #cbd5e1'
       }}>
-        <span style={{ flex: 1, fontWeight: 500 }}>{value}</span>
+        <span style={{ flex: 1, fontWeight: 500, color: '#1e293b' }}>{value}</span>
         <button
           type="button"
           onClick={() => onChange('')}
