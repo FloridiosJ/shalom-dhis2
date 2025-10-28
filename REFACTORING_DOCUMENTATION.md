@@ -4,7 +4,7 @@ This document describes the refactoring performed on `DataEntries.jsx` and `Crea
 
 ## Summary
 
-The refactoring extracted reusable components and custom hooks from two large files, reducing code complexity and improving maintainability while maintaining exact same functionality.
+The refactoring extracted reusable components and custom hooks from two large files, reducing code complexity and improving maintainability while maintaining the exact same functionality.
 
 ### File Size Reduction
 - **DataEntries.jsx**: 457 lines → 340 lines (26% reduction)
