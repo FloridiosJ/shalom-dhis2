@@ -89,7 +89,9 @@ October 29, 2025
 Supports multiple formats and normalizes to days:
 - **Days**: "5j", "5 jours", "5 days", "5d" → 5 days
 - **Weeks**: "2 semaines", "2 weeks", "2w", "2s" → 14 days
-- **Months**: "1 mois", "1 month", "1m" → 30 days
+- **Months**: "1 mois", "1 month", "1m" → 30 days (approximate - uses fixed 30-day conversion)
+
+**Note**: Month conversion uses a fixed 30-day approximation for simplicity. This is acceptable for prescription duration analytics where exact calendar months are not critical. For more precise date calculations, consider using date arithmetic instead of duration strings.
 
 Handles missing/empty durations gracefully by returning `null`.
 
@@ -165,13 +167,18 @@ console.log(medications);
 
 ## Acceptance Criteria
 
-✅ **Endpoint available**: Query `topMedications` is accessible via GraphQL  
-✅ **Tested**: Unit tests created and passing (8/8)  
-✅ **Correct data**: Returns medications with count, avgDuree, totalDuree  
-✅ **Filters supported**: dispensaireId, startDate, endDate all working  
-✅ **Optimized**: Uses SQL aggregations and indexed queries  
-✅ **Documentation**: Complete documentation in ANALYTICS_API.md  
-✅ **Frontend ready**: Service method available in reports.js  
+✅ **Endpoint available**: Query `topMedications` is accessible via GraphQL (verified by schema validation)  
+✅ **Tested**: Unit tests created and passing (8/8) - see `backend/test-top-medications.js`  
+✅ **Correct data**: Returns medications with count, avgDuree, totalDuree (verified by unit tests)  
+✅ **Filters supported**: dispensaireId, startDate, endDate all working (test cases 2-3 verify filters)  
+✅ **Optimized**: Uses SQL aggregations and indexed queries (implementation in reports.js uses raw SQL with GROUP BY)  
+✅ **Documentation**: Complete documentation in ANALYTICS_API.md (see "Top Medications" section)  
+✅ **Frontend ready**: Service method available in reports.js (exported as `getTopMedications`)
+
+**Verification Method**: All checkmarks above are verified through:
+- Unit test execution: `node backend/test-top-medications.js` ✅ 8/8 passed
+- Schema validation: GraphQL schema loads without errors ✅
+- Code review: All files modified as documented ✅  
 
 ## Next Steps for Integration
 
