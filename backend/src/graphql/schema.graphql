@@ -830,6 +830,13 @@ type TopDiagnostic {
   percentage: Float!
 }
 
+type TopMedication {
+  medicament: String!
+  count: Int!
+  avgDuree: String
+  totalDuree: String
+}
+
 type ConsultationEvolution {
   period: String!
   date: String!
@@ -955,6 +962,30 @@ type Query {
     "End date in ISO format (YYYY-MM-DD)"
     endDate: String
   ): [TopDiagnostic!]!
+  
+  """
+  Query top prescribed medications over a given period.
+  
+  Uses structured prescription items (prescriptionItems.medicament) as data source.
+  Ignores free-text prescription field.
+  
+  Returns the most frequently prescribed medications with their count, average duration, and total duration.
+  Supports filtering by dispensaire and date range.
+  Optimized for large datasets with indexed aggregations.
+  
+  Example:
+    topMedications(limit: 10, dispensaireId: "abc-123", startDate: "2025-01-01", endDate: "2025-12-31")
+  """
+  topMedications(
+    "Maximum number of results to return (default: 10)"
+    limit: Int
+    "Filter by specific dispensaire ID"
+    dispensaireId: ID
+    "Start date in ISO format (YYYY-MM-DD)"
+    startDate: String
+    "End date in ISO format (YYYY-MM-DD)"
+    endDate: String
+  ): [TopMedication!]!
   
   consultationsEvolution(
     period: String!
