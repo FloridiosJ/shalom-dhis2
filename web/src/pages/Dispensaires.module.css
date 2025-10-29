@@ -1,7 +1,8 @@
 .pageBg {
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
-  padding: 2.5rem 0;
+  padding: 1.5rem 0;
+  overflow: hidden;
 }
 
 .card {
@@ -10,7 +11,7 @@
   box-shadow: 0 4px 24px rgba(30,41,59,0.09);
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2.2rem 2rem 2.5rem 2rem;
+  padding: 1.5rem 2rem 1.5rem 2rem;
 }
 
 .container {
@@ -23,7 +24,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
@@ -149,13 +150,18 @@
 .tableWrapper {
   margin-top: 0;
   overflow-x: auto;
+  /* 230px accounts for: page padding (1.5rem top + bottom = ~48px), 
+     card padding (~48px top + bottom), header (~80px), 
+     search bar (~50px), and pagination area (~80px) */
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
 }
 
 .tableTopBar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.8rem;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -176,6 +182,9 @@
   color: #334155;
   border-bottom: 1px solid #e5e7eb;
   background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .sortable {
