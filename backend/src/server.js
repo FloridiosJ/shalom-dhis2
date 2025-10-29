@@ -38,9 +38,9 @@ app.get('/download/:filename', (req, res) => {
     const { filename } = req.params;
     const filePath = join(__dirname, '../exports', filename);
     
-    // Check if file exists
-    if (!readFileSync) {
-      return res.status(404).json({ error: 'File not found' });
+    // Security check - prevent directory traversal
+    if (filename.includes('..') || filename.includes('/')) {
+      return res.status(400).json({ error: 'Invalid filename' });
     }
     
     // Set appropriate headers
@@ -49,7 +49,16 @@ app.get('/download/:filename', (req, res) => {
     
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.sendFile(filePath);
+    
+    // Send file (will automatically return 404 if file doesn't exist)
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        if (!res.headersSent) {
+          res.status(404).json({ error: 'File not found' });
+        }
+      }
+    });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ error: 'Failed to download file' });
