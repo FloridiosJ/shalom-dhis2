@@ -23,7 +23,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
@@ -149,13 +149,15 @@
 .tableWrapper {
   margin-top: 0;
   overflow-x: auto;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
 }
 
 .tableTopBar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.8rem;
   gap: 1rem;
   flex-wrap: wrap;
 }
