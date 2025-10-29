@@ -47,17 +47,15 @@ async function getGlobalStats() {
  */
 async function getStatsByPeriod(startDate, endDate, dispensaireId = null) {
   const query = `
-    query StatsByPeriod($startDate: String!, $endDate: String!, $dispensaireId: ID) {
+    query StatsByPeriod($dispensaireId: ID) {
       consultationStats(
-        startDate: $startDate
-        endDate: $endDate
         dispensaireId: $dispensaireId
       ) {
         total
         thisMonth
         thisWeek
         today
-        avgPerDay
+        averagePerDay
         topCategories {
           categorie {
             id
@@ -67,22 +65,15 @@ async function getStatsByPeriod(startDate, endDate, dispensaireId = null) {
           nombreConsultations
           pourcentage
         }
-        consultationsByDay {
-          date
+        byType {
+          typeConsultation
           count
-        }
-        consultationsByType {
-          type
-          count
-          pourcentage
         }
       }
     }
   `;
   
   const variables = { 
-    startDate, 
-    endDate,
     ...(dispensaireId && dispensaireId !== 'all' && { dispensaireId })
   };
   

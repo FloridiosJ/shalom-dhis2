@@ -490,7 +490,7 @@ const Reports = () => {
               </div>
               <div className={styles.statsRow}>
                 <div className={styles.statsLabel}>📈 Moyenne par jour</div>
-                <div className={styles.statsValue}>{periodStats.avgPerDay}</div>
+                <div className={styles.statsValue}>{periodStats.averagePerDay ? periodStats.averagePerDay.toFixed(1) : '0'}</div>
               </div>
             </div>
           </ChartCard>
