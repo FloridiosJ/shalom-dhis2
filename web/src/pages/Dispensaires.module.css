@@ -1,7 +1,7 @@
 .pageBg {
   min-height: 100vh;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
-  padding: 2.5rem 0;
+  padding: 1.5rem 0;
 }
 
 .card {
@@ -10,7 +10,7 @@
   box-shadow: 0 4px 24px rgba(30,41,59,0.09);
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2.2rem 2rem 2.5rem 2rem;
+  padding: 1.5rem 2rem 1.5rem 2rem;
 }
 
 .container {
@@ -149,10 +149,10 @@
 .tableWrapper {
   margin-top: 0;
   overflow-x: auto;
-  /* 280px accounts for: page padding (2.5rem top + bottom = ~80px), 
-     card padding (~44px top + bottom), header (~100px), 
+  /* 230px accounts for: page padding (1.5rem top + bottom = ~48px), 
+     card padding (~48px top + bottom), header (~80px), 
      search bar (~50px), and pagination area (~80px) */
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 230px);
   overflow-y: auto;
 }
 
