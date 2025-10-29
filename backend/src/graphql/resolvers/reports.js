@@ -109,7 +109,7 @@ const reportsResolvers = {
         }],
         group: ['categorieMaladieId', 'categorie.id'],
         order: [[DataEntry.sequelize.literal('count'), 'DESC']],
-        limit,
+        // Ne pas limiter ici - on limitera après avoir combiné avec les diagnostics texte
         raw: false
       });
 

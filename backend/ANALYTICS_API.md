@@ -132,6 +132,26 @@ query {
    - If consultations without structured categories are found, a warning is logged to the console
    - This helps identify data quality issues
 
+### Implementation Details
+
+1. **Query Optimization**:
+   - First fetches all matching DataEntry IDs with filters applied
+   - Then aggregates category associations only for those IDs
+   - Avoids nested queries and leverages database indexes
+   - Uses `COUNT` and `GROUP BY` for efficient aggregation
+
+2. **Edge Cases Handled**:
+   - Empty result sets: Returns empty array
+   - No categories assigned: Falls back to text diagnostics
+   - Mixed structured/unstructured data: Combines both intelligently
+   - Inactive categories: Filters out inactive categories from results
+   - Limit parameter: Applied after combining all results to ensure top diagnostics
+
+3. **Performance Characteristics**:
+   - Query complexity: O(n) where n is number of matching consultations
+   - Database queries: 3-4 queries total (optimized with indexes)
+   - Memory usage: Minimal (processes results in streams where possible)
+
 ### Frontend Integration
 
 This query can be used in:
