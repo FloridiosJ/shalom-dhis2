@@ -49,13 +49,17 @@ const Reports = () => {
       }
       const diagnostics = await reportService.getTopDiagnostics(5, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
       const evo = await reportService.getConsultationsEvolution(period, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
-      // const pStats = await reportService.getPeriodStats(selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
+      const pStats = await reportService.getStatsByPeriod(dateRange.startDate, dateRange.endDate, selectedDispensaire !== 'all' ? selectedDispensaire : null);
       setTopDiagnostics(diagnostics);
       setEvolution(evo);
       setPeriodStats(pStats);
 
     } catch (error) {
       console.error('Erreur chargement rapports:', error);
+      // Reset states to prevent displaying stale data
+      setTopDiagnostics([]);
+      setEvolution([]);
+      setPeriodStats(null);
     } finally {
       setLoading(false);
     }
