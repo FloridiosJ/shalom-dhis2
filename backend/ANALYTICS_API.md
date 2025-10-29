@@ -63,6 +63,26 @@ query {
 }
 ```
 
+**Expected Response:**
+```json
+{
+  "data": {
+    "topDiagnostics": [
+      {
+        "diagnostic": "PALUDISME",
+        "count": 45,
+        "percentage": 22.5
+      },
+      {
+        "diagnostic": "INFECTION RESPIRATOIRE",
+        "count": 38,
+        "percentage": 19.0
+      }
+    ]
+  }
+}
+```
+
 #### Filtered by dispensaire and date range
 ```graphql
 query {
@@ -76,6 +96,32 @@ query {
     count
     percentage
   }
+}
+```
+
+#### Using GraphQL variables (recommended for dynamic queries)
+```graphql
+query TopDiagnostics($limit: Int, $dispensaireId: ID, $startDate: String, $endDate: String) {
+  topDiagnostics(
+    limit: $limit
+    dispensaireId: $dispensaireId
+    startDate: $startDate
+    endDate: $endDate
+  ) {
+    diagnostic
+    count
+    percentage
+  }
+}
+```
+
+**Variables:**
+```json
+{
+  "limit": 5,
+  "dispensaireId": "abc-123-def-456",
+  "startDate": "2025-01-01",
+  "endDate": "2025-01-31"
 }
 ```
 

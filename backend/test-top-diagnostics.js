@@ -4,6 +4,10 @@
  * This script validates the logic of the topDiagnostics resolver
  * without requiring a database connection.
  * 
+ * Note: These tests use hard-coded assertions based on the mock data below.
+ * If you modify the mock data, you'll need to update the test assertions accordingly.
+ * For production, consider using a proper testing framework with dynamic assertions.
+ * 
  * Run with: node test-top-diagnostics.js
  */
 
