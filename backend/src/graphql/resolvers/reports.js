@@ -195,6 +195,119 @@ const reportsResolvers = {
     },
 
     /**
+     * Top medications avec filtres
+     * Utilise les prescriptionItems structurés pour agréger les médicaments prescrits.
+     * Ignore le champ prescription libre (texte).
+     * 
+     * @param {number} limit - Nombre maximum de résultats (défaut: 10)
+     * @param {string} dispensaireId - ID du dispensaire (optionnel)
+     * @param {string} startDate - Date de début (format ISO, optionnel)
+     * @param {string} endDate - Date de fin (format ISO, optionnel)
+     * @returns {Array<{medicament: string, count: number, avgDuree: string, totalDuree: string}>}
+     */
+    topMedications: async (_, { limit = 10, dispensaireId, startDate, endDate }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, PrescriptionItem } = await import('../../models/index.js');
+
+      // Construction de la clause WHERE pour filtrer les DataEntries
+      const whereClause = { isActive: true };
+      
+      if (dispensaireId) {
+        whereClause.dispensaireId = dispensaireId;
+      }
+      
+      if (startDate && endDate) {
+        whereClause.dateConsultation = {
+          [Op.between]: [new Date(startDate), new Date(endDate)]
+        };
+      }
+
+      // Étape 1: Obtenir les IDs des consultations valides
+      const validDataEntryIds = await DataEntry.findAll({
+        where: whereClause,
+        attributes: ['id'],
+        raw: true
+      });
+
+      const validIds = validDataEntryIds.map(entry => entry.id);
+
+      if (validIds.length === 0) {
+        return [];
+      }
+
+      // Étape 2: Agréger les prescriptionItems par médicament
+      // On utilise une requête brute pour faire les agrégations SQL complexes
+      const medicationStats = await PrescriptionItem.sequelize.query(`
+        SELECT 
+          medicament,
+          COUNT(*) as count,
+          ARRAY_AGG(duree) FILTER (WHERE duree IS NOT NULL AND duree != '') as durees
+        FROM prescription_items
+        WHERE 
+          "dataEntryId" IN (:validIds)
+          AND "isActive" = true
+          AND medicament IS NOT NULL
+          AND medicament != ''
+        GROUP BY medicament
+        ORDER BY count DESC
+        LIMIT :limit
+      `, {
+        replacements: { validIds, limit },
+        type: DataEntry.sequelize.QueryTypes.SELECT
+      });
+
+      // Étape 3: Calculer les durées moyennes et totales
+      const results = medicationStats.map(stat => {
+        const durees = stat.durees || [];
+        
+        // Parser les durées en jours (on essaie de normaliser les formats)
+        const dureesInDays = durees.map(d => {
+          if (!d) return null;
+          
+          // Extraire les nombres et les unités
+          const match = d.toLowerCase().match(/(\d+)\s*(j|jour|jours|d|day|days|semaine|semaines|s|w|week|weeks|mois|m|month|months)?/);
+          if (!match) return null;
+          
+          const value = parseInt(match[1]);
+          const unit = match[2];
+          
+          if (!unit || unit.startsWith('j') || unit.startsWith('d')) {
+            return value; // jours
+          } else if (unit.startsWith('s') || unit.startsWith('w')) {
+            return value * 7; // semaines -> jours
+          } else if (unit.startsWith('m')) {
+            return value * 30; // mois -> jours (approximatif)
+          }
+          
+          return value; // par défaut, considérer comme jours
+        }).filter(d => d !== null);
+        
+        let avgDuree = null;
+        let totalDuree = null;
+        
+        if (dureesInDays.length > 0) {
+          const total = dureesInDays.reduce((sum, d) => sum + d, 0);
+          const avg = total / dureesInDays.length;
+          
+          totalDuree = `${total}j`;
+          avgDuree = `${Math.round(avg)}j`;
+        }
+        
+        return {
+          medicament: stat.medicament,
+          count: parseInt(stat.count),
+          avgDuree,
+          totalDuree
+        };
+      });
+
+      return results;
+    },
+
+    /**
      * Évolution des consultations
      */
     consultationsEvolution: async (_, { period, dispensaireId, startDate, endDate }, { user }) => {

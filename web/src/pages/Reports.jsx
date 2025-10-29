@@ -20,6 +20,7 @@ const Reports = () => {
   });
   const [periodStats, setPeriodStats] = useState(null);
   const [topDiagnostics, setTopDiagnostics] = useState([]);
+  const [topMedications, setTopMedications] = useState([]);
   const [evolution, setEvolution] = useState([]);
 
   useEffect(() => {
@@ -52,8 +53,9 @@ const Reports = () => {
       // Charger les données en parallèle avec gestion d'erreur individuelle
       const dispensaireFilter = selectedDispensaire !== 'all' ? selectedDispensaire : null;
       
-      const [diagnostics, evo, pStats] = await Promise.allSettled([
+      const [diagnostics, medications, evo, pStats] = await Promise.allSettled([
         reportService.getTopDiagnostics(5, dispensaireFilter, dateRange.startDate, dateRange.endDate),
+        reportService.getTopMedications(10, dispensaireFilter, dateRange.startDate, dateRange.endDate),
         reportService.getConsultationsEvolution(period, dispensaireFilter, dateRange.startDate, dateRange.endDate),
         reportService.getStatsByPeriod(dateRange.startDate, dateRange.endDate, dispensaireFilter)
       ]);
@@ -64,6 +66,13 @@ const Reports = () => {
       } else {
         console.error('Erreur chargement diagnostics:', diagnostics.reason);
         setTopDiagnostics([]);
+      }
+
+      if (medications.status === 'fulfilled') {
+        setTopMedications(medications.value || []);
+      } else {
+        console.error('Erreur chargement médicaments:', medications.reason);
+        setTopMedications([]);
       }
 
       if (evo.status === 'fulfilled') {
@@ -84,6 +93,7 @@ const Reports = () => {
       console.error('Erreur chargement rapports:', error);
       // Reset states to prevent displaying stale data
       setTopDiagnostics([]);
+      setTopMedications([]);
       setEvolution([]);
       setPeriodStats(null);
     } finally {
@@ -296,7 +306,7 @@ const Reports = () => {
           </ChartCard>
 
           {/* Top diagnostics */}
-          <ChartCard title="Top 10 Diagnostics">
+          <ChartCard title="Top 5 Diagnostics">
             <div className={styles.diagnosticsList}>
               {topDiagnostics && topDiagnostics.length > 0 ? (
                 topDiagnostics.map((item, index) => (
@@ -316,6 +326,44 @@ const Reports = () => {
                 ))
               ) : (
                 <div className={styles.noData}>Aucun diagnostic pour cette période</div>
+              )}
+            </div>
+          </ChartCard>
+        </div>
+
+        {/* Top médicaments prescrits */}
+        <div className={styles.chartsGrid}>
+          <ChartCard title="💊 Top 10 Médicaments Prescrits">
+            <div className={styles.medicationsList}>
+              {topMedications && topMedications.length > 0 ? (
+                topMedications.map((item, index) => (
+                  <div key={index} className={styles.medicationItem}>
+                    <div className={styles.medicationRank}>{index + 1}</div>
+                    <div className={styles.medicationInfo}>
+                      <div className={styles.medicationName}>{item.medicament}</div>
+                      <div className={styles.medicationDetails}>
+                        <span className={styles.medicationCount}>
+                          {item.count} prescription{item.count > 1 ? 's' : ''}
+                        </span>
+                        {item.avgDuree && (
+                          <span className={styles.medicationDuration}>
+                            • Durée moy: {item.avgDuree}
+                          </span>
+                        )}
+                        {item.totalDuree && (
+                          <span className={styles.medicationTotal}>
+                            • Total: {item.totalDuree}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.medicationBadge}>
+                      {item.count}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className={styles.noData}>Aucun médicament prescrit pour cette période</div>
               )}
             </div>
           </ChartCard>

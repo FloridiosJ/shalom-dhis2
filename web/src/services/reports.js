@@ -121,6 +121,37 @@ async function getTopDiagnostics(limit = 10, dispensaireId = null, startDate = n
 }
 
 /**
+ * Récupère le top des médicaments prescrits
+ */
+async function getTopMedications(limit = 10, dispensaireId = null, startDate = null, endDate = null) {
+  const query = `
+    query TopMedications($limit: Int, $dispensaireId: ID, $startDate: String, $endDate: String) {
+      topMedications(
+        limit: $limit
+        dispensaireId: $dispensaireId
+        startDate: $startDate
+        endDate: $endDate
+      ) {
+        medicament
+        count
+        avgDuree
+        totalDuree
+      }
+    }
+  `;
+  
+  const variables = { 
+    limit,
+    ...(dispensaireId && dispensaireId !== 'all' && { dispensaireId }),
+    ...(startDate && { startDate }),
+    ...(endDate && { endDate })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).topMedications;
+}
+
+/**
  * Récupère l'évolution des consultations
  */
 async function getConsultationsEvolution(period = 'month', dispensaireId = null, startDate = null, endDate = null) {
@@ -217,6 +248,7 @@ export default {
   getGlobalStats,
   getStatsByPeriod,
   getTopDiagnostics,
+  getTopMedications,
   getConsultationsEvolution,
   getStatsByDispensaire,
   exportReport

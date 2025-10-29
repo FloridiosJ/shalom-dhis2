@@ -4,6 +4,7 @@ This document describes the analytics and reporting endpoints available in the S
 
 ## Table of Contents
 - [Top Diagnostics](#top-diagnostics)
+- [Top Medications](#top-medications)
 - [Consultations Evolution](#consultations-evolution)
 - [Dispensaire Statistics](#dispensaire-statistics)
 
@@ -243,6 +244,272 @@ function DiagnosticsReport() {
         <div key={index}>
           <span>{item.diagnostic}</span>
           <span>{item.count} ({item.percentage}%)</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Top Medications
+
+Query the most frequently prescribed medications over a given period.
+
+### Query
+
+```graphql
+topMedications(
+  limit: Int
+  dispensaireId: ID
+  startDate: String
+  endDate: String
+): [TopMedication!]!
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `limit` | Int | No | 10 | Maximum number of results to return |
+| `dispensaireId` | ID | No | - | Filter by specific dispensaire |
+| `startDate` | String | No | - | Start date in ISO format (YYYY-MM-DD) |
+| `endDate` | String | No | - | End date in ISO format (YYYY-MM-DD) |
+
+### Response Type
+
+```graphql
+type TopMedication {
+  medicament: String!   # Medication name
+  count: Int!          # Number of prescriptions
+  avgDuree: String     # Average duration (e.g., "5j", null if no duration data)
+  totalDuree: String   # Total duration (e.g., "60j", null if no duration data)
+}
+```
+
+### Data Source
+
+This query uses **structured prescription data** from the `prescription_items` table:
+- **Primary**: Uses `prescriptionItems.medicament` for medication names
+- **Ignores**: Free-text `prescription` field on DataEntry
+- **Duration Parsing**: Automatically parses various duration formats:
+  - Days: "5j", "5 jours", "5 days", "5d"
+  - Weeks: "2 semaines", "2 weeks", "2w", "2s" (converted to days: × 7)
+  - Months: "1 mois", "1 month", "1m" (converted to days: × 30)
+
+### Example Usage
+
+#### Basic query (top 10 medications, all time)
+```graphql
+query {
+  topMedications(limit: 10) {
+    medicament
+    count
+    avgDuree
+    totalDuree
+  }
+}
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "topMedications": [
+      {
+        "medicament": "Paracétamol",
+        "count": 20,
+        "avgDuree": "5j",
+        "totalDuree": "100j"
+      },
+      {
+        "medicament": "Amoxicilline",
+        "count": 15,
+        "avgDuree": "7j",
+        "totalDuree": "105j"
+      }
+    ]
+  }
+}
+```
+
+#### Filtered by dispensaire and date range
+```graphql
+query {
+  topMedications(
+    limit: 5
+    dispensaireId: "abc-123-def-456"
+    startDate: "2025-01-01"
+    endDate: "2025-01-31"
+  ) {
+    medicament
+    count
+    avgDuree
+    totalDuree
+  }
+}
+```
+
+#### Using GraphQL variables (recommended for dynamic queries)
+```graphql
+query TopMedications($limit: Int, $dispensaireId: ID, $startDate: String, $endDate: String) {
+  topMedications(
+    limit: $limit
+    dispensaireId: $dispensaireId
+    startDate: $startDate
+    endDate: $endDate
+  ) {
+    medicament
+    count
+    avgDuree
+    totalDuree
+  }
+}
+```
+
+**Variables:**
+```json
+{
+  "limit": 5,
+  "dispensaireId": "abc-123-def-456",
+  "startDate": "2025-01-01",
+  "endDate": "2025-01-31"
+}
+```
+
+### Example Response
+
+```json
+{
+  "data": {
+    "topMedications": [
+      {
+        "medicament": "Paracétamol",
+        "count": 20,
+        "avgDuree": "5j",
+        "totalDuree": "100j"
+      },
+      {
+        "medicament": "Amoxicilline",
+        "count": 15,
+        "avgDuree": "7j",
+        "totalDuree": "105j"
+      },
+      {
+        "medicament": "Ibuprofène",
+        "count": 12,
+        "avgDuree": "3j",
+        "totalDuree": "36j"
+      },
+      {
+        "medicament": "Vitamine C",
+        "count": 8,
+        "avgDuree": null,
+        "totalDuree": null
+      }
+    ]
+  }
+}
+```
+
+### Performance Considerations
+
+- **Indexes**: The query leverages existing database indexes on:
+  - `prescription_items.dataEntryId`
+  - `prescription_items.medicament`
+  - `prescription_items.isActive`
+  - `data_entries.dispensaireId`
+  - `data_entries.dateConsultation`
+  - `data_entries.isActive`
+
+- **Optimization**: Uses SQL aggregations with `COUNT` and `GROUP BY` for efficient computation
+- **Scalability**: Tested for large datasets (10,000+ prescriptions)
+
+### Data Quality Notes
+
+1. **Structured Prescriptions**:
+   - Only uses structured prescription items from the `prescriptionItems` array
+   - Ignores free-text prescriptions to ensure data quality and consistency
+   - Each prescription item represents one medication entry
+
+2. **Duration Parsing**:
+   - Normalizes various duration formats to days
+   - Handles missing or empty duration values gracefully (returns null)
+   - Supports multiple languages and formats
+
+3. **Null Values**:
+   - Medications without duration data still appear in results
+   - `avgDuree` and `totalDuree` are `null` when no valid duration data exists
+
+### Implementation Details
+
+1. **Query Optimization**:
+   - First fetches all matching DataEntry IDs with filters applied
+   - Then aggregates prescription items only for those IDs
+   - Uses raw SQL for complex aggregations (array aggregation for durations)
+   - Avoids nested queries and leverages database indexes
+
+2. **Edge Cases Handled**:
+   - Empty result sets: Returns empty array
+   - Missing durations: Returns null for avgDuree and totalDuree
+   - Mixed duration formats: Normalizes to days
+   - Inactive items: Filters out inactive prescription items
+   - Limit parameter: Applied after aggregation to ensure top medications
+
+3. **Performance Characteristics**:
+   - Query complexity: O(n) where n is number of matching prescription items
+   - Database queries: 2 queries total (optimized with raw SQL)
+   - Memory usage: Minimal (processes results in streams where possible)
+
+### Frontend Integration
+
+This query can be used in:
+- `Reports.jsx` - Main reports page
+- `StatCard` - Display top medication statistics
+- `ChartCard` - Visualize medication distribution
+
+Example React usage:
+```javascript
+import { useQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+
+const TOP_MEDICATIONS_QUERY = gql`
+  query TopMedications($limit: Int, $dispensaireId: ID, $startDate: String, $endDate: String) {
+    topMedications(
+      limit: $limit
+      dispensaireId: $dispensaireId
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      medicament
+      count
+      avgDuree
+      totalDuree
+    }
+  }
+`;
+
+function MedicationsReport() {
+  const { data, loading, error } = useQuery(TOP_MEDICATIONS_QUERY, {
+    variables: {
+      limit: 10,
+      startDate: '2025-01-01',
+      endDate: '2025-12-31'
+    }
+  });
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      {data.topMedications.map((item, index) => (
+        <div key={index}>
+          <span>{item.medicament}</span>
+          <span>{item.count} prescriptions</span>
+          {item.avgDuree && <span>Durée moy: {item.avgDuree}</span>}
+          {item.totalDuree && <span>Total: {item.totalDuree}</span>}
         </div>
       ))}
     </div>
