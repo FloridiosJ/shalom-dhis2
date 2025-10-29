@@ -32,6 +32,7 @@ const Reports = () => {
       // Dispensaires
       const disps = await dispensaireService.getAll();
       setDispensaires(disps);
+      
       // Si un dispensaire est sélectionné, récupérer ses stats spécifiques
       if (selectedDispensaire !== 'all') {
         const dispStats = await reportService.getStatsByDispensaire(
@@ -47,12 +48,37 @@ const Reports = () => {
         setGlobalStats(stats);
         setDispensaireStats(null);
       }
-      const diagnostics = await reportService.getTopDiagnostics(5, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
-      const evo = await reportService.getConsultationsEvolution(period, selectedDispensaire !== 'all' ? selectedDispensaire : null, dateRange.startDate, dateRange.endDate);
-      const pStats = await reportService.getStatsByPeriod(dateRange.startDate, dateRange.endDate, selectedDispensaire !== 'all' ? selectedDispensaire : null);
-      setTopDiagnostics(diagnostics);
-      setEvolution(evo);
-      setPeriodStats(pStats);
+
+      // Charger les données en parallèle avec gestion d'erreur individuelle
+      const dispensaireFilter = selectedDispensaire !== 'all' ? selectedDispensaire : null;
+      
+      const [diagnostics, evo, pStats] = await Promise.allSettled([
+        reportService.getTopDiagnostics(5, dispensaireFilter, dateRange.startDate, dateRange.endDate),
+        reportService.getConsultationsEvolution(period, dispensaireFilter, dateRange.startDate, dateRange.endDate),
+        reportService.getStatsByPeriod(dateRange.startDate, dateRange.endDate, dispensaireFilter)
+      ]);
+
+      // Traiter les résultats
+      if (diagnostics.status === 'fulfilled') {
+        setTopDiagnostics(diagnostics.value || []);
+      } else {
+        console.error('Erreur chargement diagnostics:', diagnostics.reason);
+        setTopDiagnostics([]);
+      }
+
+      if (evo.status === 'fulfilled') {
+        setEvolution(evo.value || []);
+      } else {
+        console.error('Erreur chargement évolution:', evo.reason);
+        setEvolution([]);
+      }
+
+      if (pStats.status === 'fulfilled') {
+        setPeriodStats(pStats.value || null);
+      } else {
+        console.error('Erreur chargement statistiques période:', pStats.reason);
+        setPeriodStats(null);
+      }
 
     } catch (error) {
       console.error('Erreur chargement rapports:', error);
