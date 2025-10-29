@@ -48,14 +48,23 @@ const reportsResolvers = {
 
     /**
      * Top diagnostics avec filtres
+     * Utilise prioritairement les catégories structurées (categoriesWithMeta.categorieMaladieId)
+     * avec fallback sur le champ diagnostic texte si nécessaire.
+     * 
+     * @param {number} limit - Nombre maximum de résultats (défaut: 10)
+     * @param {string} dispensaireId - ID du dispensaire (optionnel)
+     * @param {string} startDate - Date de début (format ISO, optionnel)
+     * @param {string} endDate - Date de fin (format ISO, optionnel)
+     * @returns {Array<{diagnostic: string, count: number, percentage: number}>}
      */
     topDiagnostics: async (_, { limit = 10, dispensaireId, startDate, endDate }, { user }) => {
       if (!user) {
         throw new AuthenticationError('Non authentifié');
       }
 
-      const { DataEntry } = await import('../../models/index.js');
+      const { DataEntry, CategorieMaladie, DataEntryCategorieMaladie } = await import('../../models/index.js');
 
+      // Construction de la clause WHERE pour filtrer les DataEntries
       const whereClause = { isActive: true };
       
       if (dispensaireId) {
@@ -68,24 +77,120 @@ const reportsResolvers = {
         };
       }
 
-      const diagnostics = await DataEntry.findAll({
+      // Étape 1: Obtenir les statistiques basées sur les catégories structurées
+      // Utilise la table de jointure DataEntryCategorieMaladie pour aggréger
+      const validDataEntryIds = await DataEntry.findAll({
         where: whereClause,
-        attributes: [
-          'diagnostic',
-          [DataEntry.sequelize.fn('COUNT', '*'), 'count']
-        ],
-        group: ['diagnostic'],
-        order: [[DataEntry.sequelize.literal('count'), 'DESC']],
-        limit,
+        attributes: ['id'],
         raw: true
       });
 
-      const total = diagnostics.reduce((sum, d) => sum + parseInt(d.count), 0);
+      const validIds = validDataEntryIds.map(entry => entry.id);
 
-      return diagnostics.map(d => ({
+      if (validIds.length === 0) {
+        return [];
+      }
+
+      // Statistiques par catégorie (données structurées)
+      const categoryStats = await DataEntryCategorieMaladie.findAll({
+        where: {
+          dataEntryId: { [Op.in]: validIds },
+          isPrincipal: true // On compte uniquement les catégories principales
+        },
+        attributes: [
+          'categorieMaladieId',
+          [DataEntry.sequelize.fn('COUNT', DataEntry.sequelize.col('dataEntryId')), 'count']
+        ],
+        include: [{
+          model: CategorieMaladie,
+          as: 'categorie',
+          attributes: ['nom', 'code', 'niveau'],
+          where: { isActive: true }
+        }],
+        group: ['categorieMaladieId', 'categorie.id'],
+        order: [[DataEntry.sequelize.literal('count'), 'DESC']],
+        // Ne pas limiter ici - on limitera après avoir combiné avec les diagnostics texte
+        raw: false
+      });
+
+      // Étape 2: Vérifier si certaines consultations n'ont pas de catégorie structurée
+      const consultationsWithCategories = await DataEntryCategorieMaladie.count({
+        where: {
+          dataEntryId: { [Op.in]: validIds },
+          isPrincipal: true
+        },
+        distinct: true,
+        col: 'dataEntryId'
+      });
+
+      const totalConsultations = validIds.length;
+      const consultationsWithoutCategories = totalConsultations - consultationsWithCategories;
+
+      // Avertir si des données non structurées sont présentes
+      if (consultationsWithoutCategories > 0) {
+        console.warn(`⚠️  ${consultationsWithoutCategories} consultation(s) sur ${totalConsultations} n'ont pas de catégorie structurée assignée`);
+      }
+
+      // Étape 3: Pour les consultations sans catégorie, faire un fallback sur le texte diagnostic
+      let textDiagnostics = [];
+      if (consultationsWithoutCategories > 0) {
+        const entriesWithoutCategories = await DataEntry.findAll({
+          where: {
+            id: { [Op.in]: validIds }
+          },
+          attributes: ['id', 'diagnostic'],
+          include: [{
+            model: DataEntryCategorieMaladie,
+            as: 'categoriesAssociations',
+            required: false,
+            where: { isPrincipal: true }
+          }]
+        });
+
+        // Filtrer celles qui n'ont vraiment pas de catégorie principale
+        const entriesWithoutCat = entriesWithoutCategories.filter(
+          entry => !entry.categoriesAssociations || entry.categoriesAssociations.length === 0
+        );
+
+        // Grouper par diagnostic texte
+        const diagCounts = {};
+        entriesWithoutCat.forEach(entry => {
+          const diag = entry.diagnostic.trim();
+          diagCounts[diag] = (diagCounts[diag] || 0) + 1;
+        });
+
+        textDiagnostics = Object.entries(diagCounts)
+          .map(([diagnostic, count]) => ({ diagnostic, count }))
+          .sort((a, b) => b.count - a.count);
+      }
+
+      // Étape 4: Combiner les résultats structurés et non structurés
+      let combinedResults = [
+        ...categoryStats.map(stat => ({
+          diagnostic: stat.categorie.nom,
+          count: parseInt(stat.get('count')),
+          isStructured: true,
+          code: stat.categorie.code
+        })),
+        ...textDiagnostics.map(d => ({
+          diagnostic: d.diagnostic,
+          count: d.count,
+          isStructured: false
+        }))
+      ];
+
+      // Trier par count décroissant et limiter
+      combinedResults.sort((a, b) => b.count - a.count);
+      combinedResults = combinedResults.slice(0, limit);
+
+      // Calculer le total pour les pourcentages
+      const total = combinedResults.reduce((sum, d) => sum + d.count, 0);
+
+      // Formater les résultats finaux
+      return combinedResults.map(d => ({
         diagnostic: d.diagnostic,
-        count: parseInt(d.count),
-        percentage: total > 0 ? ((parseInt(d.count) / total) * 100).toFixed(2) : 0
+        count: d.count,
+        percentage: total > 0 ? parseFloat(((d.count / total) * 100).toFixed(2)) : 0
       }));
     },
 

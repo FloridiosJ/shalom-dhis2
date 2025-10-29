@@ -331,6 +331,11 @@ query GetReports($dispensaireId: ID!, $startDate: DateTime, $endDate: DateTime) 
 }
 ```
 
+### Analytics & Reports API
+
+For detailed documentation on analytics queries (top diagnostics, consultations evolution, etc.), see:
+- [Backend Analytics API Documentation](backend/ANALYTICS_API.md)
+
 ## 👨‍💻 Développement
 
 ### Backend
