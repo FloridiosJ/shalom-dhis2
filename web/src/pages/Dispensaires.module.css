@@ -149,6 +149,9 @@
 .tableWrapper {
   margin-top: 0;
   overflow-x: auto;
+  /* 280px accounts for: page padding (2.5rem top + bottom = ~80px), 
+     card padding (~44px top + bottom), header (~100px), 
+     search bar (~50px), and pagination area (~80px) */
   max-height: calc(100vh - 280px);
   overflow-y: auto;
 }
