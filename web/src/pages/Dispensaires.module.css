@@ -1,7 +1,8 @@
 .pageBg {
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
   padding: 1.5rem 0;
+  overflow: hidden;
 }
 
 .card {
@@ -181,6 +182,9 @@
   color: #334155;
   border-bottom: 1px solid #e5e7eb;
   background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .sortable {
