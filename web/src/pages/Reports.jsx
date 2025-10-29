@@ -27,6 +27,7 @@ const Reports = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDispensaire, dateRange, period]);
 
   const fetchData = async () => {
