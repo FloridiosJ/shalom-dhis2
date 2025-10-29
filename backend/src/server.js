@@ -9,6 +9,7 @@ import sequelize from './config/db.js';
 import { resolvers } from './graphql/resolvers/index.js';
 import { authenticateToken } from './middleware/auth.js';
 import { runSeeders } from './database/seeders/index.js';
+import { cleanupOldFiles } from './utils/export/csvGenerator.js';
 
 // Charger les variables d'environnement
 dotenv.config();
@@ -29,6 +30,30 @@ app.get('/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Download endpoint for exported files
+app.get('/download/:filename', (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = join(__dirname, '../exports', filename);
+    
+    // Check if file exists
+    if (!readFileSync) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Set appropriate headers
+    const ext = filename.split('.').pop();
+    const contentType = ext === 'pdf' ? 'application/pdf' : 'text/csv';
+    
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).json({ error: 'Failed to download file' });
+  }
 });
 
 // Fonction pour démarrer le serveur
@@ -100,6 +125,14 @@ async function startServer() {
       console.log(`🏥 GraphQL Playground: http://localhost:${PORT}${server.graphqlPath}`);
       console.log('='.repeat(50));
       console.log('');
+      
+      // Clean up old export files on server start
+      cleanupOldFiles();
+      
+      // Set up periodic cleanup (every 6 hours)
+      setInterval(() => {
+        cleanupOldFiles();
+      }, 6 * 60 * 60 * 1000);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
