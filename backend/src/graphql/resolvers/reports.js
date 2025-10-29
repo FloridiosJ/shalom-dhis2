@@ -525,11 +525,12 @@ const reportsResolvers = {
      * Exporter un rapport en CSV ou PDF
      */
     exportReport: async (_, { format, filters }, { user }) => {
-      if (!user) {
-        throw new AuthenticationError('Non authentifié');
-      }
-
+      // Always ensure we return a valid response object
       try {
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
+        }
+
         const { DataEntry, Patient, Dispensaire, User } = await import('../../models/index.js');
         const { generateCSV } = await import('../../utils/export/csvGenerator.js');
         const { generatePDF } = await import('../../utils/export/pdfGenerator.js');
@@ -622,6 +623,19 @@ const reportsResolvers = {
           result = await generateCSV(exportData, filters);
         } else if (normalizedFormat === 'pdf') {
           result = await generatePDF(exportData, filters);
+        } else {
+          // This should never happen due to validation above, but just in case
+          return {
+            success: false,
+            message: `Format non supporté: ${normalizedFormat}`,
+            url: null,
+            fileName: null
+          };
+        }
+
+        // Ensure result is valid
+        if (!result || !result.fileName) {
+          throw new Error('La génération du fichier a échoué');
         }
 
         // Get base URL from environment or construct it
@@ -637,9 +651,12 @@ const reportsResolvers = {
 
       } catch (error) {
         console.error('Error exporting report:', error);
+        console.error('Error stack:', error.stack);
+        
+        // Always return a valid response object, never null
         return {
           success: false,
-          message: `Erreur lors de la génération du rapport: ${error.message}`,
+          message: `Erreur lors de la génération du rapport: ${error.message || 'Erreur inconnue'}`,
           url: null,
           fileName: null
         };
