@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChartCard from './ChartCard';
 import styles from './ReportsMainPanel.module.css';
 
@@ -29,6 +29,22 @@ const ReportsMainPanel = ({
   const closeDrilldown = () => {
     setDrilldownData(null);
   };
+
+  // Add keyboard support to close modal with Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && drilldownData) {
+        closeDrilldown();
+      }
+    };
+
+    if (drilldownData) {
+      document.addEventListener('keydown', handleEscape);
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [drilldownData]);
 
   const renderEvolutionWidget = () => (
     <ChartCard 
@@ -258,8 +274,17 @@ const ReportsMainPanel = ({
 
       {/* Drilldown Modal */}
       {drilldownData && (
-        <div className={styles.drilldownModal} role="dialog" aria-modal="true" aria-labelledby="drilldown-title">
-          <div className={styles.drilldownContent}>
+        <div 
+          className={styles.drilldownModal} 
+          role="dialog" 
+          aria-modal="true" 
+          aria-labelledby="drilldown-title"
+          onClick={closeDrilldown}
+        >
+          <div 
+            className={styles.drilldownContent}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.drilldownHeader}>
               <h3 id="drilldown-title">
                 Détails: {drilldownData.item?.diagnostic || drilldownData.item?.medicament}
