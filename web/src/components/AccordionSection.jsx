@@ -8,12 +8,14 @@ const AccordionSection = ({
   isActive, 
   onClick, 
   children,
-  badge 
+  badge,
+  isExpanded,
+  onToggle
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const handleToggle = () => {
-    setIsExpanded(!isExpanded);
+    if (onToggle) {
+      onToggle();
+    }
   };
 
   const handleClick = () => {

@@ -12,11 +12,16 @@ const ReportsSidebar = ({
   diagnosticsLoading,
   medicationsLoading
 }) => {
+  const [expandedSection, setExpandedSection] = React.useState(null);
   
   // Calculate summary stats for each section
   const evolutionTotal = evolutionData?.reduce((sum, item) => sum + item.count, 0) || 0;
   const diagnosticsTotal = topDiagnostics?.reduce((sum, item) => sum + item.count, 0) || 0;
   const medicationsTotal = topMedications?.reduce((sum, item) => sum + item.count, 0) || 0;
+
+  const handleToggle = (section) => {
+    setExpandedSection(expandedSection === section ? null : section);
+  };
 
   return (
     <aside className={styles.sidebar} role="complementary" aria-label="Navigation des rapports">
@@ -31,6 +36,8 @@ const ReportsSidebar = ({
           badge={evolutionTotal > 0 ? evolutionTotal : null}
           isActive={activeWidget === 'evolution'}
           onClick={() => onWidgetSelect('evolution')}
+          isExpanded={expandedSection === 'evolution'}
+          onToggle={() => handleToggle('evolution')}
           summary={
             evolutionLoading ? (
               <div className={styles.loadingText}>Chargement...</div>
@@ -68,6 +75,8 @@ const ReportsSidebar = ({
           badge={topDiagnostics?.length > 0 ? topDiagnostics.length : null}
           isActive={activeWidget === 'diagnostics'}
           onClick={() => onWidgetSelect('diagnostics')}
+          isExpanded={expandedSection === 'diagnostics'}
+          onToggle={() => handleToggle('diagnostics')}
           summary={
             diagnosticsLoading ? (
               <div className={styles.loadingText}>Chargement...</div>
@@ -106,6 +115,8 @@ const ReportsSidebar = ({
           badge={topMedications?.length > 0 ? topMedications.length : null}
           isActive={activeWidget === 'medications'}
           onClick={() => onWidgetSelect('medications')}
+          isExpanded={expandedSection === 'medications'}
+          onToggle={() => handleToggle('medications')}
           summary={
             medicationsLoading ? (
               <div className={styles.loadingText}>Chargement...</div>

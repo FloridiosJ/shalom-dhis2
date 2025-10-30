@@ -106,7 +106,20 @@ const ReportsMainPanel = ({
       ) : topDiagnostics && topDiagnostics.length > 0 ? (
         <div className={styles.diagnosticsList}>
           {topDiagnostics.map((item, index) => (
-            <div key={index} className={styles.diagnosticItem}>
+            <div 
+              key={index} 
+              className={styles.diagnosticItem}
+              onClick={() => handleDrilldown('diagnostic', item)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleDrilldown('diagnostic', item);
+                }
+              }}
+              aria-label={`Voir les détails pour ${item.diagnostic}`}
+            >
               <div className={styles.diagnosticRank}>{index + 1}</div>
               <div className={styles.diagnosticInfo}>
                 <div className={styles.diagnosticName}>{item.diagnostic}</div>
@@ -119,15 +132,6 @@ const ReportsMainPanel = ({
               </div>
               <div className={styles.diagnosticStats}>
                 <div className={styles.diagnosticCount}>{item.count}</div>
-                <button
-                  className={styles.drilldownBtn}
-                  onClick={() => handleDrilldown('diagnostic', item)}
-                  aria-label={`Voir les détails pour ${item.diagnostic}`}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
               </div>
             </div>
           ))}
@@ -169,7 +173,20 @@ const ReportsMainPanel = ({
       ) : topMedications && topMedications.length > 0 ? (
         <div className={styles.medicationsList}>
           {topMedications.map((item, index) => (
-            <div key={index} className={styles.medicationItem}>
+            <div 
+              key={index} 
+              className={styles.medicationItem}
+              onClick={() => handleDrilldown('medication', item)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleDrilldown('medication', item);
+                }
+              }}
+              aria-label={`Voir les détails pour ${item.medicament}`}
+            >
               <div className={styles.medicationRank}>{index + 1}</div>
               <div className={styles.medicationInfo}>
                 <div className={styles.medicationName}>{item.medicament}</div>
@@ -191,15 +208,6 @@ const ReportsMainPanel = ({
               </div>
               <div className={styles.medicationStats}>
                 <div className={styles.medicationBadge}>{item.count}</div>
-                <button
-                  className={styles.drilldownBtn}
-                  onClick={() => handleDrilldown('medication', item)}
-                  aria-label={`Voir les détails pour ${item.medicament}`}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
               </div>
             </div>
           ))}

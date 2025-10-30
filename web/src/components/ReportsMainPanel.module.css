@@ -153,12 +153,18 @@
   border-radius: 0.75rem;
   transition: all 0.2s;
   border: 2px solid transparent;
+  cursor: pointer;
 }
 
 .diagnosticItem:hover {
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-color: #3b82f6;
   transform: translateX(4px);
+}
+
+.diagnosticItem:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .diagnosticRank {
@@ -235,12 +241,18 @@
   border-radius: 0.75rem;
   transition: all 0.2s;
   border: 2px solid #fbbf24;
+  cursor: pointer;
 }
 
 .medicationItem:hover {
   background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
   transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.medicationItem:focus {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
 }
 
 .medicationRank {
@@ -302,32 +314,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   min-width: 50px;
   text-align: center;
-}
-
-/* Drilldown button */
-.drilldownBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: white;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #3b82f6;
-}
-
-.drilldownBtn:hover {
-  background: #3b82f6;
-  color: white;
-  transform: scale(1.1);
-}
-
-.drilldownBtn:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
 }
 
 /* Default view */
