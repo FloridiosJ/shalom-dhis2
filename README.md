@@ -14,6 +14,7 @@ Système de gestion de données de santé inspiré de DHIS2, conçu pour la coll
 - [Structure du projet](#structure-du-projet)
 - [API GraphQL](#api-graphql)
 - [Développement](#développement)
+- [Tests](#tests)
 - [Déploiement](#déploiement)
 - [Contribution](#contribution)
 
@@ -374,6 +375,36 @@ Les migrations et seeders sont exécutés automatiquement au démarrage du backe
 docker-compose down -v
 docker-compose up -d
 ```
+
+## 🧪 Tests
+
+Le projet comprend des tests unitaires et d'intégration pour garantir la fiabilité du code.
+
+### Frontend Web (Tests unitaires)
+
+```bash
+cd web
+npm test              # Exécuter les tests
+npm run test:coverage # Tests avec rapport de couverture
+npm run test:ui       # Interface de test interactive
+```
+
+**Couverture:** 89.18% de code coverage pour le fichier `services/reports.js` (25 tests)
+
+### Backend (Tests d'intégration)
+
+```bash
+cd backend
+npm test              # Exécuter les tests
+npm run test:watch    # Mode watch
+npm run test:coverage # Tests avec rapport de couverture
+```
+
+**Tests:** 32 tests d'intégration pour les resolvers analytics
+
+### Documentation complète
+
+Pour plus de détails sur les tests, consultez [TESTING.md](TESTING.md).
 
 ## 🐳 Déploiement
 
