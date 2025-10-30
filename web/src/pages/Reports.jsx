@@ -1,108 +1,72 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
 import ChartCard from "../components/ChartCard";
 import reportService from "../services/reports";
-import dispensaireService from "../services/dispensaires";
+import {
+  useDispensaires,
+  useGlobalStats,
+  useDispensaireStats,
+  useTopDiagnostics,
+  useTopMedications,
+  useConsultationsEvolution,
+  useStatsByPeriod,
+} from "../hooks/useReports";
 
 const Reports = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [globalStats, setGlobalStats] = useState(null);
-  const [dispensaireStats, setDispensaireStats] = useState(null);
-  const [dispensaires, setDispensaires] = useState([]);
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
-  const [periodStats, setPeriodStats] = useState(null);
-  const [topDiagnostics, setTopDiagnostics] = useState([]);
-  const [topMedications, setTopMedications] = useState([]);
-  const [evolution, setEvolution] = useState([]);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportMessage, setExportMessage] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDispensaire, dateRange, period]);
+  // Fetch data using react-query hooks
+  const { data: dispensaires = [], isLoading: dispensairesLoading } = useDispensaires();
+  
+  const { data: globalStats, isLoading: globalStatsLoading } = useGlobalStats();
+  
+  const { 
+    data: dispensaireStats, 
+    isLoading: dispensaireStatsLoading 
+  } = useDispensaireStats(
+    selectedDispensaire,
+    dateRange.startDate,
+    dateRange.endDate,
+    selectedDispensaire !== 'all'
+  );
+  
+  const { 
+    data: topDiagnostics = [], 
+    isLoading: diagnosticsLoading 
+  } = useTopDiagnostics(5, selectedDispensaire, dateRange.startDate, dateRange.endDate);
+  
+  const { 
+    data: topMedications = [], 
+    isLoading: medicationsLoading 
+  } = useTopMedications(10, selectedDispensaire, dateRange.startDate, dateRange.endDate);
+  
+  const { 
+    data: evolution = [], 
+    isLoading: evolutionLoading 
+  } = useConsultationsEvolution(period, selectedDispensaire, dateRange.startDate, dateRange.endDate);
+  
+  const { 
+    data: periodStats, 
+    isLoading: periodStatsLoading 
+  } = useStatsByPeriod(dateRange.startDate, dateRange.endDate, selectedDispensaire);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Dispensaires
-      const disps = await dispensaireService.getAll();
-      setDispensaires(disps);
-      
-      // Si un dispensaire est sélectionné, récupérer ses stats spécifiques
-      if (selectedDispensaire !== 'all') {
-        const dispStats = await reportService.getStatsByDispensaire(
-          selectedDispensaire,
-          dateRange.startDate,
-          dateRange.endDate
-        );
-        setDispensaireStats(dispStats);
-        setGlobalStats(null); // Reset global stats
-      } else {
-        // Stats globales tous dispensaires
-        const stats = await reportService.getGlobalStats();
-        setGlobalStats(stats);
-        setDispensaireStats(null);
-      }
-
-      // Charger les données en parallèle avec gestion d'erreur individuelle
-      const dispensaireFilter = selectedDispensaire !== 'all' ? selectedDispensaire : null;
-      
-      const [diagnostics, medications, evo, pStats] = await Promise.allSettled([
-        reportService.getTopDiagnostics(5, dispensaireFilter, dateRange.startDate, dateRange.endDate),
-        reportService.getTopMedications(10, dispensaireFilter, dateRange.startDate, dateRange.endDate),
-        reportService.getConsultationsEvolution(period, dispensaireFilter, dateRange.startDate, dateRange.endDate),
-        reportService.getStatsByPeriod(dateRange.startDate, dateRange.endDate, dispensaireFilter)
-      ]);
-
-      // Traiter les résultats
-      if (diagnostics.status === 'fulfilled') {
-        setTopDiagnostics(diagnostics.value || []);
-      } else {
-        console.error('Erreur chargement diagnostics:', diagnostics.reason);
-        setTopDiagnostics([]);
-      }
-
-      if (medications.status === 'fulfilled') {
-        setTopMedications(medications.value || []);
-      } else {
-        console.error('Erreur chargement médicaments:', medications.reason);
-        setTopMedications([]);
-      }
-
-      if (evo.status === 'fulfilled') {
-        setEvolution(evo.value || []);
-      } else {
-        console.error('Erreur chargement évolution:', evo.reason);
-        setEvolution([]);
-      }
-
-      if (pStats.status === 'fulfilled') {
-        setPeriodStats(pStats.value || null);
-      } else {
-        console.error('Erreur chargement statistiques période:', pStats.reason);
-        setPeriodStats(null);
-      }
-
-    } catch (error) {
-      console.error('Erreur chargement rapports:', error);
-      // Reset states to prevent displaying stale data
-      setTopDiagnostics([]);
-      setTopMedications([]);
-      setEvolution([]);
-      setPeriodStats(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Calculate combined loading state
+  const loading = dispensairesLoading || 
+    (selectedDispensaire === 'all' ? globalStatsLoading : dispensaireStatsLoading) ||
+    diagnosticsLoading || 
+    medicationsLoading || 
+    evolutionLoading || 
+    periodStatsLoading;
 
   const handleExport = async (format) => {
     setExportLoading(true);
@@ -163,7 +127,8 @@ const Reports = () => {
         totalUsers: globalStats?.totalUsers ?? 0
       };
 
-  if (loading && !displayStats) {
+  // Show loading state on initial load
+  if (loading && !globalStats && !dispensaireStats) {
     return (
       <div className={styles.pageBg}>
         <div className={styles.container}>

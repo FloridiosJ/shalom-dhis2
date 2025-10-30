@@ -13,7 +13,15 @@ import Users from "./pages/Users";
 import Patients from "./pages/Patients";
 import Reports from "./pages/Reports";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Avoid unnecessary refetches on window focus
+      retry: 2, // Retry failed requests 2 times
+      staleTime: 60 * 1000, // Consider data fresh for 1 minute by default
+    },
+  },
+});
 
 function App() {
   return (
