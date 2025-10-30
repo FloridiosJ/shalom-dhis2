@@ -22,9 +22,12 @@ const Reports = () => {
   const [topDiagnostics, setTopDiagnostics] = useState([]);
   const [topMedications, setTopMedications] = useState([]);
   const [evolution, setEvolution] = useState([]);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportMessage, setExportMessage] = useState(null);
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDispensaire, dateRange, period]);
 
   const fetchData = async () => {
@@ -101,9 +104,48 @@ const Reports = () => {
     }
   };
 
-  const handleExport = (format) => {
-    // TODO: Implémenter l'export
-    console.log(`Export en ${format}`);
+  const handleExport = async (format) => {
+    setExportLoading(true);
+    setExportMessage(null);
+
+    try {
+      // Build filters object
+      const filters = {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      };
+
+      if (selectedDispensaire !== 'all') {
+        filters.dispensaireId = selectedDispensaire;
+      }
+
+      // Call export mutation
+      const result = await reportService.exportReport(format, filters);
+
+      if (result.success) {
+        setExportMessage({ type: 'success', text: result.message });
+        
+        // Trigger download
+        if (result.url) {
+          window.open(result.url, '_blank');
+        }
+      } else {
+        setExportMessage({ type: 'error', text: result.message });
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      setExportMessage({ 
+        type: 'error', 
+        text: `Erreur lors de l'export: ${error.message}` 
+      });
+    } finally {
+      setExportLoading(false);
+      
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setExportMessage(null);
+      }, 5000);
+    }
   };
 
   // Déterminer quelles stats afficher
@@ -156,6 +198,26 @@ const Reports = () => {
           </div>
         </div>
 
+        {/* Export message */}
+        {exportMessage && (
+          <div 
+            style={{
+              padding: '12px 16px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              backgroundColor: exportMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+              color: exportMessage.type === 'success' ? '#155724' : '#721c24',
+              border: `1px solid ${exportMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <span>{exportMessage.type === 'success' ? '✅' : '❌'}</span>
+            <span>{exportMessage.text}</span>
+          </div>
+        )}
+
         {/* Filtres */}
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
@@ -206,12 +268,31 @@ const Reports = () => {
             />
           </div>
 
-          <button className={styles.exportBtn} onClick={() => handleExport('pdf')}>
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Exporter PDF
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button 
+              className={styles.exportBtn} 
+              onClick={() => handleExport('csv')}
+              disabled={exportLoading}
+              style={{ opacity: exportLoading ? 0.6 : 1 }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {exportLoading ? 'Export en cours...' : 'Exporter CSV'}
+            </button>
+            
+            <button 
+              className={styles.exportBtn} 
+              onClick={() => handleExport('pdf')}
+              disabled={exportLoading}
+              style={{ opacity: exportLoading ? 0.6 : 1 }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {exportLoading ? 'Export en cours...' : 'Exporter PDF'}
+            </button>
+          </div>
         </div>
 
         {/* Statistiques globales ou du dispensaire */}
@@ -409,7 +490,7 @@ const Reports = () => {
               </div>
               <div className={styles.statsRow}>
                 <div className={styles.statsLabel}>📈 Moyenne par jour</div>
-                <div className={styles.statsValue}>{periodStats.avgPerDay}</div>
+                <div className={styles.statsValue}>{periodStats.averagePerDay ? periodStats.averagePerDay.toFixed(1) : '0'}</div>
               </div>
             </div>
           </ChartCard>

@@ -1,0 +1,7 @@
+# Ignore all generated export files
+*.csv
+*.pdf
+*.xlsx
+
+# But keep the directory structure
+!.gitignore

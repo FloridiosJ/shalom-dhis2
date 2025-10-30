@@ -522,20 +522,150 @@ const reportsResolvers = {
 
   Mutation: {
     /**
-     * Exporter un rapport (placeholder)
+     * Exporter un rapport en CSV ou PDF
      */
     exportReport: async (_, { format, filters }, { user }) => {
-      if (!user) {
-        throw new AuthenticationError('Non authentifié');
-      }
+      // Always ensure we return a valid response object
+      try {
+        if (!user) {
+          return {
+            success: false,
+            message: 'Non authentifié. Veuillez vous connecter.',
+            url: null,
+            fileName: null
+          };
+        }
 
-      // TODO: Implémenter l'export PDF/Excel
-      return {
-        success: true,
-        message: `Export ${format} en cours de développement`,
-        url: null,
-        fileName: null
-      };
+        const { DataEntry, Patient, Dispensaire, User } = await import('../../models/index.js');
+        const { generateCSV } = await import('../../utils/export/csvGenerator.js');
+        const { generatePDF } = await import('../../utils/export/pdfGenerator.js');
+
+        // Validate format
+        const validFormats = ['csv', 'pdf', 'CSV', 'PDF'];
+        if (!validFormats.includes(format)) {
+          return {
+            success: false,
+            message: `Format non supporté: ${format}. Formats acceptés: CSV, PDF`,
+            url: null,
+            fileName: null
+          };
+        }
+
+        const normalizedFormat = format.toLowerCase();
+
+        // Build where clause based on filters
+        const whereClause = { isActive: true };
+        
+        if (filters.dispensaireId) {
+          whereClause.dispensaireId = filters.dispensaireId;
+        }
+        
+        if (filters.startDate && filters.endDate) {
+          whereClause.dateConsultation = {
+            [Op.between]: [new Date(filters.startDate), new Date(filters.endDate)]
+          };
+        }
+        
+        if (filters.typeConsultation) {
+          whereClause.typeConsultation = filters.typeConsultation;
+        }
+
+        // Fetch data from database
+        const consultations = await DataEntry.findAll({
+          where: whereClause,
+          include: [
+            {
+              model: Patient,
+              as: 'patient',
+              attributes: ['nom', 'prenom', 'numeroPatient']
+            },
+            {
+              model: Dispensaire,
+              as: 'dispensaire',
+              attributes: ['name']
+            },
+            {
+              model: User,
+              as: 'createdBy',
+              attributes: ['nom', 'prenom']
+            }
+          ],
+          order: [['dateConsultation', 'DESC']],
+          limit: 1000 // Limit to prevent too large exports
+        });
+
+        // Transform data for export
+        const exportData = consultations.map(consultation => ({
+          id: consultation.id,
+          dateConsultation: consultation.dateConsultation,
+          patientName: consultation.patient 
+            ? `${consultation.patient.nom} ${consultation.patient.prenom || ''}`.trim()
+            : 'N/A',
+          numeroPatient: consultation.patient?.numeroPatient || 'N/A',
+          typeConsultation: consultation.typeConsultation,
+          diagnostic: consultation.diagnostic,
+          prescription: consultation.prescription || '',
+          dispensaireName: consultation.dispensaire?.name || 'N/A',
+          agentName: consultation.createdBy
+            ? `${consultation.createdBy.nom} ${consultation.createdBy.prenom || ''}`.trim()
+            : 'N/A',
+          status: consultation.status
+        }));
+
+        // Check if we have data
+        if (exportData.length === 0) {
+          return {
+            success: false,
+            message: 'Aucune donnée disponible pour les filtres sélectionnés',
+            url: null,
+            fileName: null
+          };
+        }
+
+        // Generate file based on format
+        let result;
+        if (normalizedFormat === 'csv') {
+          result = await generateCSV(exportData, filters);
+        } else if (normalizedFormat === 'pdf') {
+          result = await generatePDF(exportData, filters);
+        } else {
+          // This should never happen due to validation above, but just in case
+          return {
+            success: false,
+            message: `Format non supporté: ${normalizedFormat}`,
+            url: null,
+            fileName: null
+          };
+        }
+
+        // Ensure result is valid
+        if (!result || !result.fileName) {
+          throw new Error('La génération du fichier a échoué');
+        }
+
+        // Get base URL from environment or construct it
+        const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+        const downloadUrl = `${baseUrl}/download/${result.fileName}`;
+
+        return {
+          success: true,
+          message: `Rapport ${normalizedFormat.toUpperCase()} généré avec succès (${exportData.length} consultation${exportData.length > 1 ? 's' : ''})`,
+          url: downloadUrl,
+          fileName: result.fileName
+        };
+
+      } catch (error) {
+        console.error('Error exporting report:', error);
+        console.error('Error stack:', error.stack);
+        
+        // Always return a valid response object, never null
+        return {
+          success: false,
+          message: `Erreur lors de la génération du rapport: ${error.message || 'Erreur inconnue'}`,
+          url: null,
+          fileName: null
+        };
+      }
     }
   }
 };
