@@ -528,7 +528,12 @@ const reportsResolvers = {
       // Always ensure we return a valid response object
       try {
         if (!user) {
-          throw new AuthenticationError('Non authentifié');
+          return {
+            success: false,
+            message: 'Non authentifié. Veuillez vous connecter.',
+            url: null,
+            fileName: null
+          };
         }
 
         const { DataEntry, Patient, Dispensaire, User } = await import('../../models/index.js');
