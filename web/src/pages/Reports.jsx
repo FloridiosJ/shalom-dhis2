@@ -361,6 +361,7 @@ const Reports = () => {
             evolutionLoading={evolutionLoading}
             diagnosticsLoading={diagnosticsLoading}
             medicationsLoading={medicationsLoading}
+            onExport={handleExport}
           />
         </div>
       </div>

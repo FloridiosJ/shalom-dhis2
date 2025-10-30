@@ -30,7 +30,7 @@ const AccordionSection = ({
         className={styles.header}
         onClick={handleToggle}
         aria-expanded={isExpanded}
-        aria-controls={`accordion-content-${title}`}
+        aria-controls={`accordion-content-${title.replace(/\s+/g, '-').toLowerCase()}`}
         type="button"
       >
         <div className={styles.headerContent}>
@@ -53,7 +53,7 @@ const AccordionSection = ({
 
       {isExpanded && (
         <div 
-          id={`accordion-content-${title}`}
+          id={`accordion-content-${title.replace(/\s+/g, '-').toLowerCase()}`}
           className={styles.content}
           role="region"
         >
