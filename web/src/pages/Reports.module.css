@@ -17,6 +17,11 @@
   align-items: center;
   gap: 1.5rem;
   flex-wrap: wrap;
+  position: relative;
+}
+
+.titleContainer {
+  flex: 1;
 }
 
 .actionBtn {
@@ -127,6 +132,46 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
+}
+
+/* Sidebar toggle button (mobile only) */
+.sidebarToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebarToggle:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: scale(1.05);
+}
+
+.sidebarToggle:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+/* Reports Layout (Sidebar + Main Panel) */
+.reportsLayout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.sidebarWrapper {
+  flex-shrink: 0;
 }
 
 /* Grille de graphiques */
@@ -511,6 +556,14 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
+  .reportsLayout {
+    flex-direction: column;
+  }
+
+  .sidebarWrapper {
+    width: 100%;
+  }
+
   .chartsGrid {
     grid-template-columns: 1fr;
   }
@@ -522,12 +575,52 @@
   }
 
   .header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .titleContainer {
+    order: 2;
+    flex: 1 1 100%;
   }
 
   .title {
     font-size: 1.5rem;
+  }
+
+  .mobileOnly {
+    display: flex;
+  }
+
+  .sidebarWrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 380px;
+    background: white;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    padding: 1rem;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebarWrapper.open {
+    transform: translateX(0);
+  }
+
+  .reportsLayout.sidebarOpen::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
   }
 
   .filters {
