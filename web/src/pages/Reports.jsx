@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
-import ChartCard from "../components/ChartCard";
+import ReportsSidebar from "../components/ReportsSidebar";
+import ReportsMainPanel from "../components/ReportsMainPanel";
 import reportService from "../services/reports";
 import {
   useDispensaires,
@@ -24,6 +25,8 @@ const Reports = () => {
   });
   const [exportLoading, setExportLoading] = useState(false);
   const [exportMessage, setExportMessage] = useState(null);
+  const [activeWidget, setActiveWidget] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Fetch data using react-query hooks
   const { data: dispensaires = [], isLoading: dispensairesLoading } = useDispensaires();
@@ -147,13 +150,14 @@ const Reports = () => {
             className={styles.actionBtn}
             type="button"
             onClick={() => navigate('/dashboard')}
+            aria-label="Retour au dashboard"
           >
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Retour au dashboard
           </button>
-          <div>
+          <div className={styles.titleContainer}>
             <h1 className={styles.title}>📊 Rapports & Analytics</h1>
             {selectedDispensaire !== 'all' && dispensaireStats && (
               <p className={styles.subtitle}>
@@ -161,6 +165,17 @@ const Reports = () => {
               </p>
             )}
           </div>
+          <button
+            className={`${styles.sidebarToggle} ${styles.mobileOnly}`}
+            type="button"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label={isSidebarOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale"}
+            aria-expanded={isSidebarOpen}
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
 
         {/* Export message */}
@@ -321,145 +336,34 @@ const Reports = () => {
           </div>
         )}
 
-        {/* Graphiques */}
-        <div className={styles.chartsGrid}>
-          {/* Évolution des consultations */}
-          <ChartCard 
-            title={`Évolution ${selectedDispensaire !== 'all' ? 'du dispensaire' : 'globale'}`}
-            actions={
-              <button className={styles.chartBtn}>Voir détails</button>
-            }
-          >
-            <div className={styles.barChart}>
-              {evolution && evolution.length > 0 ? (
-                evolution.map((item, index) => (
-                  <div key={index} className={styles.barItem}>
-                    <div 
-                      className={styles.bar}
-                      style={{
-                        height: `${(item.count / Math.max(...evolution.map(e => e.count))) * 100}%`
-                      }}
-                    >
-                      <span className={styles.barValue}>{item.count}</span>
-                    </div>
-                    <div className={styles.barLabel}>{item.period}</div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.noData}>Aucune donnée pour cette période</div>
-              )}
-            </div>
-          </ChartCard>
-
-          {/* Top diagnostics */}
-          <ChartCard title="Top 5 Diagnostics">
-            <div className={styles.diagnosticsList}>
-              {topDiagnostics && topDiagnostics.length > 0 ? (
-                topDiagnostics.map((item, index) => (
-                  <div key={index} className={styles.diagnosticItem}>
-                    <div className={styles.diagnosticRank}>{index + 1}</div>
-                    <div className={styles.diagnosticInfo}>
-                      <div className={styles.diagnosticName}>{item.diagnostic}</div>
-                      <div className={styles.diagnosticBar}>
-                        <div 
-                          className={styles.diagnosticProgress}
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className={styles.diagnosticCount}>{item.count}</div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.noData}>Aucun diagnostic pour cette période</div>
-              )}
-            </div>
-          </ChartCard>
+        {/* Sidebar and Main Panel Layout */}
+        <div className={`${styles.reportsLayout} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
+          <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? styles.open : ''}`}>
+            <ReportsSidebar
+              activeWidget={activeWidget}
+              onWidgetSelect={setActiveWidget}
+              evolutionData={evolution}
+              topDiagnostics={topDiagnostics}
+              topMedications={topMedications}
+              evolutionLoading={evolutionLoading}
+              diagnosticsLoading={diagnosticsLoading}
+              medicationsLoading={medicationsLoading}
+            />
+          </div>
+          
+          <ReportsMainPanel
+            activeWidget={activeWidget}
+            evolutionData={evolution}
+            topDiagnostics={topDiagnostics}
+            topMedications={topMedications}
+            period={period}
+            selectedDispensaire={selectedDispensaire}
+            evolutionLoading={evolutionLoading}
+            diagnosticsLoading={diagnosticsLoading}
+            medicationsLoading={medicationsLoading}
+            onExport={handleExport}
+          />
         </div>
-
-        {/* Top médicaments prescrits */}
-        <div className={styles.chartsGrid}>
-          <ChartCard title="💊 Top 10 Médicaments Prescrits">
-            <div className={styles.medicationsList}>
-              {topMedications && topMedications.length > 0 ? (
-                topMedications.map((item, index) => (
-                  <div key={index} className={styles.medicationItem}>
-                    <div className={styles.medicationRank}>{index + 1}</div>
-                    <div className={styles.medicationInfo}>
-                      <div className={styles.medicationName}>{item.medicament}</div>
-                      <div className={styles.medicationDetails}>
-                        <span className={styles.medicationCount}>
-                          {item.count} prescription{item.count > 1 ? 's' : ''}
-                        </span>
-                        {item.avgDuree && (
-                          <span className={styles.medicationDuration}>
-                            • Durée moy: {item.avgDuree}
-                          </span>
-                        )}
-                        {item.totalDuree && (
-                          <span className={styles.medicationTotal}>
-                            • Total: {item.totalDuree}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className={styles.medicationBadge}>
-                      {item.count}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.noData}>Aucun médicament prescrit pour cette période</div>
-              )}
-            </div>
-          </ChartCard>
-        </div>
-
-        {/* Top catégories de maladies (pour dispensaire sélectionné) */}
-        {selectedDispensaire !== 'all' && dispensaireStats?.topCategories && (
-          <ChartCard title="Top catégories de maladies">
-            <div className={styles.categoriesList}>
-              {dispensaireStats.topCategories.map((item, index) => (
-                <div key={index} className={styles.categoryItem}>
-                  <div className={styles.categoryRank}>{index + 1}</div>
-                  <div className={styles.categoryInfo}>
-                    <div className={styles.categoryName}>{item.categorie.nom}</div>
-                    <div className={styles.categoryCode}>{item.categorie.code}</div>
-                  </div>
-                  <div className={styles.categoryCount}>{item.nombreConsultations}</div>
-                </div>
-              ))}
-            </div>
-          </ChartCard>
-        )}
-
-        {/* Tableau de statistiques détaillées */}
-        {periodStats && (
-          <ChartCard title={`Statistiques détaillées ${selectedDispensaire !== 'all' ? 'du dispensaire' : 'globales'}`}>
-            <div className={styles.statsTable}>
-              <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>📊 Total consultations</div>
-                <div className={styles.statsValue}>{periodStats.total}</div>
-              </div>
-              <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>📅 Ce mois</div>
-                <div className={styles.statsValue}>{periodStats.thisMonth}</div>
-              </div>
-              <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>🗓️ Cette semaine</div>
-                <div className={styles.statsValue}>{periodStats.thisWeek}</div>
-              </div>
-              <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>📆 Aujourd'hui</div>
-                <div className={styles.statsValue}>{periodStats.today}</div>
-              </div>
-              <div className={styles.statsRow}>
-                <div className={styles.statsLabel}>📈 Moyenne par jour</div>
-                <div className={styles.statsValue}>{periodStats.averagePerDay ? periodStats.averagePerDay.toFixed(1) : '0'}</div>
-              </div>
-            </div>
-          </ChartCard>
-        )}
       </div>
     </div>
   );

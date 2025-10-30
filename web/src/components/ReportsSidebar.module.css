@@ -1,0 +1,201 @@
+.sidebar {
+  width: 100%;
+  max-width: 380px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.sidebarHeader {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.sidebarTitle {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.accordions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* Mini stats in accordion summary */
+.miniStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.miniStat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.miniLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.miniValue {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.loadingText {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.emptyState {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Mini chart in accordion content */
+.miniChart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.miniChartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  transition: background 0.2s ease;
+}
+
+.miniChartItem:hover {
+  background: #f1f5f9;
+}
+
+.miniChartLabel {
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.miniChartValue {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+/* Mini list in accordion content */
+.miniList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.miniListItem {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  transition: background 0.2s ease;
+}
+
+.miniListItem:hover {
+  background: #f1f5f9;
+}
+
+.miniRank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.miniListText {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: #1e293b;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniCount {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.miniListMore {
+  text-align: center;
+  padding: 0.5rem;
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar {
+    max-width: 100%;
+    position: static;
+  }
+
+  .accordions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    padding: 0;
+  }
+
+  .sidebarHeader {
+    padding: 1rem 1.25rem;
+  }
+
+  .sidebarTitle {
+    font-size: 1.125rem;
+  }
+
+  .accordions {
+    grid-template-columns: 1fr;
+  }
+}
