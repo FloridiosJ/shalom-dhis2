@@ -104,6 +104,9 @@ export const resolvers = {
 
     // ActiviteSpirituelle mutations
     ...activiteSpirituelleResolvers.Mutation,
+
+    // Reports mutations
+    ...reportsResolvers.Mutation, // ✅ NOUVEAU
   },
   
   // Field resolvers
