@@ -389,7 +389,7 @@ npm run test:coverage # Tests avec rapport de couverture
 npm run test:ui       # Interface de test interactive
 ```
 
-**Couverture:** 89.18% pour `services/reports.js` (25 tests)
+**Couverture:** 89.18% de code coverage pour le fichier `services/reports.js` (25 tests)
 
 ### Backend (Tests d'intégration)
 

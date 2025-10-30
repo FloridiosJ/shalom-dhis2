@@ -140,13 +140,13 @@ describe('Resolver Logic', () => {
 ## Coverage Goals
 
 - ✅ **Web services/reports.js:** 89.18% (target: >80%)
-- ✅ **Backend resolvers:** 100% logic coverage through integration tests
+- ✅ **Backend resolvers:** Comprehensive logic coverage through integration tests
 
 ## Continuous Integration
 
 Tests are designed to be run in CI/CD pipelines:
 
-1. **Fast execution:** All tests complete in under 2 seconds
+1. **Fast execution:** Complete test suite runs in approximately 2 seconds
 2. **No external dependencies:** Tests use mocks and fixtures
 3. **Deterministic:** Tests produce consistent results
 4. **Isolated:** Each test is independent
@@ -251,9 +251,9 @@ describe('My Resolver Logic', () => {
 
 ## Performance Benchmarks
 
-- **Web unit tests:** ~20ms per test, total ~1s
-- **Backend integration tests:** ~6ms per test, total ~200ms
-- **Total test suite:** ~2s for all 57 tests
+- **Web unit tests:** 25 tests, total ~900ms (including setup/teardown)
+- **Backend integration tests:** 32 tests, total ~210ms
+- **Total test suite:** ~1.2s for all 57 tests (excluding npm startup overhead)
 
 ## Future Enhancements
 
