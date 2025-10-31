@@ -32,6 +32,13 @@ export const login = async (
   password: string,
 ): Promise<AuthPayload> => {
   try {
+    // Validate GRAPHQL_ENDPOINT is configured
+    if (!GRAPHQL_ENDPOINT) {
+      throw new Error(
+        'GRAPHQL_ENDPOINT is not configured. Please create a .env file with GRAPHQL_ENDPOINT set.',
+      );
+    }
+
     // Create a temporary Apollo client without auth for login
     const httpLink = createHttpLink({
       uri: GRAPHQL_ENDPOINT,
@@ -60,8 +67,17 @@ export const login = async (
     await setToken(data.login.token);
 
     return data.login;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
+    console.error('GraphQL Endpoint:', GRAPHQL_ENDPOINT);
+    
+    // Enhance error message for network failures
+    if (error.message?.includes('Network request failed')) {
+      throw new Error(
+        `Network request failed. Please ensure:\n1. Backend server is running on ${GRAPHQL_ENDPOINT}\n2. You can reach the server from your device\n3. The endpoint is correctly configured in .env file`,
+      );
+    }
+    
     throw error;
   }
 };

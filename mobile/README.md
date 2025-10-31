@@ -4,6 +4,26 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
+## Step 0: Configure Environment
+
+Before running the app, you need to configure the backend GraphQL endpoint:
+
+1. Copy the `.env.example` file to `.env`:
+   ```sh
+   cp .env.example .env
+   ```
+
+2. Edit the `.env` file and set the `GRAPHQL_ENDPOINT` variable:
+   - **For Android Emulator**: `http://10.0.2.2:4000/graphql`
+   - **For iOS Simulator**: `http://localhost:4000/graphql`
+   - **For Physical Device**: `http://YOUR_COMPUTER_IP:4000/graphql`
+
+3. To find your computer's IP address:
+   - **Windows**: Open Command Prompt and run `ipconfig`
+   - **macOS/Linux**: Open Terminal and run `ifconfig` or `ip addr show`
+
+4. Make sure the backend server is running on port 4000 before starting the mobile app.
+
 ## Step 1: Start Metro
 
 First, you will need to run **Metro**, the JavaScript build tool for React Native.
