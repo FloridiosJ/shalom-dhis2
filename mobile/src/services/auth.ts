@@ -1,25 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {gql, ApolloClient, InMemoryCache} from '@apollo/client';
 import {GRAPHQL_ENDPOINT} from '@env';
+import type {AuthPayload} from '../types';
 
 const TOKEN_KEY = 'auth-token';
-
-export interface LoginInput {
-  login: string;
-  password: string;
-}
-
-export interface AuthPayload {
-  token: string;
-  user: {
-    id: string;
-    nom: string;
-    prenom: string;
-    email: string;
-    login: string;
-    role: string;
-  };
-}
 
 const LOGIN_MUTATION = gql`
   mutation Login($input: LoginInput!) {
