@@ -2,6 +2,10 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql';
 
+// Maximum number of consultations to fetch at once for client-side pagination
+// If your database has more than this, consider implementing server-side pagination
+const MAX_CONSULTATION_LIMIT = 10000;
+
 const client = axios.create({
   baseURL: API_URL,
   headers: {
@@ -59,16 +63,33 @@ const entryFields = `
 // 1. Liste des consultations
 async function getAll() {
   const query = `
-    query DataEntries {
-      dataEntries {
+    query DataEntries($pagination: PaginationInput) {
+      dataEntries(pagination: $pagination) {
         dataEntries {
           ${entryFields}
         }
+        totalCount
+        hasNextPage
+        hasPreviousPage
       }
     }
   `;
-  const response = await client.post('', { query });
-  return handleGraphQLErrors(response).dataEntries.dataEntries;
+  // Fetch all data with a high limit for client-side pagination/filtering
+  const variables = { 
+    pagination: { 
+      limit: MAX_CONSULTATION_LIMIT,
+      offset: 0
+    } 
+  };
+  const response = await client.post('', { query, variables });
+  const data = handleGraphQLErrors(response).dataEntries;
+  
+  // Return just the array for backward compatibility, but log if we're at the limit
+  if (data.dataEntries.length >= MAX_CONSULTATION_LIMIT) {
+    console.warn(`⚠️ Fetched ${MAX_CONSULTATION_LIMIT} consultations (the maximum). Some data may not be visible. Consider implementing server-side pagination.`);
+  }
+  
+  return data.dataEntries;
 }
 
 // 2. Création consultation
