@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {gql, ApolloClient, InMemoryCache} from '@apollo/client';
+import {gql, ApolloClient, InMemoryCache, createHttpLink} from '@apollo/client';
 import {GRAPHQL_ENDPOINT} from '@env';
 import type {AuthPayload} from '../types';
 
@@ -33,8 +33,12 @@ export const login = async (
 ): Promise<AuthPayload> => {
   try {
     // Create a temporary Apollo client without auth for login
-    const tempClient = new ApolloClient({
+    const httpLink = createHttpLink({
       uri: GRAPHQL_ENDPOINT,
+    });
+    
+    const tempClient = new ApolloClient({
+      link: httpLink,
       cache: new InMemoryCache(),
     });
 

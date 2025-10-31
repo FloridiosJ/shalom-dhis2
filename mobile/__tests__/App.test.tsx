@@ -28,12 +28,16 @@ jest.mock('react-native-paper', () => {
 
 // Mock Apollo Client
 jest.mock('@apollo/client', () => ({
-  ApolloProvider: ({children}: any) => children,
   ApolloClient: jest.fn(),
   InMemoryCache: jest.fn(),
   gql: jest.fn(),
   createHttpLink: jest.fn(),
   from: jest.fn(),
+}));
+
+// Mock Apollo Client React
+jest.mock('@apollo/client/react', () => ({
+  ApolloProvider: ({children}: any) => children,
 }));
 
 // Mock setContext from apollo link context
