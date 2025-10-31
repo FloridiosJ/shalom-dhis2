@@ -59,15 +59,25 @@ const entryFields = `
 // 1. Liste des consultations
 async function getAll() {
   const query = `
-    query DataEntries {
-      dataEntries {
+    query DataEntries($pagination: PaginationInput) {
+      dataEntries(pagination: $pagination) {
         dataEntries {
           ${entryFields}
         }
+        totalCount
+        hasNextPage
+        hasPreviousPage
       }
     }
   `;
-  const response = await client.post('', { query });
+  // Fetch all data with a high limit for client-side pagination/filtering
+  const variables = { 
+    pagination: { 
+      limit: 10000,
+      offset: 0
+    } 
+  };
+  const response = await client.post('', { query, variables });
   return handleGraphQLErrors(response).dataEntries.dataEntries;
 }
 
