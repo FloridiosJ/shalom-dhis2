@@ -8,7 +8,7 @@
 import React, {useEffect, useState} from 'react';
 import {View, ActivityIndicator, StyleSheet} from 'react-native';
 import {PaperProvider} from 'react-native-paper';
-import {ApolloProvider} from '@apollo/client';
+import {ApolloProvider} from '@apollo/client/react';
 import {apolloClient} from './src/services/apollo';
 import {isAuthenticated} from './src/services/auth';
 import LoginScreen from './src/screens/LoginScreen';
