@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, TouchableOpacity} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -23,13 +23,9 @@ const AccountIcon = ({color, size}: {color: string; size: number}) => (
 
 // Logout icon component outside render
 const LogoutIconButton = ({onPress}: {onPress: () => void}) => (
-  <Icon
-    name="logout"
-    size={24}
-    color="#fff"
-    style={styles.logoutIcon}
-    onPress={onPress}
-  />
+  <TouchableOpacity onPress={onPress} style={styles.logoutButton}>
+    <Icon name="logout" size={24} color="#fff" />
+  </TouchableOpacity>
 );
 
 const LOGOUT_ICON_MARGIN = 16;
@@ -80,7 +76,8 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
 }
 
 const styles = StyleSheet.create({
-  logoutIcon: {
+  logoutButton: {
     marginRight: LOGOUT_ICON_MARGIN,
+    padding: 8,
   },
 });
