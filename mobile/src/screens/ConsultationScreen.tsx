@@ -1,28 +1,29 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View} from 'react-native';
 import {Text, Card} from 'react-native-paper';
+import {placeholderScreenStyles} from '../styles/commonStyles';
 
 export default function ConsultationScreen() {
   return (
-    <View style={styles.container}>
-      <Card style={styles.card}>
+    <View style={placeholderScreenStyles.container}>
+      <Card style={placeholderScreenStyles.card}>
         <Card.Content>
-          <Text variant="headlineMedium" style={styles.title}>
+          <Text variant="headlineMedium" style={placeholderScreenStyles.title}>
             📋 Consultation
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant="bodyLarge" style={placeholderScreenStyles.subtitle}>
             En cours de développement
           </Text>
-          <Text variant="bodyMedium" style={styles.info}>
+          <Text variant="bodyMedium" style={placeholderScreenStyles.info}>
             Fonctionnalités à venir :
           </Text>
-          <Text variant="bodySmall" style={styles.listItem}>
+          <Text variant="bodySmall" style={placeholderScreenStyles.listItem}>
             • Liste des consultations
           </Text>
-          <Text variant="bodySmall" style={styles.listItem}>
+          <Text variant="bodySmall" style={placeholderScreenStyles.listItem}>
             • Création/édition de consultation
           </Text>
-          <Text variant="bodySmall" style={styles.listItem}>
+          <Text variant="bodySmall" style={placeholderScreenStyles.listItem}>
             • Synchronisation des données
           </Text>
         </Card.Content>
@@ -30,34 +31,3 @@ export default function ConsultationScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-    justifyContent: 'center',
-  },
-  card: {
-    padding: 16,
-  },
-  title: {
-    marginBottom: 16,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    color: '#666',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  info: {
-    marginBottom: 12,
-    fontWeight: '600',
-  },
-  listItem: {
-    color: '#666',
-    marginLeft: 8,
-    marginBottom: 4,
-  },
-});

@@ -32,6 +32,8 @@ const LogoutIconButton = ({onPress}: {onPress: () => void}) => (
   />
 );
 
+const LOGOUT_ICON_MARGIN = 16;
+
 export default function MainNavigator({onLogout}: MainNavigatorProps) {
   const renderLogoutIcon = useCallback(
     () => <LogoutIconButton onPress={onLogout} />,
@@ -79,6 +81,6 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
 
 const styles = StyleSheet.create({
   logoutIcon: {
-    marginRight: 16,
+    marginRight: LOGOUT_ICON_MARGIN,
   },
 });
