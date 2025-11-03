@@ -10,9 +10,9 @@ import {View, ActivityIndicator, StyleSheet} from 'react-native';
 import {PaperProvider} from 'react-native-paper';
 import {ApolloProvider} from '@apollo/client/react';
 import {apolloClient} from './src/services/apollo';
-import {isAuthenticated} from './src/services/auth';
+import {isAuthenticated, logout} from './src/services/auth';
 import LoginScreen from './src/screens/LoginScreen';
-import HomeScreen from './src/screens/HomeScreen';
+import MainNavigator from './src/navigation/MainNavigator';
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -38,8 +38,13 @@ export default function App() {
     setAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    setAuthenticated(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setAuthenticated(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (loading) {
@@ -54,7 +59,7 @@ export default function App() {
     <ApolloProvider client={apolloClient}>
       <PaperProvider>
         {authenticated ? (
-          <HomeScreen onLogout={handleLogout} />
+          <MainNavigator onLogout={handleLogout} />
         ) : (
           <LoginScreen onLoginSuccess={handleLoginSuccess} />
         )}

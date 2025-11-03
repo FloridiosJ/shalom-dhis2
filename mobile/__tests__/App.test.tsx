@@ -45,6 +45,14 @@ jest.mock('@apollo/client/link/context', () => ({
   setContext: jest.fn(),
 }));
 
+// Mock MainNavigator
+jest.mock('../src/navigation/MainNavigator', () => {
+  const React = require('react');
+  return function MainNavigator() {
+    return React.createElement('MainNavigator');
+  };
+});
+
 test('renders correctly', async () => {
   await ReactTestRenderer.act(() => {
     ReactTestRenderer.create(<App />);
