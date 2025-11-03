@@ -32,5 +32,16 @@ export interface User {
   nom: string;
   prenom: string;
   email: string;
+  login: string;
   role: string;
+}
+
+export interface LoginInput {
+  login: string;
+  password: string;
+}
+
+export interface AuthPayload {
+  token: string;
+  user: User;
 }

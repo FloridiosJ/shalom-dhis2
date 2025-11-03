@@ -5,15 +5,15 @@ import {
   from,
 } from '@apollo/client';
 import {setContext} from '@apollo/client/link/context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GRAPHQL_ENDPOINT} from '@env';
+import {getToken} from './auth';
 
 const httpLink = createHttpLink({
   uri: GRAPHQL_ENDPOINT,
 });
 
 const authLink = setContext(async (_, {headers}) => {
-  const token = await AsyncStorage.getItem('auth-token');
+  const token = await getToken();
   return {
     headers: {
       ...headers,
