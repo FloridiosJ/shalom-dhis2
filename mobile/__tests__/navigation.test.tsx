@@ -11,15 +11,17 @@ jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
-  const React = require('react');
+  const ReactMock = require('react');
   const CardContent = ({children}: any) =>
-    React.createElement('CardContent', {}, children);
-  const Card = ({children}: any) => React.createElement('Card', {}, children);
+    ReactMock.createElement('CardContent', {}, children);
+  const Card = ({children}: any) =>
+    ReactMock.createElement('Card', {}, children);
   Card.Content = CardContent;
   return {
-    Text: ({children}: any) => React.createElement('Text', {}, children),
+    Text: ({children}: any) => ReactMock.createElement('Text', {}, children),
     Card,
-    Button: ({children}: any) => React.createElement('Button', {}, children),
+    Button: ({children}: any) =>
+      ReactMock.createElement('Button', {}, children),
   };
 });
 

@@ -15,14 +15,13 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = require('react');
+  const ReactMock = require('react');
   return {
     PaperProvider: ({children}: any) => children,
-    TextInput: () => React.createElement('TextInput'),
-    Button: () => React.createElement('Button'),
-    Text: () => React.createElement('Text'),
-    HelperText: () => React.createElement('HelperText'),
+    TextInput: () => ReactMock.createElement('TextInput'),
+    Button: () => ReactMock.createElement('Button'),
+    Text: () => ReactMock.createElement('Text'),
+    HelperText: () => ReactMock.createElement('HelperText'),
   };
 });
 
@@ -47,9 +46,9 @@ jest.mock('@apollo/client/link/context', () => ({
 
 // Mock MainNavigator
 jest.mock('../src/navigation/MainNavigator', () => {
-  const React = require('react');
+  const ReactMock = require('react');
   return function MainNavigator() {
-    return React.createElement('MainNavigator');
+    return ReactMock.createElement('MainNavigator');
   };
 });
 
