@@ -25,9 +25,8 @@ export interface DataEntry {
   typeConsultation?: string;
 }
 
-export interface Consultation extends DataEntry {
-  // Alias for better semantics
-}
+// Alias for better semantics
+export type Consultation = DataEntry;
 
 export interface Dispensaire {
   id: string;
