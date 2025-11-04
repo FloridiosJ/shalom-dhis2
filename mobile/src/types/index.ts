@@ -12,7 +12,14 @@ export interface Patient {
   religion?: string;
 }
 
-export type ConsultationStatus = 'brouillon' | 'en_attente' | 'envoye';
+// Backend ConsultationStatus enum values
+export type ConsultationStatus = 
+  | 'en_cours'      // En cours (draft/in progress)
+  | 'termine'       // Terminé (completed/sent)
+  | 'suivi_requis'  // Suivi requis (follow-up required/pending)
+  | 'active'        // Active
+  | 'completed'     // Completed
+  | 'cancelled';    // Cancelled
 
 export interface DataEntry {
   id: string;

@@ -12,20 +12,35 @@ const STATUS_CONFIG: Record<
   ConsultationStatus,
   {label: string; color: string; backgroundColor: string}
 > = {
-  envoye: {
+  termine: {
     label: 'Envoyé',
     color: '#2E7D32',
     backgroundColor: '#E8F5E9',
   },
-  en_attente: {
+  completed: {
+    label: 'Envoyé',
+    color: '#2E7D32',
+    backgroundColor: '#E8F5E9',
+  },
+  suivi_requis: {
     label: 'En attente',
     color: '#EF6C00',
     backgroundColor: '#FFF3E0',
   },
-  brouillon: {
+  en_cours: {
     label: 'Brouillon',
     color: '#616161',
     backgroundColor: '#F5F5F5',
+  },
+  active: {
+    label: 'En cours',
+    color: '#2196F3',
+    backgroundColor: '#E3F2FD',
+  },
+  cancelled: {
+    label: 'Annulé',
+    color: '#D32F2F',
+    backgroundColor: '#FFEBEE',
   },
 };
 

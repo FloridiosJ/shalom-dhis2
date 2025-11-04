@@ -23,9 +23,9 @@ interface PillData {
 
 const FILTERS: PillData[] = [
   {key: 'tous', label: 'Tous'},
-  {key: 'brouillon', label: 'Brouillon'},
-  {key: 'en_attente', label: 'En attente'},
-  {key: 'envoye', label: 'Envoyé'},
+  {key: 'en_cours', label: 'Brouillon'},
+  {key: 'suivi_requis', label: 'En attente'},
+  {key: 'termine', label: 'Envoyé'},
 ];
 
 export default function ConsultationFilterPills({
