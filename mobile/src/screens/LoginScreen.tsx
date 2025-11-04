@@ -88,7 +88,7 @@ export default function LoginScreen({onLoginSuccess}: LoginScreenProps) {
         <View style={styles.formContainer}>
           {/* Logo/Icon at top */}
           <View style={styles.iconContainer}>
-            <Icon name="plus" size={32} color="#FFFFFF" />
+            <Icon name="plus-thick" size={32} color="#FFFFFF" />
           </View>
 
           {/* Title */}
