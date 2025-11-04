@@ -43,12 +43,29 @@ const LogoutIconButton = ({onPress}: {onPress: () => void}) => (
   </TouchableOpacity>
 );
 
+// Menu icon component outside render
+const MenuIconButton = ({onPress}: {onPress: () => void}) => (
+  <TouchableOpacity onPress={onPress} style={styles.menuButton}>
+    <Icon name="menu" size={24} color="#fff" />
+  </TouchableOpacity>
+);
+
 const LOGOUT_ICON_MARGIN = 16;
 
 export default function MainNavigator({onLogout}: MainNavigatorProps) {
   const renderLogoutIcon = useCallback(
     () => <LogoutIconButton onPress={onLogout} />,
     [onLogout],
+  );
+
+  const handleMenuPress = useCallback(() => {
+    // TODO: Open drawer or menu
+    console.log('Menu pressed');
+  }, []);
+
+  const renderMenuIcon = useCallback(
+    () => <MenuIconButton onPress={handleMenuPress} />,
+    [handleMenuPress],
   );
 
   return (
@@ -93,6 +110,7 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
             tabBarIcon: StethoscopeIcon,
             tabBarLabel: 'Consultation',
             headerTitle: 'Consultations',
+            headerLeft: renderMenuIcon,
             headerRight: renderLogoutIcon,
           }}
         />
@@ -134,6 +152,10 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
 const styles = StyleSheet.create({
   logoutButton: {
     marginRight: LOGOUT_ICON_MARGIN,
+    padding: 8,
+  },
+  menuButton: {
+    marginLeft: LOGOUT_ICON_MARGIN,
     padding: 8,
   },
 });

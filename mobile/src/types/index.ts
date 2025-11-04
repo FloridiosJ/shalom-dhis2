@@ -12,6 +12,8 @@ export interface Patient {
   religion?: string;
 }
 
+export type ConsultationStatus = 'brouillon' | 'en_attente' | 'envoye';
+
 export interface DataEntry {
   id: string;
   dateConsultation: string;
@@ -19,6 +21,12 @@ export interface DataEntry {
   prescription: string;
   notes: string;
   patient: Patient;
+  status: ConsultationStatus;
+  typeConsultation?: string;
+}
+
+export interface Consultation extends DataEntry {
+  // Alias for better semantics
 }
 
 export interface Dispensaire {
