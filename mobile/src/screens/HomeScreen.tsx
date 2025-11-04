@@ -64,18 +64,21 @@ export default function HomeScreen() {
   const [selectedDispensaire, setSelectedDispensaire] = useState('Dispensaire');
   const [selectedPeriode, setSelectedPeriode] = useState('Période');
 
-  // Placeholder data - would be replaced with real data
-  const consultationsCount = 12;
-  const patientsRecentsCount = 5;
-  const syncRequiredCount = 8;
+  // Placeholder data - would be replaced with real data from API/database
+  const dashboardData = {
+    consultationsCount: 12,
+    patientsRecentsCount: 5,
+    syncRequiredCount: 8,
+  };
 
   const handleNewPatient = () => {
-    // Navigation to patient creation would be implemented here
-    console.log('Navigate to new patient');
+    // TODO: Navigation to patient creation screen
+    // navigation.navigate('CreatePatient');
   };
 
   const handleExport = () => {
-    console.log('Export/Share data');
+    // TODO: Implement export/share functionality
+    // ShareService.share(dashboardData);
   };
 
   return (
@@ -144,7 +147,7 @@ export default function HomeScreen() {
             }>
             <Menu.Item
               onPress={() => {
-                setSelectedPeriode('Aujourd\'hui');
+                setSelectedPeriode("Aujourd'hui");
                 setPeriodeVisible(false);
               }}
               title="Aujourd'hui"
@@ -173,7 +176,7 @@ export default function HomeScreen() {
               <DashboardCard
                 icon="clipboard-text"
                 label="Consultations en attente"
-                count={consultationsCount}
+                count={dashboardData.consultationsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
               />
@@ -182,7 +185,7 @@ export default function HomeScreen() {
               <DashboardCard
                 icon="account-group"
                 label="Patients Récents"
-                count={patientsRecentsCount}
+                count={dashboardData.patientsRecentsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
               />
@@ -194,7 +197,7 @@ export default function HomeScreen() {
               <DashboardCard
                 icon="sync"
                 label="Synchronisation requise"
-                count={syncRequiredCount}
+                count={dashboardData.syncRequiredCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
               />
