@@ -45,6 +45,9 @@ jest.mock('@apollo/client/link/context', () => ({
   setContext: jest.fn(),
 }));
 
+// Mock react-native-vector-icons
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+
 test('renders correctly', async () => {
   await ReactTestRenderer.act(() => {
     ReactTestRenderer.create(<App />);
