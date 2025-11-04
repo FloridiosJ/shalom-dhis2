@@ -22,7 +22,7 @@ import {fetchConsultations} from '../services/consultationService';
 
 const ITEMS_PER_PAGE = 20;
 
-export default function ConsultationScreen() {
+export default function ConsultationScreen({navigation}: {navigation: any}) {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('tous');
@@ -114,9 +114,8 @@ export default function ConsultationScreen() {
   }, []);
 
   const handleNewConsultation = useCallback(() => {
-    // TODO: Navigate to create consultation screen
-    console.log('Create new consultation');
-  }, []);
+    navigation.navigate('NewConsultation');
+  }, [navigation]);
 
   const handleRetry = useCallback(() => {
     setError(null);

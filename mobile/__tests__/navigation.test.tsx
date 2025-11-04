@@ -16,6 +16,12 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 // Mock react-native-vector-icons
 jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
+// Mock react-native-image-picker
+jest.mock('react-native-image-picker', () => ({
+  launchCamera: jest.fn(),
+  launchImageLibrary: jest.fn(),
+}));
+
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
   const ReactMock = require('react');
@@ -44,6 +50,14 @@ jest.mock('@react-navigation/native', () => ({
 // Mock @react-navigation/bottom-tabs
 jest.mock('@react-navigation/bottom-tabs', () => ({
   createBottomTabNavigator: () => ({
+    Navigator: ({children}: any) => children,
+    Screen: ({children}: any) => children,
+  }),
+}));
+
+// Mock @react-navigation/stack
+jest.mock('@react-navigation/stack', () => ({
+  createStackNavigator: () => ({
     Navigator: ({children}: any) => children,
     Screen: ({children}: any) => children,
   }),
