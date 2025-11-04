@@ -12,6 +12,15 @@ export interface Patient {
   religion?: string;
 }
 
+// Backend ConsultationStatus enum values
+export type ConsultationStatus = 
+  | 'en_cours'      // En cours (draft/in progress)
+  | 'termine'       // Terminé (completed/sent)
+  | 'suivi_requis'  // Suivi requis (follow-up required/pending)
+  | 'active'        // Active
+  | 'completed'     // Completed
+  | 'cancelled';    // Cancelled
+
 export interface DataEntry {
   id: string;
   dateConsultation: string;
@@ -19,7 +28,12 @@ export interface DataEntry {
   prescription: string;
   notes: string;
   patient: Patient;
+  status: ConsultationStatus;
+  typeConsultation?: string;
 }
+
+// Alias for better semantics
+export type Consultation = DataEntry;
 
 export interface Dispensaire {
   id: string;

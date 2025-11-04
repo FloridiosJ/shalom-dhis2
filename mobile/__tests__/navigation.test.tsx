@@ -6,6 +6,13 @@ import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import MainNavigator from '../src/navigation/MainNavigator';
 
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 // Mock react-native-vector-icons
 jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
@@ -22,6 +29,7 @@ jest.mock('react-native-paper', () => {
     Card,
     Button: ({children}: any) =>
       ReactMock.createElement('Button', {}, children),
+    FAB: ({children}: any) => ReactMock.createElement('FAB', {}, children),
   };
 });
 
