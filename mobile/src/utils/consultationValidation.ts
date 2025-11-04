@@ -3,7 +3,6 @@ import * as yup from 'yup';
 export const consultationValidationSchema = yup.object().shape({
   patientId: yup
     .string()
-    .nullable()
     .required('Veuillez sélectionner un patient'),
   dateConsultation: yup
     .date()

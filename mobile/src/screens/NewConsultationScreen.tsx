@@ -123,11 +123,15 @@ export default function NewConsultationScreen({
     }
   };
 
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
+
   const saveDraftDebounced = useCallback((data: ConsultationFormData) => {
-    const timeoutId = setTimeout(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
       saveDraft(data);
     }, 1000);
-    return () => clearTimeout(timeoutId);
   }, []);
 
   const saveDraft = async (data: ConsultationFormData) => {
@@ -352,8 +356,9 @@ export default function NewConsultationScreen({
           labelStyle={styles.draftButtonLabel}
           disabled={saving}
           accessibilityRole={'button' as AccessibilityRole}
-          accessibilityLabel="Enregistrer brouillon">
-          Enregistrer broui...
+          accessibilityLabel="Enregistrer brouillon"
+          compact>
+          Enregistrer
         </Button>
         <Button
           mode="contained"

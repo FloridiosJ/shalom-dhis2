@@ -187,7 +187,7 @@ export default function AttachmentField({
           icon="camera"
           accessibilityRole={'button' as AccessibilityRole}
           accessibilityLabel="Ajouter une photo">
-          Ajouter une...
+          Ajouter une photo
         </Button>
 
         <Button
@@ -197,7 +197,7 @@ export default function AttachmentField({
           icon="paperclip"
           accessibilityRole={'button' as AccessibilityRole}
           accessibilityLabel="Ajouter un fichier">
-          Ajouter un f...
+          Ajouter un fichier
         </Button>
       </View>
 
