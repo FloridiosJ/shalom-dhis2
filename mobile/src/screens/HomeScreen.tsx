@@ -24,7 +24,7 @@ function DashboardCard({
         <View style={[styles.iconContainer, {backgroundColor: iconBackground}]}>
           <Icon name={icon} size={28} color={iconColor} />
         </View>
-        <Text variant="bodySmall" style={styles.cardLabel}>
+        <Text variant="bodySmall" style={styles.cardLabel} numberOfLines={2}>
           {label}
         </Text>
         <Text variant="headlineMedium" style={styles.cardCount}>
@@ -49,7 +49,7 @@ function ActionCard({icon, label, onPress}: ActionCardProps) {
           <View style={[styles.iconContainer, styles.actionIconContainer]}>
             <Icon name={icon} size={28} color="#2196F3" />
           </View>
-          <Text variant="bodyMedium" style={styles.actionCardLabel}>
+          <Text variant="bodyMedium" style={styles.actionCardLabel} numberOfLines={2}>
             {label}
           </Text>
         </Card.Content>
@@ -294,6 +294,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     lineHeight: 16,
+    height: 32,
   },
   cardCount: {
     fontWeight: 'bold',
@@ -318,5 +319,6 @@ const styles = StyleSheet.create({
     color: '#2196F3',
     textAlign: 'center',
     fontWeight: '600',
+    height: 32,
   },
 });
