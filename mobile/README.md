@@ -93,6 +93,30 @@ When you want to forcefully reload, for example to reset the state of your app, 
 - **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
 - **iOS**: Press <kbd>R</kbd> in iOS Simulator.
 
+## App Structure
+
+### Navigation
+
+The app uses a bottom tab navigation pattern with the following screens:
+
+- **Consultation**: Access to consultation list, creation/editing, and synchronization (placeholder - in development)
+- **Patient**: Access to patient records, search, and creation/editing (placeholder - in development)
+
+The navigation is only accessible after successful login. Both screens include a logout button in the header.
+
+### Screens
+
+- `LoginScreen`: Authentication screen
+- `ConsultationScreen`: Consultation management (placeholder)
+- `PatientScreen`: Patient management (placeholder)
+
+### Future Enhancements
+
+The navigation structure is prepared to add additional sections such as:
+- Data quality monitoring
+- Synchronization management
+- Settings
+
 ## Congratulations! :tada:
 
 You've successfully run and modified your React Native App. :partying_face:
