@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
 import {View, StyleSheet} from 'react-native';
+import {Text, Button} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {usePatientDetail} from '../hooks/usePatientDetail';
 import PatientDetail from '../components/PatientDetail';
 import {Consultation} from '../types';
@@ -43,16 +45,34 @@ export default function PatientDetailScreen({
 
   if (error) {
     return (
-      <View style={styles.container}>
-        {/* Error handling could be improved with a proper error component */}
+      <View style={[styles.container, styles.centerContent]}>
+        <Icon name="alert-circle-outline" size={64} color="#F44336" />
+        <Text variant="titleLarge" style={styles.errorTitle}>
+          Erreur de chargement
+        </Text>
+        <Text variant="bodyMedium" style={styles.errorText}>
+          {error}
+        </Text>
+        <Button mode="contained" onPress={() => navigation.goBack()} style={styles.errorButton}>
+          Retour
+        </Button>
       </View>
     );
   }
 
   if (!patient && !loading) {
     return (
-      <View style={styles.container}>
-        {/* Not found state */}
+      <View style={[styles.container, styles.centerContent]}>
+        <Icon name="account-question-outline" size={64} color="#9E9E9E" />
+        <Text variant="titleLarge" style={styles.errorTitle}>
+          Patient introuvable
+        </Text>
+        <Text variant="bodyMedium" style={styles.errorText}>
+          Le patient demandé n'a pas pu être trouvé.
+        </Text>
+        <Button mode="contained" onPress={() => navigation.goBack()} style={styles.errorButton}>
+          Retour
+        </Button>
       </View>
     );
   }
@@ -73,5 +93,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  errorTitle: {
+    marginTop: 16,
+    marginBottom: 8,
+    color: '#212121',
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#757575',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  errorButton: {
+    minWidth: 120,
   },
 });

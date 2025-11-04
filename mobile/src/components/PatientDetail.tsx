@@ -135,13 +135,6 @@ export default function PatientDetail({
             value={patient.sexe === 'M' ? 'Masculin' : 'Féminin'}
             iconColor={patient.sexe === 'M' ? '#2196F3' : '#E91E63'}
           />
-          {patient.numeroPatient && (
-            <InfoRow
-              icon="phone"
-              label="Contact"
-              value={patient.numeroPatient}
-            />
-          )}
           <InfoRow
             icon="map-marker"
             label="Adresse"

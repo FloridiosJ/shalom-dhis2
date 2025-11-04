@@ -56,9 +56,9 @@ export function useFilteredPatients({
         case 'age':
           return b.age - a.age;
         case 'recent':
-          // Assuming patients are already sorted by creation date
-          // This would require additional timestamp field in real implementation
-          return 0;
+          // Sort by patient ID (assuming higher ID = more recent)
+          // In production, this should use a createdAt timestamp
+          return b.id.localeCompare(a.id);
         default:
           return 0;
       }
