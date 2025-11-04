@@ -1,15 +1,18 @@
 import React, {useCallback} from 'react';
 import {StyleSheet, TouchableOpacity} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import HomeScreen from '../screens/HomeScreen';
 import ConsultationScreen from '../screens/ConsultationScreen';
+import NewConsultationScreen from '../screens/NewConsultationScreen';
 import PatientScreen from '../screens/PatientScreen';
 import SyncScreen from '../screens/SyncScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
+const ConsultationStack = createStackNavigator();
 
 interface MainNavigatorProps {
   onLogout: () => void;
@@ -51,6 +54,35 @@ const MenuIconButton = ({onPress}: {onPress: () => void}) => (
 );
 
 const LOGOUT_ICON_MARGIN = 16;
+
+function ConsultationStackNavigator() {
+  return (
+    <ConsultationStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#2196F3',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}>
+      <ConsultationStack.Screen
+        name="ConsultationList"
+        component={ConsultationScreen}
+        options={{headerShown: false}}
+      />
+      <ConsultationStack.Screen
+        name="NewConsultation"
+        component={NewConsultationScreen}
+        options={{
+          title: 'Nouvelle Consultation',
+          headerBackTitle: 'Retour',
+        }}
+      />
+    </ConsultationStack.Navigator>
+  );
+}
 
 export default function MainNavigator({onLogout}: MainNavigatorProps) {
   const renderLogoutIcon = useCallback(
@@ -105,7 +137,7 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
         />
         <Tab.Screen
           name="Consultation"
-          component={ConsultationScreen}
+          component={ConsultationStackNavigator}
           options={{
             tabBarIcon: StethoscopeIcon,
             tabBarLabel: 'Consultation',
