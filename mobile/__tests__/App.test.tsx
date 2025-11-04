@@ -44,6 +44,8 @@ jest.mock('@apollo/client/link/context', () => ({
   setContext: jest.fn(),
 }));
 
+// Mock react-native-vector-icons
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 // Mock MainNavigator
 jest.mock('../src/navigation/MainNavigator', () => {
   const ReactMock = require('react');
