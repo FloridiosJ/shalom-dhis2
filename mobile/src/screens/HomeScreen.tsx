@@ -272,11 +272,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 2,
     backgroundColor: '#FFFFFF',
+    minHeight: 140,
   },
   cardContent: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 20,
     paddingHorizontal: 12,
+    flex: 1,
   },
   iconContainer: {
     width: 56,
@@ -306,6 +309,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: '#2196F3',
+    minHeight: 140,
   },
   actionIconContainer: {
     backgroundColor: '#E3F2FD',
