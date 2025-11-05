@@ -21,6 +21,17 @@ export type ConsultationStatus =
   | 'completed'     // Completed
   | 'cancelled';    // Cancelled
 
+/**
+ * Vital signs data for a consultation
+ */
+export interface VitalSigns {
+  weight?: number; // Poids (kg)
+  temperature?: number; // Température (°C)
+  bloodPressureSystolic?: number; // Pression artérielle systolique
+  bloodPressureDiastolic?: number; // Pression artérielle diastolique
+  pulse?: number; // Pouls (bpm)
+}
+
 export interface DataEntry {
   id: string;
   dateConsultation: string;
@@ -30,6 +41,9 @@ export interface DataEntry {
   patient: Patient;
   status: ConsultationStatus;
   typeConsultation?: string;
+  motifConsultation?: string; // Reason for consultation
+  vitalSigns?: VitalSigns; // Vital signs data
+  agentNotes?: string; // Agent's notes (can be same as notes)
 }
 
 // Alias for better semantics

@@ -9,6 +9,7 @@ import ConsultationScreen from '../screens/ConsultationScreen';
 import NewConsultationScreen from '../screens/NewConsultationScreen';
 import PatientScreen from '../screens/PatientScreen';
 import PatientDetailScreen from '../screens/PatientDetailScreen';
+import ConsultationDetailScreen from '../screens/ConsultationDetailScreen';
 import SyncScreen from '../screens/SyncScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
@@ -110,6 +111,20 @@ function PatientStackNavigator() {
           title: 'Détails du Patient',
           headerBackTitle: 'Retour',
         }}
+      />
+      <PatientStack.Screen
+        name="ConsultationDetail"
+        component={ConsultationDetailScreen}
+        options={({route}: any) => ({
+          title: `Consultation du ${new Date(
+            route.params?.consultation?.dateConsultation,
+          ).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+          })}`,
+          headerBackTitle: 'Retour',
+        })}
       />
     </PatientStack.Navigator>
   );
