@@ -232,8 +232,8 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
           options={{
             tabBarIcon: SettingsIcon,
             tabBarLabel: 'Settings',
-            headerTitle: 'Paramètres',
-            headerRight: renderLogoutIcon,
+            headerTitle: 'Paramètres & Profil',
+            headerShown: true,
           }}
         />
       </Tab.Navigator>
