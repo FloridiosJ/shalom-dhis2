@@ -88,7 +88,7 @@ const VitalsCard = memo(({vitalSigns}: VitalsCardProps) => {
 
         <View style={styles.vitalsGrid}>
           {/* Weight */}
-          {weight !== undefined && (
+          {weight !== undefined && typeof weight === 'number' && (
             <VitalItem
               icon="weight-kilogram"
               label="Poids"
@@ -99,7 +99,7 @@ const VitalsCard = memo(({vitalSigns}: VitalsCardProps) => {
           )}
 
           {/* Temperature */}
-          {temperature !== undefined && (
+          {temperature !== undefined && typeof temperature === 'number' && (
             <VitalItem
               icon="thermometer"
               label="Température"
@@ -111,7 +111,9 @@ const VitalsCard = memo(({vitalSigns}: VitalsCardProps) => {
 
           {/* Blood Pressure */}
           {bloodPressureSystolic !== undefined &&
-            bloodPressureDiastolic !== undefined && (
+            bloodPressureDiastolic !== undefined &&
+            typeof bloodPressureSystolic === 'number' &&
+            typeof bloodPressureDiastolic === 'number' && (
               <VitalItem
                 icon="heart-pulse"
                 label="Pression artérielle"
@@ -122,7 +124,7 @@ const VitalsCard = memo(({vitalSigns}: VitalsCardProps) => {
             )}
 
           {/* Pulse */}
-          {pulse !== undefined && (
+          {pulse !== undefined && typeof pulse === 'number' && (
             <VitalItem
               icon="heart"
               label="Pouls"

@@ -115,16 +115,30 @@ function PatientStackNavigator() {
       <PatientStack.Screen
         name="ConsultationDetail"
         component={ConsultationDetailScreen}
-        options={({route}: any) => ({
-          title: `Consultation du ${new Date(
-            route.params?.consultation?.dateConsultation,
-          ).toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit',
-          })}`,
-          headerBackTitle: 'Retour',
-        })}
+        options={({route}: {route: any}) => {
+          const dateConsultation = route.params?.consultation?.dateConsultation;
+          let dateString = '';
+          
+          try {
+            if (dateConsultation) {
+              const date = new Date(dateConsultation);
+              if (!isNaN(date.getTime())) {
+                dateString = date.toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: '2-digit',
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error formatting consultation date:', error);
+          }
+
+          return {
+            title: dateString ? `Consultation du ${dateString}` : 'Détail Consultation',
+            headerBackTitle: 'Retour',
+          };
+        }}
       />
     </PatientStack.Navigator>
   );
