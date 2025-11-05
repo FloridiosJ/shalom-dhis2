@@ -13,7 +13,7 @@ jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
   const ReactMock = require('react');
-  const {TouchableOpacity, View, Text, ScrollView} = require('react-native');
+  const {TouchableOpacity, View, Text} = require('react-native');
 
   const CardContent = ({children}: any) =>
     ReactMock.createElement(View, {}, children);
@@ -25,7 +25,7 @@ jest.mock('react-native-paper', () => {
     Text: ({children, style, variant}: any) =>
       ReactMock.createElement(Text, {style, variant}, children),
     Card,
-    Button: ({children, onPress, icon}: any) =>
+    Button: ({children, onPress}: any) =>
       ReactMock.createElement(
         TouchableOpacity,
         {onPress, testID: 'button'},
@@ -119,16 +119,16 @@ describe('ConsultationDetailScreen', () => {
   });
 
   it('handles back button press', () => {
-    let tree: ReactTestRenderer.ReactTestRenderer;
+    let testTree: ReactTestRenderer.ReactTestRenderer;
     
     ReactTestRenderer.act(() => {
-      tree = ReactTestRenderer.create(
+      testTree = ReactTestRenderer.create(
         <ConsultationDetailScreen route={mockRoute} navigation={mockNavigation} />,
       );
     });
 
     // Find the back button and simulate press
-    const buttons = tree!.root.findAllByProps({testID: 'button'});
+    const buttons = testTree!.root.findAllByProps({testID: 'button'});
     expect(buttons.length).toBeGreaterThan(0);
 
     // Simulate button press
