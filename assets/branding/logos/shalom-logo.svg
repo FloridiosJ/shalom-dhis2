@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="#2E7D32" opacity="0.1"/>
+  
+  <!-- Main Medical Cross -->
+  <g transform="translate(256, 256)">
+    <!-- Vertical bar of cross -->
+    <rect x="-30" y="-100" width="60" height="200" rx="8" fill="#2E7D32"/>
+    <!-- Horizontal bar of cross -->
+    <rect x="-100" y="-30" width="200" height="60" rx="8" fill="#2E7D32"/>
+    
+    <!-- Heart symbol in center -->
+    <path d="M 0,-15 C -8,-25 -20,-25 -25,-15 C -30,-5 -30,5 -20,15 L 0,30 L 20,15 C 30,5 30,-5 25,-15 C 20,-25 8,-25 0,-15 Z" 
+          fill="#E53935" opacity="0.9"/>
+  </g>
+  
+  <!-- Decorative elements - small circles around -->
+  <circle cx="140" cy="140" r="8" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="372" cy="140" r="8" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="140" cy="372" r="8" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="372" cy="372" r="8" fill="#4CAF50" opacity="0.6"/>
+  
+  <!-- Text: SHALOM -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="48" font-weight="bold" 
+        text-anchor="middle" fill="#2E7D32">SHALOM</text>
+  
+  <!-- Subtitle: DHIS2 -->
+  <text x="256" y="455" font-family="Arial, sans-serif" font-size="24" 
+        text-anchor="middle" fill="#666666">Santé · Dispensaires</text>
+</svg>

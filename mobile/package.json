@@ -7,7 +7,10 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "generate-assets": "cd ../assets/branding && npm run generate",
+    "set-icon": "npx react-native set-icon --path ../assets/branding/icons/app-icon-1024.png",
+    "generate-splash": "npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200"
   },
   "dependencies": {
     "@apollo/client": "^4.0.9",
@@ -21,12 +24,14 @@
     "graphql": "^16.12.0",
     "react-hook-form": "^7.65.0",
     "react-native": "0.82.0",
+    "react-native-bootsplash": "^6.3.11",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-paper": "^5.14.5",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "^15.14.0",
     "react-native-vector-icons": "^10.3.0",
     "yup": "^1.7.1"
   },
@@ -34,6 +39,7 @@
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
+    "@bam.tech/react-native-make": "^3.0.3",
     "@react-native-community/cli": "20.0.0",
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
@@ -50,6 +56,7 @@
     "jest": "^29.6.3",
     "prettier": "2.8.8",
     "react-test-renderer": "19.1.1",
+    "sharp": "^0.34.4",
     "typescript": "^5.8.3"
   },
   "engines": {

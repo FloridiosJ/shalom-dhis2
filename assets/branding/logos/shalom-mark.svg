@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="#2E7D32" opacity="0.1"/>
+  
+  <!-- Main Medical Cross -->
+  <g transform="translate(256, 256)">
+    <!-- Vertical bar of cross -->
+    <rect x="-40" y="-140" width="80" height="280" rx="12" fill="#2E7D32"/>
+    <!-- Horizontal bar of cross -->
+    <rect x="-140" y="-40" width="280" height="80" rx="12" fill="#2E7D32"/>
+    
+    <!-- Heart symbol in center -->
+    <path d="M 0,-20 C -12,-35 -30,-35 -38,-20 C -45,-8 -45,8 -30,23 L 0,45 L 30,23 C 45,8 45,-8 38,-20 C 30,-35 12,-35 0,-20 Z" 
+          fill="#E53935" opacity="0.9"/>
+  </g>
+  
+  <!-- Decorative elements - small circles around -->
+  <circle cx="120" cy="120" r="12" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="392" cy="120" r="12" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="120" cy="392" r="12" fill="#4CAF50" opacity="0.6"/>
+  <circle cx="392" cy="392" r="12" fill="#4CAF50" opacity="0.6"/>
+</svg>

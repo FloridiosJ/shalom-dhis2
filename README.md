@@ -1,5 +1,9 @@
 # Shalom DHIS2
 
+<p align="center">
+  <img src="assets/branding/logos/shalom-logo.svg" alt="Logo Shalom DHIS2" width="200"/>
+</p>
+
 Système de gestion de données de santé inspiré de DHIS2, conçu pour la collecte et l'analyse de données médicales dans les dispensaires. Le projet comprend un backend GraphQL, une interface web React et une application mobile React Native.
 
 ## 📋 Table des matières
@@ -13,6 +17,7 @@ Système de gestion de données de santé inspiré de DHIS2, conçu pour la coll
 - [Utilisation](#utilisation)
 - [Structure du projet](#structure-du-projet)
 - [API GraphQL](#api-graphql)
+- [Branding et Assets](#branding-et-assets)
 - [Développement](#développement)
 - [Tests](#tests)
 - [Déploiement](#déploiement)
@@ -336,6 +341,53 @@ query GetReports($dispensaireId: ID!, $startDate: DateTime, $endDate: DateTime) 
 
 For detailed documentation on analytics queries (top diagnostics, consultations evolution, etc.), see:
 - [Backend Analytics API Documentation](backend/ANALYTICS_API.md)
+
+## 🎨 Branding et Assets
+
+Le projet dispose d'un système complet de branding avec logo, icônes, splash screens et badges départementaux.
+
+### Assets disponibles
+
+- **Logo principal** - Versions SVG et PNG (512px, 1024px)
+- **Mark/Icône** - Symbole seul pour app icons et favicons
+- **Version monochrome** - Pour impressions N&B
+- **Badges départements** - Maternité, Pédiatrie, Médecine Générale
+- **Splash screens** - Pour applications mobiles
+- **Favicons** - Pour application web
+- **Social preview** - Pour réseaux sociaux (1200x630)
+
+### Génération des assets
+
+```bash
+# Générer tous les assets PNG depuis les SVG
+cd assets/branding
+npm install
+npm run generate
+
+# Configurer les icônes d'application mobile
+cd mobile
+npm run set-icon
+
+# Configurer le splash screen mobile
+npm run generate-splash
+```
+
+### Documentation complète
+
+Pour les guidelines d'utilisation, les couleurs, les proportions et les procédures de maintenance, consultez:
+- [Guide d'utilisation du logo](assets/branding/LOGO_GUIDELINES.md)
+
+### Composant React Native
+
+```tsx
+import {AppLogo} from './src/components/AppLogo';
+
+// Logo complet
+<AppLogo width={200} height={200} showText={true} variant="full" />
+
+// Icône seulement
+<AppLogo width={60} height={60} variant="mark" />
+```
 
 ## 👨‍💻 Développement
 

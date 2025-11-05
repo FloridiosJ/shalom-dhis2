@@ -1,0 +1,40 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clean white background -->
+  <rect width="1080" height="1920" fill="#FFFFFF"/>
+  
+  <!-- Centered logo -->
+  <g transform="translate(540, 800)">
+    <!-- Background Circle -->
+    <circle cx="0" cy="0" r="180" fill="#2E7D32" opacity="0.08"/>
+    
+    <!-- Main Medical Cross -->
+    <g>
+      <!-- Vertical bar of cross -->
+      <rect x="-23" y="-75" width="46" height="150" rx="6" fill="#2E7D32"/>
+      <!-- Horizontal bar of cross -->
+      <rect x="-75" y="-23" width="150" height="46" rx="6" fill="#2E7D32"/>
+      
+      <!-- Heart symbol in center -->
+      <path d="M 0,-11 C -6,-19 -15,-19 -19,-11 C -23,-4 -23,4 -15,11 L 0,23 L 15,11 C 23,4 23,-4 19,-11 C 15,-19 6,-19 0,-11 Z" 
+            fill="#E53935" opacity="0.9"/>
+    </g>
+    
+    <!-- Decorative elements -->
+    <circle cx="-90" cy="-90" r="6" fill="#4CAF50" opacity="0.5"/>
+    <circle cx="90" cy="-90" r="6" fill="#4CAF50" opacity="0.5"/>
+    <circle cx="-90" cy="90" r="6" fill="#4CAF50" opacity="0.5"/>
+    <circle cx="90" cy="90" r="6" fill="#4CAF50" opacity="0.5"/>
+  </g>
+  
+  <!-- App Name -->
+  <text x="540" y="1100" font-family="Arial, sans-serif" font-size="72" font-weight="bold" 
+        text-anchor="middle" fill="#2E7D32">SHALOM</text>
+  
+  <!-- Subtitle -->
+  <text x="540" y="1165" font-family="Arial, sans-serif" font-size="32" 
+        text-anchor="middle" fill="#666666">Système de Gestion de Santé</text>
+  
+  <!-- Bottom tagline -->
+  <text x="540" y="1750" font-family="Arial, sans-serif" font-size="24" 
+        text-anchor="middle" fill="#999999">Dispensaires · DHIS2</text>
+</svg>

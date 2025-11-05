@@ -1,0 +1,15 @@
+{
+  "name": "shalom-branding-assets",
+  "version": "1.0.0",
+  "description": "Branding assets generator for Shalom DHIS2",
+  "private": true,
+  "scripts": {
+    "generate": "node generate-assets.js",
+    "generate-icons": "node generate-assets.js",
+    "clean": "find . -name '*.png' -type f -delete",
+    "regenerate": "npm run clean && npm run generate"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}
