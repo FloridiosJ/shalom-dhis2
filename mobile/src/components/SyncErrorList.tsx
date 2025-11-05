@@ -52,7 +52,10 @@ export default function SyncErrorList({
           key={error.id}
           style={styles.errorCard}
           accessible={true}
-          accessibilityRole="listitem"
+          // Use "none" instead of "listitem" - "listitem" is not a valid React Native role
+          // See: https://reactnative.dev/docs/accessibility#accessibilityrole
+          // The Card is a container; individual interactive elements (Button) have their own roles
+          accessibilityRole="none"
           accessibilityLabel={`Erreur: ${error.title}, ${error.description}`}>
           <Card.Content style={styles.errorContent}>
             <View style={styles.errorHeader}>
