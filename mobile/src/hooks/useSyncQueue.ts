@@ -11,7 +11,7 @@ export function useSyncQueue() {
     status: 'idle',
     lastSync: {
       status: 'success',
-      timestamp: '2023-12-08T14:35:00Z',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
       itemsSynced: 3,
     },
     queueStats: {
@@ -132,18 +132,14 @@ export function useSyncQueue() {
    * Retry all errors
    */
   const retryAllErrors = useCallback(async () => {
-    // Get error IDs from current state
-    let errorIds: string[] = [];
-    setSyncState(prev => {
-      errorIds = prev.errors.map(e => e.id);
-      return prev;
-    });
+    // Get error IDs from current state without triggering re-render
+    const errorIds = syncState.errors.map(e => e.id);
 
     // Retry each error sequentially
     for (const errorId of errorIds) {
       await retryError(errorId);
     }
-  }, [retryError]);
+  }, [retryError, syncState.errors]);
 
   return {
     syncState,

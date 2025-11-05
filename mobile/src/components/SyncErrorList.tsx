@@ -42,7 +42,7 @@ export default function SyncErrorList({
           accessibilityLabel="Tout réessayer"
           accessibilityHint="Réessayer toutes les erreurs de synchronisation">
           <Text style={styles.retryAllText}>Tout réessayer</Text>
-          <Icon name="refresh" size={18} color="#2196F3" />
+          <Icon name="refresh" size={18} color="#2196F3" style={styles.retryAllIcon} />
         </TouchableOpacity>
       </View>
 
@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
   retryAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingVertical: 8,
     paddingHorizontal: 12,
     minHeight: 44, // Accessibility: minimum touch target
@@ -115,6 +114,10 @@ const styles = StyleSheet.create({
     color: '#2196F3',
     fontSize: 14,
     fontWeight: '600',
+    marginRight: 4,
+  },
+  retryAllIcon: {
+    marginLeft: 4,
   },
   errorCard: {
     backgroundColor: '#FFFFFF',

@@ -48,7 +48,7 @@ export default function SyncScreen() {
         accessibilityRole="text"
         accessibilityLabel={`${statusText}, ${formatDate(syncState.lastSync.timestamp)}`}>
         <View style={styles.lastSyncHeader}>
-          <Icon name={iconName} size={24} color={iconColor} />
+          <Icon name={iconName} size={24} color={iconColor} style={styles.lastSyncIcon} />
           <Text variant="bodyMedium" style={styles.lastSyncTitle}>
             {statusText}
           </Text>
@@ -92,7 +92,7 @@ export default function SyncScreen() {
             accessible={true}
             accessibilityRole="alert"
             accessibilityLabel="Mode hors ligne: La synchronisation n'est pas disponible">
-            <Icon name="wifi-off" size={20} color="#FF9800" />
+            <Icon name="wifi-off" size={20} color="#FF9800" style={styles.offlineIcon} />
             <Text variant="bodyMedium" style={styles.offlineText}>
               Mode hors ligne
             </Text>
@@ -156,8 +156,10 @@ const styles = StyleSheet.create({
   lastSyncHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     marginBottom: 8,
+  },
+  lastSyncIcon: {
+    marginRight: 8,
   },
   lastSyncTitle: {
     color: '#212121',
@@ -173,8 +175,10 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     marginBottom: 16,
+  },
+  offlineIcon: {
+    marginRight: 12,
   },
   offlineText: {
     color: '#E65100',
