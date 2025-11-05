@@ -30,7 +30,6 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   variant = 'full',
 }) => {
   const viewBox = showText ? '0 0 512 512' : '0 0 512 512';
-  const scale = width / 512;
 
   const getColors = () => {
     if (variant === 'mono') {
