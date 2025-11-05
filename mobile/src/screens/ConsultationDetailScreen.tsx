@@ -21,6 +21,7 @@ interface ConsultationDetailScreenProps {
       consultation: Consultation;
     };
   };
+  // TODO: Type navigation properly with StackNavigationProp when navigation types are defined
   navigation: any;
 }
 
@@ -40,12 +41,20 @@ export default function ConsultationDetailScreen({
   }, [navigation]);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Date invalide';
+      }
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date invalide';
+    }
   };
 
   // Loading state (could be added if fetching additional data)
