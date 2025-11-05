@@ -11,7 +11,7 @@ import {
 } from '../components/settings';
 import type {User} from '../types';
 
-const APP_VERSION = '1.2.3'; // This should match the design mockup
+const APP_VERSION = '0.0.1'; // Version from package.json (TODO: make dynamic)
 
 export default function SettingsScreen() {
   const [user, setUser] = useState<User | null>(null);

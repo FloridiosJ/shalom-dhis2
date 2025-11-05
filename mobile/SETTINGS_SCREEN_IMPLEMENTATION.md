@@ -291,9 +291,9 @@ interface LogoutButtonProps {
 ## Maintenance Notes
 
 ### Version Updates
-- App version is hardcoded in `SettingsScreen.tsx`
-- Should match `package.json` version
-- Consider dynamic version retrieval in future
+- App version is currently hardcoded in `SettingsScreen.tsx` (0.0.1)
+- Matches `package.json` version
+- TODO: Implement dynamic version retrieval from package.json or environment variables
 
 ### Testing Checklist
 - [ ] Settings screen loads correctly
