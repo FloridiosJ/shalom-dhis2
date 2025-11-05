@@ -10,7 +10,7 @@
     "test": "jest",
     "generate-assets": "cd ../assets/branding && npm run generate",
     "set-icon": "npx react-native set-icon --path ../assets/branding/icons/app-icon-1024.png",
-    "generate-splash": "npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200"
+    "generate-splash": "npx react-native-bootsplash generate ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200"
   },
   "dependencies": {
     "@apollo/client": "^4.0.9",

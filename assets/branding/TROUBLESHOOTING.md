@@ -11,7 +11,7 @@ Ce document liste les problèmes courants et leurs solutions lors de l'utilisati
 npm run generate-splash
 
 > mobile@0.0.1 generate-splash
-> npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
+> npx react-native-bootsplash generate ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
 
 node: symbol lookup error: /path/to/node_modules/react-native-bootsplash/node_modules/sharp/build/Release/sharp-linux-x64.node: undefined symbol: vips_fail_on_get_type
 ```
@@ -94,7 +94,7 @@ npm rebuild sharp
 npm run generate-splash
 
 > mobile@0.0.1 generate-splash
-> npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
+> npx react-native-bootsplash generate ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
 
 munmap_chunk(): invalid pointer
 Aborted (core dumped)
@@ -199,7 +199,7 @@ WORKDIR /app
 COPY mobile/package*.json ./
 RUN npm install
 COPY assets/branding/splash/shalom-splash-1080x1920.png /tmp/splash.png
-CMD ["npx", "react-native", "generate-bootsplash", "/tmp/splash.png", "--background-color=#FFFFFF", "--logo-width=200"]
+CMD ["npx", "react-native-bootsplash", "generate", "/tmp/splash.png", "--background-color=#FFFFFF", "--logo-width=200"]
 EOF
 
 # Construire et exécuter

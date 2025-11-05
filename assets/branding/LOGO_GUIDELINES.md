@@ -112,7 +112,7 @@ npm install --save-dev @bam.tech/react-native-make
 ### 2. Configurer le Splash Screen
 
 ```bash
-npx react-native generate-bootsplash \
+npx react-native-bootsplash generate \
   ../assets/branding/splash/shalom-splash-1080x1920.png \
   --background-color=#FFFFFF \
   --logo-width=200 \
@@ -123,7 +123,7 @@ Pour plus d'informations: [react-native-bootsplash](https://github.com/zoontek/r
 
 #### ⚠️ Dépannage: Erreur Sharp "undefined symbol"
 
-Si vous rencontrez l'erreur `undefined symbol: vips_fail_on_get_type` lors de l'exécution de `generate-bootsplash`, cela indique un conflit avec les bindings natifs de Sharp. Solutions:
+Si vous rencontrez l'erreur `undefined symbol: vips_fail_on_get_type` lors de l'exécution de la génération du splash screen, cela indique un conflit avec les bindings natifs de Sharp. Solutions:
 
 **Option 1: Réinstaller react-native-bootsplash**
 ```bash
@@ -149,7 +149,7 @@ Si les erreurs persistent, vous pouvez générer le splash screen manuellement:
 ```bash
 cd mobile
 npm rebuild sharp
-npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
+npx react-native-bootsplash generate ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
 ```
 
 ### 3. Générer les icônes d'application
