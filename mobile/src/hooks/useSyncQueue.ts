@@ -48,14 +48,18 @@ export function useSyncQueue() {
    * Start synchronization process
    */
   const startSync = useCallback(async () => {
-    setSyncState(prev => ({
-      ...prev,
-      status: 'syncing',
-      progress: {current: 0, total: prev.queueStats.pendingCount},
-    }));
+    // Capture current state to avoid stale closures
+    let totalItems = 0;
+    setSyncState(prev => {
+      totalItems = prev.queueStats.pendingCount;
+      return {
+        ...prev,
+        status: 'syncing',
+        progress: {current: 0, total: totalItems},
+      };
+    });
 
     // Simulate sync progress
-    const totalItems = syncState.queueStats.pendingCount;
     for (let i = 1; i <= totalItems; i++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setSyncState(prev => ({
@@ -64,26 +68,28 @@ export function useSyncQueue() {
       }));
     }
 
-    // Complete sync
+    // Complete sync using functional update
     const now = new Date().toISOString();
-    const hasErrors = syncState.errors.length > 0;
 
-    const newLastSync: LastSyncInfo = {
-      status: hasErrors ? 'error' : 'success',
-      timestamp: now,
-      itemsSynced: totalItems,
-    };
+    setSyncState(prev => {
+      const hasErrors = prev.errors.length > 0;
+      const newLastSync: LastSyncInfo = {
+        status: hasErrors ? 'error' : 'success',
+        timestamp: now,
+        itemsSynced: totalItems,
+      };
 
-    setSyncState(prev => ({
-      ...prev,
-      status: hasErrors ? 'error' : 'success',
-      lastSync: newLastSync,
-      queueStats: {
-        pendingCount: 0,
-        errorCount: hasErrors ? prev.errors.length : 0,
-      },
-      progress: null,
-    }));
+      return {
+        ...prev,
+        status: hasErrors ? 'error' : 'success',
+        lastSync: newLastSync,
+        queueStats: {
+          pendingCount: 0,
+          errorCount: hasErrors ? prev.errors.length : 0,
+        },
+        progress: null,
+      };
+    });
 
     // Reset to idle after 2 seconds
     setTimeout(() => {
@@ -92,20 +98,21 @@ export function useSyncQueue() {
         status: 'idle',
       }));
     }, 2000);
-  }, [syncState.queueStats.pendingCount, syncState.errors.length]);
+  }, []);
 
   /**
    * Retry a specific error
    */
   const retryError = useCallback(async (errorId: string) => {
-    // Find the error
-    const errorToRetry = syncState.errors.find(e => e.id === errorId);
-    if (!errorToRetry) {
-      return;
-    }
-
-    // Remove error from list (simulate successful retry)
+    // Use functional update to avoid dependency on syncState
     setSyncState(prev => {
+      // Find the error
+      const errorToRetry = prev.errors.find(e => e.id === errorId);
+      if (!errorToRetry) {
+        return prev;
+      }
+
+      // Remove error from list (simulate successful retry)
       const newErrors = prev.errors.filter(e => e.id !== errorId);
       return {
         ...prev,
@@ -119,17 +126,24 @@ export function useSyncQueue() {
 
     // TODO: Implement actual retry logic with backend
     await new Promise(resolve => setTimeout(resolve, 1000));
-  }, [syncState.errors]);
+  }, []);
 
   /**
    * Retry all errors
    */
   const retryAllErrors = useCallback(async () => {
-    const errorIds = syncState.errors.map(e => e.id);
+    // Get error IDs from current state
+    let errorIds: string[] = [];
+    setSyncState(prev => {
+      errorIds = prev.errors.map(e => e.id);
+      return prev;
+    });
+
+    // Retry each error sequentially
     for (const errorId of errorIds) {
       await retryError(errorId);
     }
-  }, [syncState.errors, retryError]);
+  }, [retryError]);
 
   return {
     syncState,
