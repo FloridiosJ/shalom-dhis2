@@ -87,7 +87,129 @@ npm rebuild sharp
 
 ---
 
-### 2. Erreur: "Cannot find module 'sharp'"
+### 2. Erreur Sharp: "munmap_chunk(): invalid pointer" ou "Aborted (core dumped)"
+
+**Symptôme:**
+```bash
+npm run generate-splash
+
+> mobile@0.0.1 generate-splash
+> npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
+
+munmap_chunk(): invalid pointer
+Aborted (core dumped)
+```
+
+**Cause:**
+Cette erreur indique une corruption mémoire, généralement causée par:
+- Versions incompatibles de Sharp dans différents packages
+- Bibliothèques système corrompues ou incompatibles
+- Cache npm corrompu
+- Conflits entre plusieurs installations de Sharp
+
+**Solutions:**
+
+#### Solution 1: Nettoyage complet et réinstallation (Recommandé)
+
+```bash
+cd mobile
+# Nettoyer complètement
+rm -rf node_modules package-lock.json
+npm cache clean --force
+
+# Réinstaller tout
+npm install
+
+# Essayer à nouveau
+npm run generate-splash
+```
+
+#### Solution 2: Supprimer toutes les instances de Sharp et réinstaller
+
+```bash
+cd mobile
+# Supprimer Sharp de tous les packages
+find node_modules -name "sharp" -type d -prune -exec rm -rf {} +
+
+# Réinstaller react-native-bootsplash
+npm install react-native-bootsplash --force
+
+npm run generate-splash
+```
+
+#### Solution 3: Utiliser une version spécifique de react-native-bootsplash
+
+Parfois, utiliser une version antérieure plus stable résout le problème:
+
+```bash
+cd mobile
+npm uninstall react-native-bootsplash
+npm install react-native-bootsplash@5.5.3
+
+npm run generate-splash
+```
+
+#### Solution 4: Contourner Sharp - Générer manuellement les assets
+
+Si toutes les solutions ci-dessus échouent, générez les assets manuellement sans utiliser Sharp:
+
+**Option A: Outil en ligne**
+1. Visitez: https://www.appicon.co/#app-icon
+2. Uploadez `assets/branding/splash/shalom-splash-1080x1920.png`
+3. Téléchargez les assets générés pour React Native
+4. Copiez manuellement dans votre projet
+
+**Option B: ImageMagick (alternative à Sharp)**
+```bash
+# Installer ImageMagick si pas déjà installé
+sudo apt-get install imagemagick  # Ubuntu/Debian
+# ou
+brew install imagemagick  # macOS
+
+# Générer les assets manuellement
+# (Voir les dimensions requises dans la doc react-native-bootsplash)
+```
+
+#### Solution 5: Vérifier l'intégrité système (Linux)
+
+```bash
+# Vérifier les bibliothèques système
+ldd /path/to/node_modules/react-native-bootsplash/node_modules/sharp/build/Release/sharp-*.node
+
+# Réinstaller libvips si nécessaire
+sudo apt-get remove --purge libvips42 libvips-dev
+sudo apt-get update
+sudo apt-get install libvips42 libvips-dev
+
+cd mobile
+npm rebuild sharp
+npm run generate-splash
+```
+
+#### Solution 6: Utiliser Docker (Solution isolée)
+
+Si vous continuez à avoir des problèmes, utilisez Docker pour isoler l'environnement:
+
+```bash
+# Créer un Dockerfile temporaire
+cat > Dockerfile.splash << 'EOF'
+FROM node:20-alpine
+RUN apk add --no-cache vips-dev build-base
+WORKDIR /app
+COPY mobile/package*.json ./
+RUN npm install
+COPY assets/branding/splash/shalom-splash-1080x1920.png /tmp/splash.png
+CMD ["npx", "react-native", "generate-bootsplash", "/tmp/splash.png", "--background-color=#FFFFFF", "--logo-width=200"]
+EOF
+
+# Construire et exécuter
+docker build -f Dockerfile.splash -t splash-gen .
+docker run -v $(pwd)/mobile:/app splash-gen
+```
+
+---
+
+### 3. Erreur: "Cannot find module 'sharp'"
 
 **Symptôme:**
 ```bash
@@ -113,7 +235,7 @@ npm run generate
 
 ---
 
-### 3. Les PNG ne sont pas générés
+### 4. Les PNG ne sont pas générés
 
 **Symptôme:**
 Le script `generate-assets.js` s'exécute sans erreur mais les PNG ne sont pas créés.
@@ -142,7 +264,7 @@ Le script `generate-assets.js` s'exécute sans erreur mais les PNG ne sont pas c
 
 ---
 
-### 4. Erreur: "react-native set-icon: command not found"
+### 5. Erreur: "react-native set-icon: command not found"
 
 **Symptôme:**
 ```bash
@@ -168,7 +290,7 @@ npx @bam.tech/react-native-make set-icon ../assets/branding/icons/app-icon-1024.
 
 ---
 
-### 5. Les assets ne s'affichent pas dans l'app web
+### 6. Les assets ne s'affichent pas dans l'app web
 
 **Symptôme:**
 Le logo ne s'affiche pas sur l'application web, erreur 404.
@@ -201,7 +323,7 @@ Le logo ne s'affiche pas sur l'application web, erreur 404.
 
 ---
 
-### 6. Le composant AppLogo ne s'affiche pas (Mobile)
+### 7. Le composant AppLogo ne s'affiche pas (Mobile)
 
 **Symptôme:**
 Erreur lors du rendu du composant AppLogo.
@@ -233,7 +355,7 @@ Erreur lors du rendu du composant AppLogo.
 
 ---
 
-### 7. Tests AppLogo échouent
+### 8. Tests AppLogo échouent
 
 **Symptôme:**
 ```bash
@@ -257,7 +379,7 @@ FAIL
 
 ---
 
-### 8. Erreur de permissions lors de la génération
+### 9. Erreur de permissions lors de la génération
 
 **Symptôme:**
 ```bash

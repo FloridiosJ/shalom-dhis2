@@ -289,8 +289,10 @@ npm test -- __tests__/AppLogo.test.tsx
    - Quick start
 
 5. **TROUBLESHOOTING.md**
-   - Solutions aux erreurs courantes
-   - Problèmes Sharp/libvips
+   - Solutions aux erreurs courantes (9 problèmes documentés)
+   - Problèmes Sharp/libvips (symbol lookup, memory corruption)
+   - Erreurs de core dump et munmap_chunk
+   - Solutions Docker et alternatives en ligne
    - Dépannage des assets
    - Guide de support
 
