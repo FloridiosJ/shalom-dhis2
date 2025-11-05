@@ -12,7 +12,7 @@ jest.mock('react-native-paper', () => {
   const {TouchableOpacity, Text} = require('react-native');
 
   return {
-    Button: ({children, onPress, icon}: any) =>
+    Button: ({children, onPress}: any) =>
       ReactMock.createElement(
         TouchableOpacity,
         {onPress, testID: 'back-button'},
