@@ -28,9 +28,16 @@ export const GET_PATIENT_DETAIL = gql`
       age
       numeroPatient
       village
-      dateNaissance
-      lieuNaissance
       religion
+      consultations {
+        id
+        dateConsultation
+        diagnostic
+        prescription
+        notes
+        status
+        typeConsultation
+      }
     }
   }
 `;

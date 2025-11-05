@@ -8,11 +8,13 @@ import HomeScreen from '../screens/HomeScreen';
 import ConsultationScreen from '../screens/ConsultationScreen';
 import NewConsultationScreen from '../screens/NewConsultationScreen';
 import PatientScreen from '../screens/PatientScreen';
+import PatientDetailScreen from '../screens/PatientDetailScreen';
 import SyncScreen from '../screens/SyncScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const ConsultationStack = createStackNavigator();
+const PatientStack = createStackNavigator();
 
 interface MainNavigatorProps {
   onLogout: () => void;
@@ -84,6 +86,35 @@ function ConsultationStackNavigator() {
   );
 }
 
+function PatientStackNavigator() {
+  return (
+    <PatientStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#2196F3',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}>
+      <PatientStack.Screen
+        name="PatientList"
+        component={PatientScreen}
+        options={{headerShown: false}}
+      />
+      <PatientStack.Screen
+        name="PatientDetail"
+        component={PatientDetailScreen}
+        options={{
+          title: 'Détails du Patient',
+          headerBackTitle: 'Retour',
+        }}
+      />
+    </PatientStack.Navigator>
+  );
+}
+
 export default function MainNavigator({onLogout}: MainNavigatorProps) {
   const renderLogoutIcon = useCallback(
     () => <LogoutIconButton onPress={onLogout} />,
@@ -148,11 +179,11 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
         />
         <Tab.Screen
           name="Patient"
-          component={PatientScreen}
+          component={PatientStackNavigator}
           options={{
             tabBarIcon: AccountIcon,
             tabBarLabel: 'Patient',
-            headerTitle: 'Patients',
+            headerTitle: 'Mes Patients',
             headerRight: renderLogoutIcon,
           }}
         />
