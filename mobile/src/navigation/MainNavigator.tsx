@@ -9,6 +9,7 @@ import ConsultationScreen from '../screens/ConsultationScreen';
 import NewConsultationScreen from '../screens/NewConsultationScreen';
 import PatientScreen from '../screens/PatientScreen';
 import PatientDetailScreen from '../screens/PatientDetailScreen';
+import ConsultationDetailScreen from '../screens/ConsultationDetailScreen';
 import SyncScreen from '../screens/SyncScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
@@ -109,6 +110,34 @@ function PatientStackNavigator() {
         options={{
           title: 'Détails du Patient',
           headerBackTitle: 'Retour',
+        }}
+      />
+      <PatientStack.Screen
+        name="ConsultationDetail"
+        component={ConsultationDetailScreen}
+        options={({route}: {route: any}) => {
+          const dateConsultation = route.params?.consultation?.dateConsultation;
+          let dateString = '';
+          
+          try {
+            if (dateConsultation) {
+              const date = new Date(dateConsultation);
+              if (!isNaN(date.getTime())) {
+                dateString = date.toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: '2-digit',
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error formatting consultation date:', error);
+          }
+
+          return {
+            title: dateString ? `Consultation du ${dateString}` : 'Détail Consultation',
+            headerBackTitle: 'Retour',
+          };
         }}
       />
     </PatientStack.Navigator>

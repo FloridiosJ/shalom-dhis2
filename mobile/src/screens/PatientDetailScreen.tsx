@@ -37,10 +37,9 @@ export default function PatientDetailScreen({
 
   const handleConsultationPress = useCallback(
     (consultation: Consultation) => {
-      // Navigate to consultation detail if implemented
-      console.log('Navigate to consultation:', consultation.id);
+      navigation.navigate('ConsultationDetail', {consultation});
     },
-    [],
+    [navigation],
   );
 
   if (error) {
