@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {ScrollView, StyleSheet, Alert, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {getUser, logout} from '../services/auth';
+import {getUser} from '../services/auth';
 import {useSyncPreference} from '../hooks/useSyncPreference';
 import {
   ProfileCard,
@@ -13,7 +13,11 @@ import type {User} from '../types';
 
 const APP_VERSION = '0.0.1'; // Version from package.json (TODO: make dynamic)
 
-export default function SettingsScreen() {
+interface SettingsScreenProps {
+  onLogout: () => void;
+}
+
+export default function SettingsScreen({onLogout}: SettingsScreenProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -56,14 +60,15 @@ export default function SettingsScreen() {
   const performLogout = async () => {
     setLoggingOut(true);
     try {
-      await logout();
-      // Navigation will be handled by App.tsx when auth state changes
+      // Use the same logout function as the header logout icon
+      await onLogout();
     } catch (error) {
       console.error('Logout error:', error);
       Alert.alert(
         'Erreur',
         'Une erreur est survenue lors de la déconnexion. Veuillez réessayer.',
       );
+    } finally {
       setLoggingOut(false);
     }
   };

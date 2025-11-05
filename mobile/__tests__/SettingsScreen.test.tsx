@@ -56,17 +56,19 @@ jest.mock('../src/hooks/useSyncPreference', () => ({
 }));
 
 describe('SettingsScreen', () => {
+  const mockOnLogout = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders correctly', () => {
-    const component = ReactTestRenderer.create(<SettingsScreen />);
+    const component = ReactTestRenderer.create(<SettingsScreen onLogout={mockOnLogout} />);
     expect(component).toBeTruthy();
   });
 
   it('matches snapshot', () => {
-    const tree = ReactTestRenderer.create(<SettingsScreen />).toJSON();
+    const tree = ReactTestRenderer.create(<SettingsScreen onLogout={mockOnLogout} />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 });
