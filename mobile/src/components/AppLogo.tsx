@@ -29,7 +29,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   showText = true,
   variant = 'full',
 }) => {
-  const viewBox = showText ? '0 0 512 512' : '0 0 512 512';
+  const viewBox = '0 0 512 512';
 
   const getColors = () => {
     if (variant === 'mono') {

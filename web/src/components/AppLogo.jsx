@@ -11,6 +11,13 @@ import PropTypes from 'prop-types';
  * @param {string} props.className - Additional CSS classes
  * @param {string} props.alt - Alternative text for accessibility
  */
+// Base styles for the logo (constant)
+const logoBaseStyles = {
+  maxWidth: '100%',
+  display: 'inline-block',
+  verticalAlign: 'middle',
+};
+
 export const AppLogo = ({
   width = 200,
   height = 200,
@@ -33,6 +40,13 @@ export const AppLogo = ({
     }
   };
 
+  // Dynamic styles based on props
+  const dynamicStyles = {
+    ...logoBaseStyles,
+    width: width ? `${width}px` : 'auto',
+    height: height ? `${height}px` : 'auto',
+  };
+
   return (
     <img
       src={getLogoPath()}
@@ -40,13 +54,7 @@ export const AppLogo = ({
       width={width}
       height={height}
       className={className}
-      style={{
-        width: width ? `${width}px` : 'auto',
-        height: height ? `${height}px` : 'auto',
-        maxWidth: '100%',
-        display: 'inline-block',
-        verticalAlign: 'middle',
-      }}
+      style={dynamicStyles}
     />
   );
 };
