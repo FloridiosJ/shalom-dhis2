@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {gql, ApolloClient, InMemoryCache, createHttpLink} from '@apollo/client';
 import {GRAPHQL_ENDPOINT} from '@env';
-import type {AuthPayload} from '../types';
+import type {AuthPayload, User} from '../types';
 
 const TOKEN_KEY = 'auth-token';
+const USER_KEY = 'auth-user';
 
 const LOGIN_MUTATION = gql`
   mutation Login($input: LoginInput!) {
@@ -63,8 +64,9 @@ export const login = async (
       throw new Error('Invalid response from server');
     }
 
-    // Store token securely
+    // Store token and user info securely
     await setToken(data.login.token);
+    await setUser(data.login.user);
 
     return data.login;
   } catch (error: any) {
@@ -83,11 +85,12 @@ export const login = async (
 };
 
 /**
- * Logout user and clear stored token
+ * Logout user and clear stored token and user data
  */
 export const logout = async (): Promise<void> => {
   try {
     await removeToken();
+    await removeUser();
   } catch (error) {
     console.error('Logout error:', error);
     throw error;
@@ -139,4 +142,43 @@ export const removeToken = async (): Promise<void> => {
 export const isAuthenticated = async (): Promise<boolean> => {
   const token = await getToken();
   return token !== null;
+};
+
+/**
+ * Get stored user information
+ * @returns User object or null if not found
+ */
+export const getUser = async (): Promise<User | null> => {
+  try {
+    const userJson = await AsyncStorage.getItem(USER_KEY);
+    return userJson ? JSON.parse(userJson) : null;
+  } catch (error) {
+    console.error('Error getting user:', error);
+    return null;
+  }
+};
+
+/**
+ * Store user information
+ * @param user User object to store
+ */
+export const setUser = async (user: User): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch (error) {
+    console.error('Error setting user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Remove stored user information
+ */
+export const removeUser = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(USER_KEY);
+  } catch (error) {
+    console.error('Error removing user:', error);
+    throw error;
+  }
 };

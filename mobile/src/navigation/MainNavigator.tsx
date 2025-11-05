@@ -228,14 +228,14 @@ export default function MainNavigator({onLogout}: MainNavigatorProps) {
         />
         <Tab.Screen
           name="Settings"
-          component={SettingsScreen}
           options={{
             tabBarIcon: SettingsIcon,
             tabBarLabel: 'Settings',
-            headerTitle: 'Paramètres',
+            headerTitle: 'Paramètres & Profil',
             headerRight: renderLogoutIcon,
-          }}
-        />
+          }}>
+          {() => <SettingsScreen onLogout={onLogout} />}
+        </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
   );
