@@ -73,8 +73,8 @@ export default function PatientScreen({navigation}: {navigation: any}) {
   const handleRefresh = useCallback(async () => {
     try {
       await refetch();
-    } catch (error) {
-      console.error('Error refreshing patients:', error);
+    } catch (err) {
+      console.error('Error refreshing patients:', err);
     }
   }, [refetch]);
 

@@ -13,8 +13,6 @@ import ConsultationHistory from './ConsultationHistory';
 
 interface PatientDetailProps {
   patient: Patient & {
-    dateNaissance?: string;
-    lieuNaissance?: string;
     religion?: string;
     consultations?: Consultation[];
   };
@@ -72,23 +70,7 @@ export default function PatientDetail({
     );
   }
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Non renseignée';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
 
-  const calculateAge = (birthDate?: string) => {
-    if (!birthDate) return `${patient.age} ans`;
-    const date = new Date(birthDate);
-    const today = new Date();
-    const age = today.getFullYear() - date.getFullYear();
-    return `${formatDate(birthDate)} (${age} ans)`;
-  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -126,8 +108,8 @@ export default function PatientDetail({
           />
           <InfoRow
             icon="cake-variant"
-            label="Date de naissance"
-            value={calculateAge(patient.dateNaissance)}
+            label="Âge"
+            value={`${patient.age} ans`}
           />
           <InfoRow
             icon={patient.sexe === 'M' ? 'gender-male' : 'gender-female'}
@@ -137,19 +119,12 @@ export default function PatientDetail({
           />
           <InfoRow
             icon="map-marker"
-            label="Adresse"
-            value={patient.village || 'Non renseignée'}
+            label="Village"
+            value={patient.village || 'Non renseigné'}
             iconColor="#4CAF50"
           />
           {patient.religion && (
             <InfoRow icon="book-cross" label="Religion" value={patient.religion} />
-          )}
-          {patient.lieuNaissance && (
-            <InfoRow
-              icon="home-city"
-              label="Lieu de naissance"
-              value={patient.lieuNaissance}
-            />
           )}
         </View>
       </View>
