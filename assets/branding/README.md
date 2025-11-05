@@ -51,6 +51,10 @@ Pour modifier le logo:
 3. Mettre à jour les applications (mobile et web)
 4. Tester sur tous les supports
 
+## 🔧 Dépannage
+
+Si vous rencontrez des problèmes (erreurs Sharp, assets non générés, etc.), consultez le [Guide de dépannage](./TROUBLESHOOTING.md).
+
 ## 📞 Support
 
 Consultez [LOGO_GUIDELINES.md](./LOGO_GUIDELINES.md) pour toute question.

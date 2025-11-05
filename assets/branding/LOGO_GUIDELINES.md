@@ -121,6 +121,37 @@ npx react-native generate-bootsplash \
 
 Pour plus d'informations: [react-native-bootsplash](https://github.com/zoontek/react-native-bootsplash)
 
+#### ⚠️ Dépannage: Erreur Sharp "undefined symbol"
+
+Si vous rencontrez l'erreur `undefined symbol: vips_fail_on_get_type` lors de l'exécution de `generate-bootsplash`, cela indique un conflit avec les bindings natifs de Sharp. Solutions:
+
+**Option 1: Réinstaller react-native-bootsplash**
+```bash
+cd mobile
+rm -rf node_modules/react-native-bootsplash
+npm install react-native-bootsplash --force
+```
+
+**Option 2: Utiliser une version compatible de Sharp**
+```bash
+cd mobile
+npm install sharp@0.32.6 --save-dev --force
+rm -rf node_modules/react-native-bootsplash/node_modules/sharp
+```
+
+**Option 3: Utiliser l'outil en ligne**
+Si les erreurs persistent, vous pouvez générer le splash screen manuellement:
+1. Visitez: https://github.com/zoontek/react-native-bootsplash#assets-generation
+2. Suivez les instructions pour générer les assets localement
+3. Placez les fichiers générés dans votre projet
+
+**Option 4: Régénérer les bindings natifs**
+```bash
+cd mobile
+npm rebuild sharp
+npx react-native generate-bootsplash ../assets/branding/splash/shalom-splash-1080x1920.png --background-color=#FFFFFF --logo-width=200
+```
+
 ### 3. Générer les icônes d'application
 
 #### Android et iOS (icône unique)

@@ -407,6 +407,40 @@ Ou directement sur le composant si vous l'étendez:
 </View>
 ```
 
+## 🔧 Dépannage
+
+### Erreur Sharp lors de `npm run generate-splash`
+
+Si vous rencontrez l'erreur `node: symbol lookup error: undefined symbol: vips_fail_on_get_type`, cela indique un conflit avec les bindings natifs de Sharp utilisés par `react-native-bootsplash`.
+
+**Solutions rapides:**
+
+1. **Réinstaller react-native-bootsplash:**
+   ```bash
+   rm -rf node_modules/react-native-bootsplash
+   npm install react-native-bootsplash --force
+   ```
+
+2. **Utiliser une version compatible de Sharp:**
+   ```bash
+   npm install sharp@0.32.6 --save-dev --force
+   rm -rf node_modules/react-native-bootsplash/node_modules/sharp
+   ```
+
+3. **Régénérer les bindings natifs:**
+   ```bash
+   npm rebuild sharp
+   npm run generate-splash
+   ```
+
+4. **Alternative: Générer manuellement**
+   - Visitez: https://github.com/zoontek/react-native-bootsplash#assets-generation
+   - Générez les assets en ligne ou avec l'outil CLI
+   - Copiez les fichiers générés dans votre projet
+
+**Cause du problème:**
+Cette erreur survient généralement lorsque les bindings natifs de Sharp sont compilés pour une version différente de libvips que celle installée sur votre système, ou lorsque plusieurs versions de Sharp sont présentes dans `node_modules`.
+
 ## 📖 Documentation Complète
 
 Pour plus d'informations:

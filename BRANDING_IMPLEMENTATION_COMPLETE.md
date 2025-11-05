@@ -288,6 +288,12 @@ npm test -- __tests__/AppLogo.test.tsx
    - Logo dans le header
    - Quick start
 
+5. **TROUBLESHOOTING.md**
+   - Solutions aux erreurs courantes
+   - Problèmes Sharp/libvips
+   - Dépannage des assets
+   - Guide de support
+
 ---
 
 ## 🔧 Maintenance
@@ -374,6 +380,7 @@ npm test -- __tests__/AppLogo.test.tsx
 
 - **Assets**: [`/assets/branding/`](assets/branding/)
 - **Guide principal**: [`/assets/branding/LOGO_GUIDELINES.md`](assets/branding/LOGO_GUIDELINES.md)
+- **Dépannage**: [`/assets/branding/TROUBLESHOOTING.md`](assets/branding/TROUBLESHOOTING.md) ⚠️
 - **Composant mobile**: [`/mobile/src/components/AppLogo.tsx`](mobile/src/components/AppLogo.tsx)
 - **Composant web**: [`/web/src/components/AppLogo.jsx`](web/src/components/AppLogo.jsx)
 - **Tests**: [`/mobile/__tests__/AppLogo.test.tsx`](mobile/__tests__/AppLogo.test.tsx)
