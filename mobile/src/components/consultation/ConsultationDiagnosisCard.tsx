@@ -54,7 +54,7 @@ const ConsultationDiagnosisCard = memo(
     const hasData = motifConsultation || diagnostic || prescription;
 
     return (
-      <Card style={styles.card} accessibilityRole={'region' as AccessibilityRole}>
+      <Card style={styles.card}>
         <Card.Content>
           <View style={styles.header}>
             <Icon name="stethoscope" size={24} color="#2196F3" />

@@ -13,7 +13,7 @@ interface AgentNotesCardProps {
  */
 const AgentNotesCard = memo(({notes}: AgentNotesCardProps) => {
   return (
-    <Card style={styles.card} accessibilityRole={'region' as AccessibilityRole}>
+    <Card style={styles.card}>
       <Card.Content>
         <View style={styles.header}>
           <Icon name="note-text" size={24} color="#2196F3" />
