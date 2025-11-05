@@ -49,7 +49,7 @@ const VitalsCard = memo(({vitalSigns}: VitalsCardProps) => {
   // Handle empty or missing vital signs
   if (!vitalSigns) {
     return (
-      <Card style={styles.card} accessibilityRole={'region' as AccessibilityRole}>
+      <Card style={styles.card}>
         <Card.Content>
           <View style={styles.header}>
             <Icon name="heart-pulse" size={24} color="#2196F3" />
@@ -77,7 +77,7 @@ const VitalsCard = memo(({vitalSigns}: VitalsCardProps) => {
   } = vitalSigns;
 
   return (
-    <Card style={styles.card} accessibilityRole={'region' as AccessibilityRole}>
+    <Card style={styles.card}>
       <Card.Content>
         <View style={styles.header}>
           <Icon name="heart-pulse" size={24} color="#2196F3" />
