@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {View, StyleSheet, useWindowDimensions} from 'react-native';
-import {useQuery} from '@apollo/client';
+import {useQuery} from '@apollo/client/react';
 import {Patient} from '../types';
 import {GET_PATIENTS} from '../services/patientService';
 import PatientList from '../components/PatientList';
@@ -18,31 +18,45 @@ interface PatientsData {
  * Implements responsive layout: split view on tablets, stack navigation on phones
  */
 export default function PatientScreen({navigation}: {navigation: any}) {
+  // ✅ TOUS LES HOOKS EN PREMIER - Dans le même ordre à chaque rendu
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('nom');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const {width} = useWindowDimensions();
 
-  // Determine if we should use split view (tablet) or stack navigation (mobile)
-  const isTablet = width >= 768;
-
-  // Fetch patients from GraphQL
-  const {data, loading, refetch} = useQuery<PatientsData>(GET_PATIENTS, {
+  // ✅ Fetch patients from GraphQL - TOUJOURS appelé
+  const {data, loading, refetch, error} = useQuery<PatientsData>(GET_PATIENTS, {
     fetchPolicy: 'cache-and-network',
-    onError: error => {
-      console.error('Error fetching patients:', error);
-    },
   });
 
+  // ✅ Extraire les patients AVANT d'appeler useFilteredPatients
   const patients = data?.patients?.patients || [];
 
-  // Use custom hook for filtering and sorting
+  // ✅ Use custom hook for filtering and sorting - TOUJOURS appelé avec des données par défaut
   const {filteredPatients} = useFilteredPatients({
     patients,
     searchQuery,
     sortBy,
   });
 
+  // ✅ Determine if we should use split view (tablet) or stack navigation (mobile)
+  const isTablet = width >= 768;
+
+  // ✅ EFFECTS après tous les autres hooks
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching patients:', error);
+    }
+  }, [error]);
+
+  // ✅ Auto-select first patient on tablet if none selected
+  useEffect(() => {
+    if (isTablet && !selectedPatient && filteredPatients.length > 0) {
+      setSelectedPatient(filteredPatients[0]);
+    }
+  }, [isTablet, selectedPatient, filteredPatients]);
+
+  // ✅ CALLBACKS après les effects
   const handlePatientPress = useCallback(
     (patient: Patient) => {
       if (isTablet) {
@@ -73,13 +87,7 @@ export default function PatientScreen({navigation}: {navigation: any}) {
     }
   }, [selectedPatient, navigation]);
 
-  // Auto-select first patient on tablet if none selected
-  useEffect(() => {
-    if (isTablet && !selectedPatient && filteredPatients.length > 0) {
-      setSelectedPatient(filteredPatients[0]);
-    }
-  }, [isTablet, selectedPatient, filteredPatients]);
-
+  // ✅ RENDU conditionnel uniquement dans le JSX
   if (isTablet) {
     // Split view for tablet
     return (
