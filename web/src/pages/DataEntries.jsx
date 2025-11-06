@@ -12,6 +12,7 @@ import patientService from "../services/patients";
 import dispensaireService from "../services/dispensaires";
 import categoriesService from "../services/categories"; // ✅ Ajout
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const DataEntries = () => {
   const [dataEntries, setDataEntries] = useState([]);
@@ -30,6 +31,7 @@ const DataEntries = () => {
   const [createPatientModalOpen, setCreatePatientModalOpen] = useState(false);
   const [prefilledPatientName, setPrefilledPatientName] = useState("");
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchAll();
@@ -158,12 +160,14 @@ const DataEntries = () => {
             Retour au dashboard
           </button>
           <div className={styles.title}>Consultations</div>
-          <button className={styles.actionBtn} onClick={() => setModalOpen(true)}>
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Ajouter une consultation
-          </button>
+          {!isAdmin() && (
+            <button className={styles.actionBtn} onClick={() => setModalOpen(true)}>
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Ajouter une consultation
+            </button>
+          )}
         </div>
         <SearchBar
           value={search}
