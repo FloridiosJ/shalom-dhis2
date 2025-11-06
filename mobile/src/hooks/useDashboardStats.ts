@@ -1,15 +1,14 @@
 import {useState, useEffect, useCallback} from 'react';
 import {gql} from '@apollo/client';
 import {apolloClient} from '../services/apollo';
-import {useSyncQueue} from './useSyncQueue';
 
 /**
  * Dashboard statistics type
  */
 export interface DashboardStats {
-  consultationsCount: number; // Pending consultations count
-  patientsRecentsCount: number; // Recent patients count (new this month, fallback to total)
-  syncRequiredCount: number; // Items pending sync
+  consultationsCount: number; // Consultations count (this month)
+  patientsRecentsCount: number; // New patients count (this month)
+  syncRequiredCount: number; // Sync count (always 0 for now)
 }
 
 /**
@@ -26,14 +25,8 @@ interface UseDashboardStatsReturn {
 const GET_DASHBOARD_STATS = gql`
   query GetDashboardStats {
     dashboard {
-      totalPatients
+      consultationsThisMonth
       newPatientsThisMonth
-    }
-    dataEntries(
-      filter: { status: en_cours }
-      pagination: { limit: 1 }
-    ) {
-      totalCount
     }
   }
 `;
@@ -42,9 +35,9 @@ const GET_DASHBOARD_STATS = gql`
  * Custom hook to fetch and manage dashboard statistics
  * 
  * Fetches:
- * - Pending consultations count (status: en_cours)
- * - Recent patients count (this month, with fallback to total patients)
- * - Sync queue count (from useSyncQueue hook)
+ * - Consultations count (all consultations this month from 1st to 31st)
+ * - New patients count (new patients this month only)
+ * - Sync queue count (always 0 - separate feature)
  * 
  * @returns Dashboard statistics with loading/error states and refetch function
  */
@@ -52,9 +45,6 @@ export function useDashboardStats(): UseDashboardStatsReturn {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
-  // Get sync queue count from existing hook
-  const {syncState} = useSyncQueue();
 
   const fetchStats = useCallback(async () => {
     try {
@@ -64,11 +54,8 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       // Fetch dashboard statistics
       const result = await apolloClient.query<{
         dashboard: {
-          totalPatients: number;
+          consultationsThisMonth: number;
           newPatientsThisMonth: number;
-        };
-        dataEntries: {
-          totalCount: number;
         };
       }>({
         query: GET_DASHBOARD_STATS,
@@ -76,10 +63,9 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       });
 
       const dashboardStats: DashboardStats = {
-        consultationsCount: result.data?.dataEntries?.totalCount || 0,
-        // Use total patients if no new patients this month
-        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || result.data?.dashboard?.totalPatients || 0,
-        syncRequiredCount: syncState?.queueStats?.pendingCount || 0,
+        consultationsCount: result.data?.dashboard?.consultationsThisMonth || 0,
+        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || 0,
+        syncRequiredCount: 0, // Always 0 - separate feature
       };
 
       setStats(dashboardStats);
@@ -91,12 +77,12 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       setStats({
         consultationsCount: 0,
         patientsRecentsCount: 0,
-        syncRequiredCount: syncState?.queueStats?.pendingCount || 0,
+        syncRequiredCount: 0,
       });
     } finally {
       setLoading(false);
     }
-  }, [syncState.queueStats.pendingCount]);
+  }, []);
 
   // Fetch stats on mount and when sync queue changes
   useEffect(() => {

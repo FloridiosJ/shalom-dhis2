@@ -128,14 +128,12 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Error message if data fetch failed */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text variant="bodyMedium" style={styles.errorText}>
-              Erreur lors du chargement des données. Valeurs par défaut affichées.
-            </Text>
-          </View>
-        )}
+        {/* Section Title */}
+        <View style={styles.sectionTitleContainer}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>
+            Statistique Mensuel
+          </Text>
+        </View>
 
         {/* Dashboard Cards Grid */}
         <View style={styles.cardsGrid}>
@@ -143,7 +141,7 @@ export default function HomeScreen() {
             <View style={styles.cardWrapper}>
               <DashboardCard
                 icon="clipboard-text"
-                label="Consultations en attente"
+                label="Consultation"
                 count={dashboardData.consultationsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
@@ -168,11 +166,11 @@ export default function HomeScreen() {
             <View style={styles.cardWrapper}>
               <DashboardCard
                 icon="sync"
-                label="Synchronisation requise"
-                count={dashboardData.syncRequiredCount}
+                label="Synchronisation"
+                count={0}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
-                isLoading={loading}
+                isLoading={false}
                 onPress={handleSyncPress}
               />
             </View>
@@ -214,18 +212,15 @@ const styles = StyleSheet.create({
   exportButton: {
     padding: 8,
   },
-  errorContainer: {
-    backgroundColor: '#FFEBEE',
+  sectionTitleContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#E53935',
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: '#FFFFFF',
   },
-  errorText: {
-    color: '#C62828',
+  sectionTitle: {
+    fontWeight: '600',
+    color: '#212121',
   },
   cardsGrid: {
     padding: 16,
