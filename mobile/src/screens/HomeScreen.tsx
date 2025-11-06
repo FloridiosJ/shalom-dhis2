@@ -3,6 +3,7 @@ import {View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator} from 
 import {Text, Card} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useDashboardStats} from '../hooks/useDashboardStats';
+import {useNavigation} from '@react-navigation/native';
 
 interface DashboardCardProps {
   icon: string;
@@ -11,6 +12,7 @@ interface DashboardCardProps {
   iconColor?: string;
   iconBackground?: string;
   isLoading?: boolean;
+  onPress?: () => void;
 }
 
 function DashboardCard({
@@ -20,32 +22,38 @@ function DashboardCard({
   iconColor = '#2196F3',
   iconBackground = '#E3F2FD',
   isLoading = false,
+  onPress,
 }: DashboardCardProps) {
+  const CardWrapper = onPress ? TouchableOpacity : View;
+  
   return (
-    <Card 
-      style={styles.card}
-      accessible={true}
-      accessibilityLabel={`${label}: ${isLoading ? 'chargement' : count}`}
-      accessibilityRole="text"
-      accessibilityLiveRegion="polite">
-      <Card.Content style={styles.cardContent}>
-        <View style={[styles.iconContainer, {backgroundColor: iconBackground}]}>
-          <Icon name={icon} size={28} color={iconColor} />
-        </View>
-        <Text variant="bodySmall" style={styles.cardLabel} numberOfLines={2}>
-          {label}
-        </Text>
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={iconColor} />
+    <CardWrapper onPress={onPress} style={styles.cardTouchable}>
+      <Card 
+        style={styles.card}
+        accessible={true}
+        accessibilityLabel={`${label}: ${isLoading ? 'chargement' : count}`}
+        accessibilityRole={onPress ? 'button' : 'text'}
+        accessibilityLiveRegion="polite"
+        accessibilityHint={onPress ? 'Appuyez pour voir les détails' : undefined}>
+        <Card.Content style={styles.cardContent}>
+          <View style={[styles.iconContainer, {backgroundColor: iconBackground}]}>
+            <Icon name={icon} size={28} color={iconColor} />
           </View>
-        ) : (
-          <Text variant="headlineMedium" style={styles.cardCount}>
-            {count}
+          <Text variant="bodySmall" style={styles.cardLabel} numberOfLines={2}>
+            {label}
           </Text>
-        )}
-      </Card.Content>
-    </Card>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={iconColor} />
+            </View>
+          ) : (
+            <Text variant="headlineMedium" style={styles.cardCount}>
+              {count}
+            </Text>
+          )}
+        </Card.Content>
+      </Card>
+    </CardWrapper>
   );
 }
 
@@ -73,6 +81,8 @@ function ActionCard({icon, label, onPress}: ActionCardProps) {
 }
 
 export default function HomeScreen() {
+  const navigation = useNavigation<any>();
+  
   // Fetch real dashboard statistics from API
   const {stats, loading, error} = useDashboardStats();
 
@@ -83,9 +93,21 @@ export default function HomeScreen() {
     syncRequiredCount: 0,
   };
 
+  const handleConsultationsPress = () => {
+    navigation.navigate('Consultation');
+  };
+
+  const handlePatientsPress = () => {
+    navigation.navigate('Patient');
+  };
+
+  const handleSyncPress = () => {
+    navigation.navigate('Sync');
+  };
+
   const handleNewPatient = () => {
-    // TODO: Navigation to patient creation screen
-    // navigation.navigate('CreatePatient');
+    // Navigate to Patient tab
+    navigation.navigate('Patient');
   };
 
   const handleExport = () => {
@@ -126,6 +148,7 @@ export default function HomeScreen() {
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
                 isLoading={loading}
+                onPress={handleConsultationsPress}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -136,6 +159,7 @@ export default function HomeScreen() {
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
                 isLoading={loading}
+                onPress={handlePatientsPress}
               />
             </View>
           </View>
@@ -149,6 +173,7 @@ export default function HomeScreen() {
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
                 isLoading={loading}
+                onPress={handleSyncPress}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -212,6 +237,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardWrapper: {
+    flex: 1,
+  },
+  cardTouchable: {
     flex: 1,
   },
   card: {

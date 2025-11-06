@@ -8,7 +8,7 @@ import {useSyncQueue} from './useSyncQueue';
  */
 export interface DashboardStats {
   consultationsCount: number; // Pending consultations count
-  patientsRecentsCount: number; // New patients count (this month)
+  patientsRecentsCount: number; // Recent patients count (new this month, fallback to total)
   syncRequiredCount: number; // Items pending sync
 }
 
@@ -26,6 +26,7 @@ interface UseDashboardStatsReturn {
 const GET_DASHBOARD_STATS = gql`
   query GetDashboardStats {
     dashboard {
+      totalPatients
       newPatientsThisMonth
     }
     dataEntries(
@@ -42,7 +43,7 @@ const GET_DASHBOARD_STATS = gql`
  * 
  * Fetches:
  * - Pending consultations count (status: en_cours)
- * - New patients count (this month from Dashboard query)
+ * - Recent patients count (this month, with fallback to total patients)
  * - Sync queue count (from useSyncQueue hook)
  * 
  * @returns Dashboard statistics with loading/error states and refetch function
@@ -63,6 +64,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       // Fetch dashboard statistics
       const result = await apolloClient.query<{
         dashboard: {
+          totalPatients: number;
           newPatientsThisMonth: number;
         };
         dataEntries: {
@@ -75,7 +77,8 @@ export function useDashboardStats(): UseDashboardStatsReturn {
 
       const dashboardStats: DashboardStats = {
         consultationsCount: result.data?.dataEntries?.totalCount || 0,
-        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || 0,
+        // Use total patients if no new patients this month
+        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || result.data?.dashboard?.totalPatients || 0,
         syncRequiredCount: syncState?.queueStats?.pendingCount || 0,
       };
 
