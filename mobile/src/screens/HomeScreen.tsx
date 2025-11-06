@@ -110,7 +110,7 @@ export default function HomeScreen() {
         {error && (
           <View style={styles.errorContainer}>
             <Text variant="bodyMedium" style={styles.errorText}>
-              Erreur lors du chargement des données. Affichage des dernières données disponibles.
+              Erreur lors du chargement des données. Valeurs par défaut affichées.
             </Text>
           </View>
         )}

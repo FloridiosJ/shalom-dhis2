@@ -8,7 +8,7 @@ import {useSyncQueue} from './useSyncQueue';
  */
 export interface DashboardStats {
   consultationsCount: number; // Pending consultations count
-  patientsRecentsCount: number; // Recent patients count (last 7 days)
+  patientsRecentsCount: number; // New patients count (this month)
   syncRequiredCount: number; // Items pending sync
 }
 
@@ -22,22 +22,14 @@ interface UseDashboardStatsReturn {
   refetch: () => Promise<void>;
 }
 
-// GraphQL query to fetch pending consultations count
-const GET_PENDING_CONSULTATIONS = gql`
-  query GetPendingConsultations {
+// GraphQL query to fetch dashboard statistics
+const GET_DASHBOARD_STATS = gql`
+  query GetDashboardStats {
+    dashboard {
+      newPatientsThisMonth
+    }
     dataEntries(
       filter: { status: en_cours }
-      pagination: { limit: 1 }
-    ) {
-      totalCount
-    }
-  }
-`;
-
-// GraphQL query to fetch recent patients count (last 7 days)
-const GET_RECENT_PATIENTS = gql`
-  query GetRecentPatients($dateFrom: DateTime!) {
-    patients(
       pagination: { limit: 1 }
     ) {
       totalCount
@@ -50,7 +42,7 @@ const GET_RECENT_PATIENTS = gql`
  * 
  * Fetches:
  * - Pending consultations count (status: en_cours)
- * - Recent patients count (created in last 7 days)
+ * - New patients count (this month from Dashboard query)
  * - Sync queue count (from useSyncQueue hook)
  * 
  * @returns Dashboard statistics with loading/error states and refetch function
@@ -68,37 +60,23 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       setLoading(true);
       setError(null);
 
-      // Calculate date 7 days ago for recent patients
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      // Fetch pending consultations and recent patients in parallel
-      const [consultationsResult, patientsResult] = await Promise.all([
-        apolloClient.query<{
-          dataEntries: {
-            totalCount: number;
-          };
-        }>({
-          query: GET_PENDING_CONSULTATIONS,
-          fetchPolicy: 'network-only',
-        }),
-        apolloClient.query<{
-          patients: {
-            totalCount: number;
-          };
-        }>({
-          query: GET_RECENT_PATIENTS,
-          variables: {
-            dateFrom: sevenDaysAgo.toISOString(),
-          },
-          fetchPolicy: 'network-only',
-        }),
-      ]);
+      // Fetch dashboard statistics
+      const result = await apolloClient.query<{
+        dashboard: {
+          newPatientsThisMonth: number;
+        };
+        dataEntries: {
+          totalCount: number;
+        };
+      }>({
+        query: GET_DASHBOARD_STATS,
+        fetchPolicy: 'network-only',
+      });
 
       const dashboardStats: DashboardStats = {
-        consultationsCount: consultationsResult.data?.dataEntries?.totalCount || 0,
-        patientsRecentsCount: patientsResult.data?.patients?.totalCount || 0,
-        syncRequiredCount: syncState.queueStats.pendingCount,
+        consultationsCount: result.data?.dataEntries?.totalCount || 0,
+        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || 0,
+        syncRequiredCount: syncState?.queueStats?.pendingCount || 0,
       };
 
       setStats(dashboardStats);
@@ -110,7 +88,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       setStats({
         consultationsCount: 0,
         patientsRecentsCount: 0,
-        syncRequiredCount: syncState.queueStats.pendingCount,
+        syncRequiredCount: syncState?.queueStats?.pendingCount || 0,
       });
     } finally {
       setLoading(false);
