@@ -29,11 +29,12 @@ export const consultationValidationSchema = yup.object().shape({
         return consultationDateTime <= new Date();
       },
     ),
-  diagnostic: yup
+  typeConsultation: yup
     .string()
-    .required('Le diagnostic est requis')
-    .min(3, 'Le diagnostic doit contenir au moins 3 caractères'),
-  prescriptions: yup.string().optional(),
+    .required('Le type de consultation est requis'),
+  categoriesMaladie: yup
+    .string()
+    .required('La catégorie de maladie est requise'),
+  prescriptionsStructurees: yup.string().optional(),
   notes: yup.string().optional(),
-  attachments: yup.array().optional(),
 });
