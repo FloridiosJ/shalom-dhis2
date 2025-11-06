@@ -10,10 +10,10 @@ describe('consultationValidationSchema', () => {
       patientId: '1',
       dateConsultation: new Date('2023-01-01'),
       heureConsultation: new Date('2023-01-01T10:00:00'),
-      diagnostic: 'Paludisme simple',
-      prescriptions: 'Paracétamol 500mg',
+      typeConsultation: 'Consultation générale',
+      categoriesMaladie: 'Maladies infectieuses',
+      prescriptionsStructurees: 'Paracétamol 500mg',
       notes: 'Patient en bonne santé',
-      attachments: [],
     };
 
     await expect(
@@ -26,10 +26,10 @@ describe('consultationValidationSchema', () => {
       patientId: null,
       dateConsultation: new Date(),
       heureConsultation: new Date(),
-      diagnostic: 'Paludisme simple',
-      prescriptions: '',
+      typeConsultation: 'Consultation générale',
+      categoriesMaladie: 'Maladies infectieuses',
+      prescriptionsStructurees: '',
       notes: '',
-      attachments: [],
     };
 
     await expect(
@@ -37,36 +37,36 @@ describe('consultationValidationSchema', () => {
     ).rejects.toThrow();
   });
 
-  it('rejects form without diagnostic', async () => {
+  it('rejects form without typeConsultation', async () => {
     const invalidData = {
       patientId: '1',
       dateConsultation: new Date(),
       heureConsultation: new Date(),
-      diagnostic: '',
-      prescriptions: '',
+      typeConsultation: '',
+      categoriesMaladie: 'Maladies infectieuses',
+      prescriptionsStructurees: '',
       notes: '',
-      attachments: [],
     };
 
     await expect(
       consultationValidationSchema.validate(invalidData),
-    ).rejects.toThrow();
+    ).rejects.toThrow('Le type de consultation est requis');
   });
 
-  it('rejects diagnostic shorter than 3 characters', async () => {
+  it('rejects form without categoriesMaladie', async () => {
     const invalidData = {
       patientId: '1',
       dateConsultation: new Date(),
       heureConsultation: new Date(),
-      diagnostic: 'AB',
-      prescriptions: '',
+      typeConsultation: 'Consultation générale',
+      categoriesMaladie: '',
+      prescriptionsStructurees: '',
       notes: '',
-      attachments: [],
     };
 
     await expect(
       consultationValidationSchema.validate(invalidData),
-    ).rejects.toThrow();
+    ).rejects.toThrow('La catégorie de maladie est requise');
   });
 
   it('rejects future date', async () => {
@@ -77,10 +77,10 @@ describe('consultationValidationSchema', () => {
       patientId: '1',
       dateConsultation: futureDate,
       heureConsultation: new Date(),
-      diagnostic: 'Paludisme simple',
-      prescriptions: '',
+      typeConsultation: 'Consultation générale',
+      categoriesMaladie: 'Maladies infectieuses',
+      prescriptionsStructurees: '',
       notes: '',
-      attachments: [],
     };
 
     await expect(
@@ -93,10 +93,10 @@ describe('consultationValidationSchema', () => {
       patientId: '1',
       dateConsultation: new Date('2023-01-01'),
       heureConsultation: new Date('2023-01-01T10:00:00'),
-      diagnostic: 'Paludisme simple',
-      prescriptions: '',
+      typeConsultation: 'Consultation générale',
+      categoriesMaladie: 'Maladies infectieuses',
+      prescriptionsStructurees: '',
       notes: '',
-      attachments: [],
     };
 
     await expect(
