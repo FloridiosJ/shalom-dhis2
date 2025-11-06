@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
-import {useForm} from 'react-hook-form';
+import {useForm, Control, FieldErrors, UseFormHandleSubmit, UseFormWatch, UseFormReset} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Alert} from 'react-native';
@@ -8,13 +8,17 @@ import {ConsultationFormData, PatientOption} from '../types/consultation';
 
 const DRAFT_STORAGE_KEY = '@consultation_draft';
 
+interface NavigationProp {
+  goBack: () => void;
+}
+
 interface UseConsultationFormReturn {
-  control: any;
-  handleSubmit: any;
-  errors: any;
+  control: Control<ConsultationFormData>;
+  handleSubmit: UseFormHandleSubmit<ConsultationFormData>;
+  errors: FieldErrors<ConsultationFormData>;
   isValid: boolean;
-  watch: any;
-  reset: any;
+  watch: UseFormWatch<ConsultationFormData>;
+  reset: UseFormReset<ConsultationFormData>;
   patients: PatientOption[];
   filteredPatients: PatientOption[];
   loadingPatients: boolean;
@@ -30,7 +34,7 @@ interface UseConsultationFormReturn {
  * Handles form validation, draft saving, patient management, and submission
  */
 export function useConsultationForm(
-  navigation: any,
+  navigation: NavigationProp,
 ): UseConsultationFormReturn {
   const [patients, setPatients] = useState<PatientOption[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<PatientOption[]>([]);
@@ -171,9 +175,25 @@ export function useConsultationForm(
       ]);
     } catch (err) {
       console.error('Error saving consultation:', err);
+      
+      // Provide specific error messages based on error type
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : "Une erreur s'est produite lors de l'enregistrement";
+      
       Alert.alert(
         'Erreur',
-        "Une erreur s'est produite lors de l'enregistrement",
+        errorMessage,
+        [
+          {
+            text: 'Réessayer',
+            onPress: () => handleSave(data),
+          },
+          {
+            text: 'Annuler',
+            style: 'cancel',
+          },
+        ]
       );
     } finally {
       setSaving(false);
