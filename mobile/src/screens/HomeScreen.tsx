@@ -1,7 +1,9 @@
-import React, {useState} from 'react';
-import {View, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
-import {Text, Card, Menu, Button} from 'react-native-paper';
+import React from 'react';
+import {View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {Text, Card} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useDashboardStats} from '../hooks/useDashboardStats';
+import {useNavigation} from '@react-navigation/native';
 
 interface DashboardCardProps {
   icon: string;
@@ -9,6 +11,8 @@ interface DashboardCardProps {
   count: number;
   iconColor?: string;
   iconBackground?: string;
+  isLoading?: boolean;
+  onPress?: () => void;
 }
 
 function DashboardCard({
@@ -17,21 +21,39 @@ function DashboardCard({
   count,
   iconColor = '#2196F3',
   iconBackground = '#E3F2FD',
+  isLoading = false,
+  onPress,
 }: DashboardCardProps) {
+  const CardWrapper = onPress ? TouchableOpacity : View;
+  
   return (
-    <Card style={styles.card}>
-      <Card.Content style={styles.cardContent}>
-        <View style={[styles.iconContainer, {backgroundColor: iconBackground}]}>
-          <Icon name={icon} size={28} color={iconColor} />
-        </View>
-        <Text variant="bodySmall" style={styles.cardLabel} numberOfLines={2}>
-          {label}
-        </Text>
-        <Text variant="headlineMedium" style={styles.cardCount}>
-          {count}
-        </Text>
-      </Card.Content>
-    </Card>
+    <CardWrapper onPress={onPress} style={styles.cardTouchable}>
+      <Card 
+        style={styles.card}
+        accessible={true}
+        accessibilityLabel={`${label}: ${isLoading ? 'chargement' : count}`}
+        accessibilityRole={onPress ? 'button' : 'text'}
+        accessibilityLiveRegion="polite"
+        accessibilityHint={onPress ? 'Appuyez pour voir les détails' : undefined}>
+        <Card.Content style={styles.cardContent}>
+          <View style={[styles.iconContainer, {backgroundColor: iconBackground}]}>
+            <Icon name={icon} size={28} color={iconColor} />
+          </View>
+          <Text variant="bodySmall" style={styles.cardLabel} numberOfLines={2}>
+            {label}
+          </Text>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={iconColor} />
+            </View>
+          ) : (
+            <Text variant="headlineMedium" style={styles.cardCount}>
+              {count}
+            </Text>
+          )}
+        </Card.Content>
+      </Card>
+    </CardWrapper>
   );
 }
 
@@ -59,21 +81,33 @@ function ActionCard({icon, label, onPress}: ActionCardProps) {
 }
 
 export default function HomeScreen() {
-  const [dispensaireVisible, setDispensaireVisible] = useState(false);
-  const [periodeVisible, setPeriodeVisible] = useState(false);
-  const [selectedDispensaire, setSelectedDispensaire] = useState('Dispensaire');
-  const [selectedPeriode, setSelectedPeriode] = useState('Période');
+  const navigation = useNavigation<any>();
+  
+  // Fetch real dashboard statistics from API
+  const {stats, loading, error} = useDashboardStats();
 
-  // Placeholder data - would be replaced with real data from API/database
-  const dashboardData = {
-    consultationsCount: 12,
-    patientsRecentsCount: 5,
-    syncRequiredCount: 8,
+  // Use real data or show fallback during loading
+  const dashboardData = stats || {
+    consultationsCount: 0,
+    patientsRecentsCount: 0,
+    syncRequiredCount: 0,
+  };
+
+  const handleConsultationsPress = () => {
+    navigation.navigate('Consultation');
+  };
+
+  const handlePatientsPress = () => {
+    navigation.navigate('Patient');
+  };
+
+  const handleSyncPress = () => {
+    navigation.navigate('Sync');
   };
 
   const handleNewPatient = () => {
-    // TODO: Navigation to patient creation screen
-    // navigation.navigate('CreatePatient');
+    // Navigate to Patient tab
+    navigation.navigate('Patient');
   };
 
   const handleExport = () => {
@@ -94,79 +128,11 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Filters Section */}
-        <View style={styles.filtersContainer}>
-          <Menu
-            visible={dispensaireVisible}
-            onDismiss={() => setDispensaireVisible(false)}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setDispensaireVisible(true)}
-                style={styles.filterButton}
-                contentStyle={styles.filterButtonContent}
-                icon="chevron-down">
-                {selectedDispensaire}
-              </Button>
-            }>
-            <Menu.Item
-              onPress={() => {
-                setSelectedDispensaire('Dispensaire A');
-                setDispensaireVisible(false);
-              }}
-              title="Dispensaire A"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedDispensaire('Dispensaire B');
-                setDispensaireVisible(false);
-              }}
-              title="Dispensaire B"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedDispensaire('Dispensaire C');
-                setDispensaireVisible(false);
-              }}
-              title="Dispensaire C"
-            />
-          </Menu>
-
-          <Menu
-            visible={periodeVisible}
-            onDismiss={() => setPeriodeVisible(false)}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setPeriodeVisible(true)}
-                style={styles.filterButton}
-                contentStyle={styles.filterButtonContent}
-                icon="chevron-down">
-                {selectedPeriode}
-              </Button>
-            }>
-            <Menu.Item
-              onPress={() => {
-                setSelectedPeriode("Aujourd'hui");
-                setPeriodeVisible(false);
-              }}
-              title="Aujourd'hui"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedPeriode('Cette semaine');
-                setPeriodeVisible(false);
-              }}
-              title="Cette semaine"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedPeriode('Ce mois');
-                setPeriodeVisible(false);
-              }}
-              title="Ce mois"
-            />
-          </Menu>
+        {/* Section Title */}
+        <View style={styles.sectionTitleContainer}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>
+            Statistique Mensuel
+          </Text>
         </View>
 
         {/* Dashboard Cards Grid */}
@@ -175,10 +141,12 @@ export default function HomeScreen() {
             <View style={styles.cardWrapper}>
               <DashboardCard
                 icon="clipboard-text"
-                label="Consultations en attente"
+                label="Consultation"
                 count={dashboardData.consultationsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
+                isLoading={loading}
+                onPress={handleConsultationsPress}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -188,6 +156,8 @@ export default function HomeScreen() {
                 count={dashboardData.patientsRecentsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
+                isLoading={loading}
+                onPress={handlePatientsPress}
               />
             </View>
           </View>
@@ -196,10 +166,12 @@ export default function HomeScreen() {
             <View style={styles.cardWrapper}>
               <DashboardCard
                 icon="sync"
-                label="Synchronisation requise"
-                count={dashboardData.syncRequiredCount}
+                label="Synchronisation"
+                count={0}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
+                isLoading={false}
+                onPress={handleSyncPress}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -240,21 +212,15 @@ const styles = StyleSheet.create({
   exportButton: {
     padding: 8,
   },
-  filtersContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  sectionTitleContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 16,
+    paddingBottom: 8,
     backgroundColor: '#FFFFFF',
-    gap: 12,
   },
-  filterButton: {
-    flex: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-  },
-  filterButtonContent: {
-    flexDirection: 'row-reverse',
+  sectionTitle: {
+    fontWeight: '600',
+    color: '#212121',
   },
   cardsGrid: {
     padding: 16,
@@ -266,6 +232,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardWrapper: {
+    flex: 1,
+  },
+  cardTouchable: {
     flex: 1,
   },
   card: {
@@ -299,6 +268,11 @@ const styles = StyleSheet.create({
   cardCount: {
     fontWeight: 'bold',
     color: '#212121',
+  },
+  loadingContainer: {
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionCardContainer: {
     flex: 1,
