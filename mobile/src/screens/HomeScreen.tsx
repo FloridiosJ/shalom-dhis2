@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
-import {View, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
-import {Text, Card, Menu, Button} from 'react-native-paper';
+import React from 'react';
+import {View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {Text, Card} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useDashboardStats} from '../hooks/useDashboardStats';
 
 interface DashboardCardProps {
   icon: string;
@@ -9,6 +10,7 @@ interface DashboardCardProps {
   count: number;
   iconColor?: string;
   iconBackground?: string;
+  isLoading?: boolean;
 }
 
 function DashboardCard({
@@ -17,9 +19,15 @@ function DashboardCard({
   count,
   iconColor = '#2196F3',
   iconBackground = '#E3F2FD',
+  isLoading = false,
 }: DashboardCardProps) {
   return (
-    <Card style={styles.card}>
+    <Card 
+      style={styles.card}
+      accessible={true}
+      accessibilityLabel={`${label}: ${isLoading ? 'chargement' : count}`}
+      accessibilityRole="text"
+      accessibilityLiveRegion="polite">
       <Card.Content style={styles.cardContent}>
         <View style={[styles.iconContainer, {backgroundColor: iconBackground}]}>
           <Icon name={icon} size={28} color={iconColor} />
@@ -27,9 +35,15 @@ function DashboardCard({
         <Text variant="bodySmall" style={styles.cardLabel} numberOfLines={2}>
           {label}
         </Text>
-        <Text variant="headlineMedium" style={styles.cardCount}>
-          {count}
-        </Text>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={iconColor} />
+          </View>
+        ) : (
+          <Text variant="headlineMedium" style={styles.cardCount}>
+            {count}
+          </Text>
+        )}
       </Card.Content>
     </Card>
   );
@@ -59,16 +73,14 @@ function ActionCard({icon, label, onPress}: ActionCardProps) {
 }
 
 export default function HomeScreen() {
-  const [dispensaireVisible, setDispensaireVisible] = useState(false);
-  const [periodeVisible, setPeriodeVisible] = useState(false);
-  const [selectedDispensaire, setSelectedDispensaire] = useState('Dispensaire');
-  const [selectedPeriode, setSelectedPeriode] = useState('Période');
+  // Fetch real dashboard statistics from API
+  const {stats, loading, error} = useDashboardStats();
 
-  // Placeholder data - would be replaced with real data from API/database
-  const dashboardData = {
-    consultationsCount: 12,
-    patientsRecentsCount: 5,
-    syncRequiredCount: 8,
+  // Use real data or show fallback during loading
+  const dashboardData = stats || {
+    consultationsCount: 0,
+    patientsRecentsCount: 0,
+    syncRequiredCount: 0,
   };
 
   const handleNewPatient = () => {
@@ -94,80 +106,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Filters Section */}
-        <View style={styles.filtersContainer}>
-          <Menu
-            visible={dispensaireVisible}
-            onDismiss={() => setDispensaireVisible(false)}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setDispensaireVisible(true)}
-                style={styles.filterButton}
-                contentStyle={styles.filterButtonContent}
-                icon="chevron-down">
-                {selectedDispensaire}
-              </Button>
-            }>
-            <Menu.Item
-              onPress={() => {
-                setSelectedDispensaire('Dispensaire A');
-                setDispensaireVisible(false);
-              }}
-              title="Dispensaire A"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedDispensaire('Dispensaire B');
-                setDispensaireVisible(false);
-              }}
-              title="Dispensaire B"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedDispensaire('Dispensaire C');
-                setDispensaireVisible(false);
-              }}
-              title="Dispensaire C"
-            />
-          </Menu>
-
-          <Menu
-            visible={periodeVisible}
-            onDismiss={() => setPeriodeVisible(false)}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setPeriodeVisible(true)}
-                style={styles.filterButton}
-                contentStyle={styles.filterButtonContent}
-                icon="chevron-down">
-                {selectedPeriode}
-              </Button>
-            }>
-            <Menu.Item
-              onPress={() => {
-                setSelectedPeriode("Aujourd'hui");
-                setPeriodeVisible(false);
-              }}
-              title="Aujourd'hui"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedPeriode('Cette semaine');
-                setPeriodeVisible(false);
-              }}
-              title="Cette semaine"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedPeriode('Ce mois');
-                setPeriodeVisible(false);
-              }}
-              title="Ce mois"
-            />
-          </Menu>
-        </View>
+        {/* Error message if data fetch failed */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text variant="bodyMedium" style={styles.errorText}>
+              Erreur lors du chargement des données. Affichage des dernières données disponibles.
+            </Text>
+          </View>
+        )}
 
         {/* Dashboard Cards Grid */}
         <View style={styles.cardsGrid}>
@@ -179,6 +125,7 @@ export default function HomeScreen() {
                 count={dashboardData.consultationsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
+                isLoading={loading}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -188,6 +135,7 @@ export default function HomeScreen() {
                 count={dashboardData.patientsRecentsCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
+                isLoading={loading}
               />
             </View>
           </View>
@@ -200,6 +148,7 @@ export default function HomeScreen() {
                 count={dashboardData.syncRequiredCount}
                 iconColor="#2196F3"
                 iconBackground="#E3F2FD"
+                isLoading={loading}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -240,21 +189,18 @@ const styles = StyleSheet.create({
   exportButton: {
     padding: 8,
   },
-  filtersContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  errorContainer: {
+    backgroundColor: '#FFEBEE',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    gap: 12,
-  },
-  filterButton: {
-    flex: 1,
-    borderColor: '#E0E0E0',
+    marginHorizontal: 16,
+    marginTop: 8,
     borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E53935',
   },
-  filterButtonContent: {
-    flexDirection: 'row-reverse',
+  errorText: {
+    color: '#C62828',
   },
   cardsGrid: {
     padding: 16,
@@ -299,6 +245,11 @@ const styles = StyleSheet.create({
   cardCount: {
     fontWeight: 'bold',
     color: '#212121',
+  },
+  loadingContainer: {
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionCardContainer: {
     flex: 1,
