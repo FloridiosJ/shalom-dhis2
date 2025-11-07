@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import DashboardCard from '../components/DashboardCard';
+import DiamondIcon from '../components/DiamondIcon';
 import {
   DispensaireIcon,
   DataIcon,
@@ -75,9 +76,12 @@ const Dashboard = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>
-            SDC Shalom
-          </h1>
+          <div className={styles.logoContainer}>
+            <DiamondIcon />
+            <h1 className={styles.title}>
+              SDC Shalom
+            </h1>
+          </div>
           
           <button
             onClick={logout}
@@ -96,7 +100,7 @@ const Dashboard = () => {
             Bienvenue, {user?.email}
           </h2>
           <p className={styles.roleInfo}>
-            Rôle: {user?.role}
+            Votre rôle : {user?.role}
           </p>
         </div>
       </div>
