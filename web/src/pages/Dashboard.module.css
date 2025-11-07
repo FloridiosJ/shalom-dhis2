@@ -4,27 +4,25 @@
   padding: 0;
 }
 
-.banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.header {
+  background-color: white;
   padding: 1.5rem 2rem;
-  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.bannerHeader {
+.headerContent {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
 }
 
 .title {
   font-size: 2rem;
   font-weight: bold;
-  color: white;
+  color: #1f2937;
   margin: 0;
   line-height: 1;
 }
@@ -47,6 +45,12 @@
 .logoutButton:hover {
   background-color: #b91c1c;
   transform: translateY(-1px);
+}
+
+.userBanner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  color: white;
 }
 
 .userInfo {
@@ -85,12 +89,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .banner {
+  .header {
     padding: 1rem;
-  }
-
-  .bannerHeader {
-    margin-bottom: 1.5rem;
   }
   
   .title {
@@ -100,6 +100,10 @@
   .logoutButton {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
+  }
+  
+  .userBanner {
+    padding: 1.5rem;
   }
   
   .welcomeTitle {
@@ -121,15 +125,14 @@
 }
 
 @media (max-width: 480px) {
-  .banner {
+  .header {
     padding: 0.75rem;
   }
-
-  .bannerHeader {
+  
+  .headerContent {
     flex-direction: column;
     gap: 1rem;
-    align-items: center;
-    margin-bottom: 1rem;
+    align-items: stretch;
   }
   
   .title {
@@ -138,15 +141,6 @@
   }
   
   .logoutButton {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .welcomeTitle {
-    font-size: 1.1rem;
-  }
-
-  .roleInfo {
-    font-size: 0.8rem;
+    align-self: center;
   }
 }
