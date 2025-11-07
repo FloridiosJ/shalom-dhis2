@@ -1,8 +1,11 @@
 import React from 'react';
+import styles from './ShalomLogo.module.css';
 
 const ShalomLogo = ({ width = 120, height = 40 }) => {
+  const fontSize = width / 5;
+  
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div className={styles.container}>
       <svg width={height} height={height} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
         {/* Dove icon */}
         <circle cx="20" cy="20" r="19" stroke="#3B4BA0" strokeWidth="1.5" fill="none"/>
@@ -13,24 +16,9 @@ const ShalomLogo = ({ width = 120, height = 40 }) => {
         <path d="M12 25 C14 27, 16 28, 20 28 C24 28, 26 27, 28 25" stroke="#3B4BA0" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
         <circle cx="20" cy="22" r="2" fill="#DC2626" opacity="0.3"/>
       </svg>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-        <span style={{ 
-          fontSize: width / 5, 
-          fontWeight: '700', 
-          color: '#DC2626',
-          letterSpacing: '1px'
-        }}>
-          S
-        </span>
-        <span style={{ 
-          fontSize: width / 5, 
-          fontWeight: '700', 
-          color: '#DC2626',
-          letterSpacing: '1px'
-        }}>
-          HALOM
-        </span>
-      </div>
+      <span className={styles.logoText} style={{ fontSize: `${fontSize}px` }}>
+        SHALOM
+      </span>
     </div>
   );
 };
