@@ -132,7 +132,7 @@
   .headerContent {
     flex-direction: column;
     gap: 1rem;
-    align-items: stretch;
+    align-items: center;
   }
   
   .title {
@@ -141,6 +141,6 @@
   }
   
   .logoutButton {
-    align-self: center;
+    width: auto;
   }
 }
