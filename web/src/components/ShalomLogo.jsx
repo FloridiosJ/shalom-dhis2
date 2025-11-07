@@ -1,12 +1,15 @@
 import React from 'react';
 import styles from './ShalomLogo.module.css';
 
+const FONT_SIZE_RATIO = 5;
+
 const ShalomLogo = ({ width = 120, height = 40 }) => {
-  const fontSize = width / 5;
+  const fontSize = width / FONT_SIZE_RATIO;
+  const svgSize = height;
   
   return (
     <div className={styles.container}>
-      <svg width={height} height={height} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width={svgSize} height={svgSize} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
         {/* Dove icon */}
         <circle cx="20" cy="20" r="19" stroke="#3B4BA0" strokeWidth="1.5" fill="none"/>
         <path d="M20 12 C22 12, 24 13, 25 15 L28 18 C27 16, 25 15, 23 15 C21 15, 20 16, 20 17 C20 16, 19 15, 17 15 C15 15, 13 16, 12 18 L15 15 C16 13, 18 12, 20 12 Z" fill="#1F2937" stroke="#1F2937" strokeWidth="0.5"/>
