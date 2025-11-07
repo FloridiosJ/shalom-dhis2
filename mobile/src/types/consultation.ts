@@ -10,10 +10,10 @@ export interface ConsultationFormData {
   patientId: string | null;
   dateConsultation: Date;
   heureConsultation: Date;
-  diagnostic: string;
-  prescriptions: string;
+  typeConsultation: string;
+  categoriesMaladie: string;
+  prescriptionsStructurees: string;
   notes: string;
-  attachments: Attachment[];
 }
 
 export interface ConsultationDraft {
