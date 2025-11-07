@@ -4,25 +4,27 @@
   padding: 0;
 }
 
-.header {
-  background-color: white;
+.banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1.5rem 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: white;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.headerContent {
+.bannerHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
 }
 
 .title {
   font-size: 2rem;
   font-weight: bold;
-  color: #1f2937;
+  color: white;
   margin: 0;
 }
 
@@ -44,12 +46,6 @@
 .logoutButton:hover {
   background-color: #b91c1c;
   transform: translateY(-1px);
-}
-
-.userBanner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
-  color: white;
 }
 
 .userInfo {
@@ -88,8 +84,12 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .header {
+  .banner {
     padding: 1rem;
+  }
+
+  .bannerHeader {
+    margin-bottom: 1.5rem;
   }
   
   .title {
@@ -99,10 +99,6 @@
   .logoutButton {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
-  }
-  
-  .userBanner {
-    padding: 1.5rem;
   }
   
   .welcomeTitle {
@@ -124,14 +120,15 @@
 }
 
 @media (max-width: 480px) {
-  .header {
+  .banner {
     padding: 0.75rem;
   }
-  
-  .headerContent {
+
+  .bannerHeader {
     flex-direction: column;
     gap: 1rem;
-    align-items: stretch;
+    align-items: center;
+    margin-bottom: 1rem;
   }
   
   .title {
@@ -140,6 +137,15 @@
   }
   
   .logoutButton {
-    align-self: center;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .welcomeTitle {
+    font-size: 1.1rem;
+  }
+
+  .roleInfo {
+    font-size: 0.8rem;
   }
 }

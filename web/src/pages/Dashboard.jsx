@@ -72,9 +72,10 @@ const Dashboard = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
+      {/* Bannière avec titre, message de bienvenue et bouton déconnexion */}
+      <div className={styles.banner}>
+        {/* Header avec titre et bouton déconnexion */}
+        <div className={styles.bannerHeader}>
           <h1 className={styles.title}>
             SDC Shalom
           </h1>
@@ -87,10 +88,8 @@ const Dashboard = () => {
             Déconnexion
           </button>
         </div>
-      </div>
 
-      {/* Bannière utilisateur */}
-      <div className={styles.userBanner}>
+        {/* Message de bienvenue et info utilisateur */}
         <div className={styles.userInfo}>
           <h2 className={styles.welcomeTitle}>
             Bienvenue, {user?.email}
