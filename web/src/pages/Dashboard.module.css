@@ -24,6 +24,7 @@
   font-weight: bold;
   color: #1f2937;
   margin: 0;
+  line-height: 1;
 }
 
 .logoutButton {
@@ -131,7 +132,7 @@
   .headerContent {
     flex-direction: column;
     gap: 1rem;
-    align-items: stretch;
+    align-items: center;
   }
   
   .title {
@@ -140,6 +141,6 @@
   }
   
   .logoutButton {
-    align-self: center;
+    width: auto;
   }
 }
