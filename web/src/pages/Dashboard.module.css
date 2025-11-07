@@ -19,6 +19,11 @@
   align-items: center;
 }
 
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
 .title {
   font-size: 2rem;
   font-weight: bold;
@@ -48,9 +53,9 @@
 }
 
 .userBanner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #E0F2FE 0%, #DBEAFE 100%);
   padding: 2rem;
-  color: white;
+  color: #1f2937;
 }
 
 .userInfo {
@@ -61,12 +66,14 @@
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
+  color: #1f2937;
 }
 
 .roleInfo {
   font-size: 1rem;
-  opacity: 0.9;
+  opacity: 0.8;
   margin: 0;
+  color: #4b5563;
 }
 
 .cardsContainer {
