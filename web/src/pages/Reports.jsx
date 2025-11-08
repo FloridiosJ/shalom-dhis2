@@ -183,27 +183,38 @@ const Reports = () => {
   return (
     <Layout title="Rapports & Analytics">
       <div className={styles.pageBg}>
-        <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.container}>
-          {/* En-tête */}
-          <div className={styles.header}>
-            {selectedDispensaire !== 'all' && dispensaireStats && (
-              <p className={styles.subtitle}>
-                {dispensaireStats.dispensaire.name} - {dispensaireStats.dispensaire.code}
+          {/* Page Title Section */}
+          <div className={styles.pageHeader}>
+            <div className={styles.pageTitleSection}>
+              <h1 className={styles.pageTitle}>Rapports & Analytique</h1>
+              <p className={styles.pageDescription}>
+                Aperçu des métriques et tendances clés.
               </p>
+            </div>
+            {selectedDispensaire !== 'all' && dispensaireStats && (
+              <div className={styles.dispensaireBadge}>
+                <span className={styles.badgeIcon}>🏢</span>
+                <div className={styles.badgeInfo}>
+                  <div className={styles.badgeName}>{dispensaireStats.dispensaire.name}</div>
+                  <div className={styles.badgeCode}>{dispensaireStats.dispensaire.code}</div>
+                </div>
+              </div>
             )}
-            <button
-              className={`${styles.sidebarToggle} ${styles.mobileOnly}`}
-              type="button"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              aria-label={isSidebarOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale"}
-              aria-expanded={isSidebarOpen}
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
           </div>
+
+          {/* Mobile sidebar toggle */}
+          <button
+            className={`${styles.sidebarToggle} ${styles.mobileOnly}`}
+            type="button"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label={isSidebarOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale"}
+            aria-expanded={isSidebarOpen}
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
         {/* Filtres */}
         <div className={styles.filters}>
