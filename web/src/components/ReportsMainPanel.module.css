@@ -76,12 +76,32 @@
 }
 
 .noData svg {
-  opacity: 0.5;
+  opacity: 0.4;
+  color: #cbd5e1;
 }
 
-.noData p {
+.noDataTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0;
+}
+
+.noDataText {
   font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  text-align: center;
+  max-width: 400px;
+}
+
+.noDataHint {
+  font-size: 0.875rem;
+  color: #94a3b8;
   font-style: italic;
+  margin: 0;
+  text-align: center;
+  max-width: 400px;
 }
 
 /* Bar chart */
