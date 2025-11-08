@@ -9,7 +9,7 @@
 
 .headerContent {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -27,59 +27,29 @@
   line-height: 1;
 }
 
-.logoutButton {
-  background-color: #dc2626;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logoutButton:hover {
-  background-color: #b91c1c;
-  transform: translateY(-1px);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .header {
     padding: 1rem;
+    padding-left: 4rem; /* Make room for hamburger menu */
   }
   
   .title {
     font-size: 1.5rem;
-  }
-  
-  .logoutButton {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 480px) {
   .header {
     padding: 0.75rem;
+    padding-left: 3.5rem; /* Make room for hamburger menu */
   }
   
   .headerContent {
-    flex-direction: column;
-    gap: 1rem;
     align-items: center;
   }
   
   .title {
     font-size: 1.25rem;
-    text-align: center;
-  }
-  
-  .logoutButton {
-    width: auto;
   }
 }

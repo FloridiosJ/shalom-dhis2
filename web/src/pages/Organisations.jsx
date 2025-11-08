@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import AppHeader from '../components/AppHeader';
+import Layout from '../components/Layout';
 import { organisationService } from '../services/organisations';
 
 const Organisations = () => {
@@ -160,19 +160,19 @@ const Organisations = () => {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f9fafb'
-    }}>
-      <AppHeader />
-      <div style={{ padding: '2rem' }}>
+    <Layout>
       <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto'
+        minHeight: '100vh',
+        backgroundColor: '#f9fafb'
       }}>
-        {/* Header */}
-        <div style={{
-          display: 'flex',
+        <div style={{ padding: '2rem' }}>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto'
+          }}>
+            {/* Header */}
+            <div style={{
+              display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '2rem'
@@ -650,7 +650,8 @@ const Organisations = () => {
         `}
       </style>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 }
 

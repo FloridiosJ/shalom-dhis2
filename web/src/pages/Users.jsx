@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AppHeader from '../components/AppHeader';
+import Layout from '../components/Layout';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import usersService from '../services/usersService';
 import dispensaireService from '../services/dispensaires';
@@ -19,7 +18,6 @@ const Users = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const navigate = useNavigate();
 
   // Récupère la liste des utilisateurs
   const fetchUsers = () => {
@@ -77,32 +75,22 @@ const Users = () => {
   };
 
   return (
-    <div className={styles.pageBg}>
-      <AppHeader />
-      <div style={{ marginBottom: '1.5rem' }} />
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <button
-            className={styles.actionBtn}
-            type="button"
-            onClick={() => navigate('/dashboard')}
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Retour au dashboard
-          </button>
-          <div className={styles.headerCenter}>
-            <h1 className={styles.title}>Gestion des utilisateurs</h1>
+    <Layout>
+      <div className={styles.pageBg}>
+        <div style={{ marginBottom: '1.5rem' }} />
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.headerCenter}>
+              <h1 className={styles.title}>Gestion des utilisateurs</h1>
+            </div>
+            <button
+              className={styles.actionBtn}
+              onClick={() => { setEditingUser(null); setModalOpen(true); }}
+              type="button"
+            >
+              + Créer un utilisateur
+            </button>
           </div>
-          <button
-            className={styles.actionBtn}
-            onClick={() => { setEditingUser(null); setModalOpen(true); }}
-            type="button"
-          >
-            + Créer un utilisateur
-          </button>
-        </div>
 
         {/* Table */}
         <div className={styles.tableWrapper}>
@@ -193,7 +181,8 @@ const Users = () => {
         loading={deleteLoading}
         error={deleteError}
       />
-    </div>
+      </div>
+    </Layout>
   );
 };
 
