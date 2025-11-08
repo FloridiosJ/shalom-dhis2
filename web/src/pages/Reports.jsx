@@ -157,10 +157,6 @@ const Reports = () => {
     <Layout title="Rapports & Analytics">
       <div className={styles.pageBg}>
         <div className={styles.container}>
-          {/* Page Header - Centered */}
-          <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Rapports & Analytique</h1>
-          </div>
 
         {/* Filtres - Compact Card */}
         <div className={styles.filtersCard}>
