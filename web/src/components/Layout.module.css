@@ -22,7 +22,7 @@
 /* Page Content */
 .pageContent {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /* Responsive adjustments */
