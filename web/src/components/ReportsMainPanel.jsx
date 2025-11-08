@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ChartCard from './ChartCard';
+import Tooltip from './Tooltip';
 import styles from './ReportsMainPanel.module.css';
 
 const ReportsMainPanel = ({ 
@@ -7,7 +8,6 @@ const ReportsMainPanel = ({
   evolutionData,
   topDiagnostics,
   topMedications,
-  period,
   onExport,
   selectedDispensaire,
   evolutionLoading,
@@ -72,17 +72,25 @@ const ReportsMainPanel = ({
       ) : evolutionData && evolutionData.length > 0 ? (
         <div className={styles.barChart}>
           {evolutionData.map((item, index) => (
-            <div key={index} className={styles.barItem}>
-              <div 
-                className={styles.bar}
-                style={{
-                  height: `${(item.count / Math.max(...evolutionData.map(e => e.count))) * 100}%`
-                }}
-              >
-                <span className={styles.barValue}>{item.count}</span>
+            <Tooltip 
+              key={index} 
+              text={`${item.period}: ${item.count} consultation${item.count > 1 ? 's' : ''}`}
+              position="top"
+            >
+              <div className={styles.barItem}>
+                <div 
+                  className={styles.bar}
+                  style={{
+                    height: `${(item.count / Math.max(...evolutionData.map(e => e.count))) * 100}%`
+                  }}
+                  role="presentation"
+                  aria-label={`${item.period}: ${item.count} consultations`}
+                >
+                  <span className={styles.barValue}>{item.count}</span>
+                </div>
+                <div className={styles.barLabel}>{item.period}</div>
               </div>
-              <div className={styles.barLabel}>{item.period}</div>
-            </div>
+            </Tooltip>
           ))}
         </div>
       ) : (

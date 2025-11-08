@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { useAuth } from '../hooks/useAuth';
 import Layout from '../components/Layout';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
+import { StatCardSkeleton } from "../components/Skeleton";
 import ReportsSidebar from "../components/ReportsSidebar";
 import ReportsMainPanel from "../components/ReportsMainPanel";
+import Tooltip from "../components/Tooltip";
 import reportService from "../services/reports";
 import {
   useDispensaires,
@@ -17,7 +18,6 @@ import {
 } from "../hooks/useReports";
 
 const Reports = () => {
-  const { user } = useAuth();
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
   const [dateRange, setDateRange] = useState({
@@ -137,7 +137,28 @@ const Reports = () => {
       <Layout title="Rapports & Analytics">
         <div className={styles.pageBg}>
           <div className={styles.container}>
-            <div className={styles.loading}>Chargement des rapports...</div>
+            {/* Skeleton for filters */}
+            <div className={styles.filters}>
+              <div className={styles.filterGroup}>
+                <div className={styles.skeletonFilter} />
+              </div>
+              <div className={styles.filterGroup}>
+                <div className={styles.skeletonFilter} />
+              </div>
+              <div className={styles.filterGroup}>
+                <div className={styles.skeletonFilter} />
+              </div>
+              <div className={styles.filterGroup}>
+                <div className={styles.skeletonFilter} />
+              </div>
+            </div>
+            
+            {/* Skeleton for stats */}
+            <div className={styles.statsGrid}>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </div>
           </div>
         </div>
       </Layout>
@@ -191,78 +212,98 @@ const Reports = () => {
 
         {/* Filtres */}
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <label className={styles.label}>Dispensaire</label>
-            <select 
-              className={styles.select}
-              value={selectedDispensaire}
-              onChange={(e) => setSelectedDispensaire(e.target.value)}
-            >
-              <option value="all">Tous les dispensaires</option>
-              {dispensaires.map(d => (
-                <option key={d.id} value={d.id}> {d.name}</option>
-              ))}
-            </select>
+          <div className={styles.filterRow}>
+            <div className={styles.filterGroup}>
+              <label className={styles.label}>
+                Dispensaire
+                <Tooltip text="Sélectionnez un dispensaire spécifique ou tous les dispensaires">
+                  <span className={styles.infoIcon}>ℹ️</span>
+                </Tooltip>
+              </label>
+              <select 
+                className={styles.select}
+                value={selectedDispensaire}
+                onChange={(e) => setSelectedDispensaire(e.target.value)}
+                aria-label="Sélectionner un dispensaire"
+              >
+                <option value="all">Tous les dispensaires</option>
+                {dispensaires.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.label}>
+                Période
+                <Tooltip text="Choisissez la granularité des données (jour, semaine, mois, année)">
+                  <span className={styles.infoIcon}>ℹ️</span>
+                </Tooltip>
+              </label>
+              <select 
+                className={styles.select}
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                aria-label="Sélectionner une période"
+              >
+                <option value="day">📅 Jour</option>
+                <option value="week">📆 Semaine</option>
+                <option value="month">📊 Mois</option>
+                <option value="year">📈 Année</option>
+              </select>
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.label}>Date début</label>
+              <input
+                type="date"
+                className={styles.input}
+                value={dateRange.startDate}
+                onChange={(e) => setDateRange({...dateRange, startDate: e.target.value})}
+                aria-label="Sélectionner la date de début"
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.label}>Date fin</label>
+              <input
+                type="date"
+                className={styles.input}
+                value={dateRange.endDate}
+                onChange={(e) => setDateRange({...dateRange, endDate: e.target.value})}
+                aria-label="Sélectionner la date de fin"
+              />
+            </div>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.label}>Période</label>
-            <select 
-              className={styles.select}
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-            >
-              <option value="day">📅 Jour</option>
-              <option value="week">📆 Semaine</option>
-              <option value="month">📊 Mois</option>
-              <option value="year">📈 Année</option>
-            </select>
-          </div>
-
-          <div className={styles.filterGroup}>
-            <label className={styles.label}>Date début</label>
-            <input
-              type="date"
-              className={styles.input}
-              value={dateRange.startDate}
-              onChange={(e) => setDateRange({...dateRange, startDate: e.target.value})}
-            />
-          </div>
-
-          <div className={styles.filterGroup}>
-            <label className={styles.label}>Date fin</label>
-            <input
-              type="date"
-              className={styles.input}
-              value={dateRange.endDate}
-              onChange={(e) => setDateRange({...dateRange, endDate: e.target.value})}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button 
-              className={styles.exportBtn} 
-              onClick={() => handleExport('csv')}
-              disabled={exportLoading}
-              style={{ opacity: exportLoading ? 0.6 : 1 }}
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              {exportLoading ? 'Export en cours...' : 'Exporter CSV'}
-            </button>
+          <div className={styles.exportGroup}>
+            <Tooltip text="Exporter les données au format CSV">
+              <button 
+                className={styles.exportBtn} 
+                onClick={() => handleExport('csv')}
+                disabled={exportLoading}
+                aria-label="Exporter en CSV"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {exportLoading ? 'Export...' : 'CSV'}
+              </button>
+            </Tooltip>
             
-            <button 
-              className={styles.exportBtn} 
-              onClick={() => handleExport('pdf')}
-              disabled={exportLoading}
-              style={{ opacity: exportLoading ? 0.6 : 1 }}
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              {exportLoading ? 'Export en cours...' : 'Exporter PDF'}
-            </button>
+            <Tooltip text="Exporter les données au format PDF">
+              <button 
+                className={styles.exportBtn} 
+                onClick={() => handleExport('pdf')}
+                disabled={exportLoading}
+                aria-label="Exporter en PDF"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {exportLoading ? 'Export...' : 'PDF'}
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -275,6 +316,9 @@ const Reports = () => {
             color="blue"
             trend={{ value: 12, isPositive: true }}
             subtitle={selectedDispensaire !== 'all' ? 'De ce dispensaire' : 'Tous dispensaires'}
+            tooltip={selectedDispensaire !== 'all' 
+              ? 'Nombre total de patients enregistrés dans ce dispensaire' 
+              : 'Nombre total de patients enregistrés dans tous les dispensaires'}
           />
           <StatCard
             title="Consultations"
@@ -283,6 +327,7 @@ const Reports = () => {
             color="green"
             trend={{ value: 8, isPositive: true }}
             subtitle={`Période sélectionnée`}
+            tooltip="Nombre total de consultations effectuées durant la période sélectionnée"
           />
           <StatCard
             title="Dispensaires"
@@ -290,14 +335,10 @@ const Reports = () => {
             icon="🏢"
             color="purple"
             subtitle={selectedDispensaire !== 'all' ? 'Sélectionné' : 'Actifs'}
+            tooltip={selectedDispensaire !== 'all' 
+              ? 'Dispensaire actuellement sélectionné' 
+              : 'Nombre total de dispensaires actifs dans le système'}
           />
-          {/* <StatCard
-            title="Moyenne/jour"
-            value={periodStats ? (periodStats.total / (periodStats.consultationsByDay?.length || 1)).toFixed(1) : 0}
-            icon="📊"
-            color="orange"
-            subtitle="Sur la période"
-          /> */}
         </div>
 
         {/* Consultations par type (pour dispensaire sélectionné) */}

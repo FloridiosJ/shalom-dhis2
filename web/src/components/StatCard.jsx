@@ -1,11 +1,12 @@
 import React from 'react';
 import styles from './StatCard.module.css';
+import Tooltip from './Tooltip';
 
 /**
  * Carte de statistique
  */
-const StatCard = ({ title, value, icon, color = 'blue', trend, subtitle }) => {
-  return (
+const StatCard = ({ title, value, icon, color = 'blue', trend, subtitle, tooltip }) => {
+  const cardContent = (
     <div className={`${styles.card} ${styles[color]}`}>
       <div className={styles.header}>
         <div className={styles.iconContainer}>
@@ -25,6 +26,16 @@ const StatCard = ({ title, value, icon, color = 'blue', trend, subtitle }) => {
       </div>
     </div>
   );
+
+  if (tooltip) {
+    return (
+      <Tooltip text={tooltip} position="top">
+        {cardContent}
+      </Tooltip>
+    );
+  }
+
+  return cardContent;
 };
 
 export default StatCard;
