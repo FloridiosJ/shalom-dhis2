@@ -1,7 +1,6 @@
 .pageBg {
   height: 100vh;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
-  padding: 1.5rem 0;
   overflow: hidden;
 }
 
