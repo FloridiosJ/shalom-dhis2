@@ -1,14 +1,20 @@
 .accordion {
   background: white;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-slow);
+  border: 2px solid transparent;
+}
+
+.accordion:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .accordion.active {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-  border: 2px solid #3b82f6;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 .header {
@@ -16,70 +22,84 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: linear-gradient(135deg, var(--color-slate-50) 0%, var(--color-slate-100) 100%);
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   font-family: inherit;
+  min-height: var(--touch-target-min);
 }
 
 .header:hover {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--color-slate-100) 0%, var(--color-slate-200) 100%);
 }
 
 .header:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-primary);
   outline-offset: -2px;
 }
 
 .headerContent {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--spacing-md);
   flex: 1;
 }
 
 .icon {
-  font-size: 1.5rem;
+  font-size: var(--font-size-3xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
+  transition: transform var(--transition-base);
+}
+
+.accordion.active .icon {
+  transform: scale(1.1);
 }
 
 .title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-slate-800);
   text-align: left;
+  line-height: var(--line-height-tight);
 }
 
 .badge {
   margin-left: auto;
-  padding: 0.25rem 0.625rem;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: white;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 700;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base);
+}
+
+.accordion.active .badge {
+  transform: scale(1.1);
 }
 
 .chevron {
   flex-shrink: 0;
-  transition: transform 0.3s ease;
-  color: #64748b;
+  transition: transform var(--transition-slow);
+  color: var(--color-slate-500);
 }
 
 .chevron.expanded {
   transform: rotate(180deg);
+  color: var(--color-primary);
 }
 
 .content {
-  padding: 1rem 1.25rem;
-  border-top: 1px solid #e2e8f0;
-  animation: slideDown 0.2s ease;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-top: 2px solid var(--color-slate-100);
+  animation: slideDown var(--transition-base) ease;
 }
 
 @keyframes slideDown {
@@ -94,13 +114,14 @@
 }
 
 .summary {
-  padding: 0.75rem;
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  color: #475569;
-  line-height: 1.5;
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-slate-50), white);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-slate-600);
+  line-height: var(--line-height-relaxed);
+  border: 1px solid var(--color-slate-200);
 }
 
 .viewButton {
@@ -108,27 +129,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: white;
   border: none;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 0.75rem;
+  transition: all var(--transition-base);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  min-height: var(--touch-target-min);
 }
 
 .viewButton:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-darker));
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .viewButton:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 

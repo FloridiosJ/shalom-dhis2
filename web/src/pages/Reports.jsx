@@ -2,11 +2,8 @@ import React, { useState } from "react";
 import Layout from '../components/Layout';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
+import ChartCard from "../components/ChartCard";
 import { StatCardSkeleton } from "../components/Skeleton";
-import ReportsSidebar from "../components/ReportsSidebar";
-import ReportsMainPanel from "../components/ReportsMainPanel";
-import Tooltip from "../components/Tooltip";
-import ActiveFilters from "../components/ActiveFilters";
 import { useToast } from "../components/Toast";
 import reportService from "../services/reports";
 import {
@@ -28,8 +25,6 @@ const Reports = () => {
     endDate: new Date().toISOString().split('T')[0]
   });
   const [exportLoading, setExportLoading] = useState(false);
-  const [activeWidget, setActiveWidget] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Fetch data using react-query hooks
   const { data: dispensaires = [], isLoading: dispensairesLoading } = useDispensaires();
@@ -109,28 +104,6 @@ const Reports = () => {
     }
   };
 
-  const handleRemoveFilter = (filterKey) => {
-    if (filterKey === 'dispensaire') {
-      setSelectedDispensaire('all');
-    } else if (filterKey === 'period') {
-      setPeriod('month');
-    } else if (filterKey === 'dateRange') {
-      setDateRange({
-        startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-        endDate: new Date().toISOString().split('T')[0]
-      });
-    }
-  };
-
-  const handleClearAllFilters = () => {
-    setSelectedDispensaire('all');
-    setPeriod('month');
-    setDateRange({
-      startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0]
-    });
-  };
-
   // Déterminer quelles stats afficher
   const displayStats = selectedDispensaire !== 'all'
     ? {
@@ -183,45 +156,20 @@ const Reports = () => {
   return (
     <Layout title="Rapports & Analytics">
       <div className={styles.pageBg}>
-        <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.container}>
-          {/* En-tête */}
-          <div className={styles.header}>
-            {selectedDispensaire !== 'all' && dispensaireStats && (
-              <p className={styles.subtitle}>
-                {dispensaireStats.dispensaire.name} - {dispensaireStats.dispensaire.code}
-              </p>
-            )}
-            <button
-              className={`${styles.sidebarToggle} ${styles.mobileOnly}`}
-              type="button"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              aria-label={isSidebarOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale"}
-              aria-expanded={isSidebarOpen}
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
 
-        {/* Filtres */}
-        <div className={styles.filters}>
-          <div className={styles.filterRow}>
+        {/* Filtres - Compact Card */}
+        <div className={styles.filtersCard}>
+          <div className={styles.filtersRow}>
             <div className={styles.filterGroup}>
-              <label className={styles.label}>
-                Dispensaire
-                <Tooltip text="Sélectionnez un dispensaire spécifique ou tous les dispensaires">
-                  <span className={styles.infoIcon}>ℹ️</span>
-                </Tooltip>
-              </label>
+              <label className={styles.label}>Dispensaire:</label>
               <select 
                 className={styles.select}
                 value={selectedDispensaire}
                 onChange={(e) => setSelectedDispensaire(e.target.value)}
                 aria-label="Sélectionner un dispensaire"
               >
-                <option value="all">Tous les dispensaires</option>
+                <option value="all">Tous</option>
                 {dispensaires.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
@@ -229,27 +177,22 @@ const Reports = () => {
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.label}>
-                Période
-                <Tooltip text="Choisissez la granularité des données (jour, semaine, mois, année)">
-                  <span className={styles.infoIcon}>ℹ️</span>
-                </Tooltip>
-              </label>
+              <label className={styles.label}>Période:</label>
               <select 
                 className={styles.select}
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
                 aria-label="Sélectionner une période"
               >
-                <option value="day">📅 Jour</option>
-                <option value="week">📆 Semaine</option>
-                <option value="month">📊 Mois</option>
-                <option value="year">📈 Année</option>
+                <option value="day">Jour</option>
+                <option value="week">Semaine</option>
+                <option value="month">Ce mois-ci</option>
+                <option value="year">Année</option>
               </select>
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.label}>Date début</label>
+              <label className={styles.label}>Date début:</label>
               <input
                 type="date"
                 className={styles.input}
@@ -260,7 +203,7 @@ const Reports = () => {
             </div>
 
             <div className={styles.filterGroup}>
-              <label className={styles.label}>Date fin</label>
+              <label className={styles.label}>Date fin:</label>
               <input
                 type="date"
                 className={styles.input}
@@ -269,139 +212,91 @@ const Reports = () => {
                 aria-label="Sélectionner la date de fin"
               />
             </div>
-          </div>
 
-          <div className={styles.exportGroup}>
-            <Tooltip text="Exporter les données au format CSV">
-              <button 
-                className={styles.exportBtn} 
-                onClick={() => handleExport('csv')}
-                disabled={exportLoading}
-                aria-label="Exporter en CSV"
-              >
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                {exportLoading ? 'Export...' : 'CSV'}
-              </button>
-            </Tooltip>
-            
-            <Tooltip text="Exporter les données au format PDF">
+            <div className={styles.exportButtons}>
               <button 
                 className={styles.exportBtn} 
                 onClick={() => handleExport('pdf')}
                 disabled={exportLoading}
                 aria-label="Exporter en PDF"
               >
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                {exportLoading ? 'Export...' : 'PDF'}
+                Export PDF
               </button>
-            </Tooltip>
+            </div>
           </div>
         </div>
 
-        {/* Active Filters */}
-        <ActiveFilters
-          filters={{
-            dispensaire: selectedDispensaire,
-            dispensaireLabel: dispensaires.find(d => d.id === selectedDispensaire)?.name,
-            period: period,
-            dateRange: dateRange,
-          }}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAll={handleClearAllFilters}
-        />
-
-        {/* Statistiques globales ou du dispensaire */}
+        {/* KPI Cards */}
         <div className={styles.statsGrid}>
           <StatCard
             title="Total Patients"
             value={displayStats?.totalPatients || 0}
             icon="👥"
             color="blue"
-            trend={{ value: 12, isPositive: true }}
-            subtitle={selectedDispensaire !== 'all' ? 'De ce dispensaire' : 'Tous dispensaires'}
-            tooltip={selectedDispensaire !== 'all' 
-              ? 'Nombre total de patients enregistrés dans ce dispensaire' 
-              : 'Nombre total de patients enregistrés dans tous les dispensaires'}
+            trend={{ value: +5.2, isPositive: true }}
           />
           <StatCard
-            title="Consultations"
+            title="Total Consultations"
             value={displayStats?.totalConsultations || 0}
             icon="🏥"
             color="green"
-            trend={{ value: 8, isPositive: true }}
-            subtitle={`Période sélectionnée`}
-            tooltip="Nombre total de consultations effectuées durant la période sélectionnée"
+            trend={{ value: +8.1, isPositive: true }}
           />
           <StatCard
-            title="Dispensaires"
+            title="Dispensaires Actifs"
             value={displayStats?.totalDispensaires || 0}
             icon="🏢"
             color="purple"
-            subtitle={selectedDispensaire !== 'all' ? 'Sélectionné' : 'Actifs'}
-            tooltip={selectedDispensaire !== 'all' 
-              ? 'Dispensaire actuellement sélectionné' 
-              : 'Nombre total de dispensaires actifs dans le système'}
+            trend={{ value: -1.5, isPositive: false }}
           />
         </div>
 
-        {/* Consultations par type (pour dispensaire sélectionné) */}
-        {selectedDispensaire !== 'all' && dispensaireStats?.consultationsByType && (
-          <div className={styles.chartsGrid}>
-            <ChartCard title="Répartition par type de consultation">
-              <div className={styles.typesList}>
-                {dispensaireStats.consultationsByType.map((item, index) => (
-                  <div key={index} className={styles.typeItem}>
-                    <div className={styles.typeInfo}>
-                      <div className={styles.typeName}>{item.type}</div>
-                      <div className={styles.typeBar}>
-                        <div 
-                          className={styles.typeProgress}
-                          style={{ width: `${item.pourcentage}%` }}
-                        />
-                      </div>
+        {/* Charts Grid */}
+        <div className={styles.chartsGrid}>
+          {/* Top 5 Diagnostics */}
+          <ChartCard title="Top 5 Diagnostics">
+            {diagnosticsLoading ? (
+              <div className={styles.loading}>Chargement...</div>
+            ) : topDiagnostics && topDiagnostics.length > 0 ? (
+              <div className={styles.diagnosticsList}>
+                {topDiagnostics.map((item, index) => (
+                  <div key={index} className={styles.diagnosticItem}>
+                    <div className={styles.diagnosticName}>{item.diagnostic}</div>
+                    <div className={styles.diagnosticBar}>
+                      <div 
+                        className={styles.diagnosticProgress}
+                        style={{ width: `${item.percentage}%` }}
+                      />
                     </div>
-                    <div className={styles.typeStats}>
-                      <span className={styles.typeCount}>{item.count}</span>
-                      <span className={styles.typePercent}>{item.pourcentage}%</span>
-                    </div>
+                    <div className={styles.diagnosticCount}>{item.count}</div>
                   </div>
                 ))}
               </div>
-            </ChartCard>
-          </div>
-        )}
+            ) : (
+              <div className={styles.noData}>Aucun diagnostic disponible</div>
+            )}
+          </ChartCard>
 
-        {/* Sidebar and Main Panel Layout */}
-        <div className={`${styles.reportsLayout} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
-          <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? styles.open : ''}`}>
-            <ReportsSidebar
-              activeWidget={activeWidget}
-              onWidgetSelect={setActiveWidget}
-              evolutionData={evolution}
-              topDiagnostics={topDiagnostics}
-              topMedications={topMedications}
-              evolutionLoading={evolutionLoading}
-              diagnosticsLoading={diagnosticsLoading}
-              medicationsLoading={medicationsLoading}
-            />
-          </div>
-          
-          <ReportsMainPanel
-            activeWidget={activeWidget}
-            evolutionData={evolution}
-            topDiagnostics={topDiagnostics}
-            topMedications={topMedications}
-            period={period}
-            selectedDispensaire={selectedDispensaire}
-            evolutionLoading={evolutionLoading}
-            diagnosticsLoading={diagnosticsLoading}
-            medicationsLoading={medicationsLoading}
-            onExport={handleExport}
-          />
+          {/* Top 5 Médicaments */}
+          <ChartCard title="Top 5 Médicaments">
+            {medicationsLoading ? (
+              <div className={styles.loading}>Chargement...</div>
+            ) : topMedications && topMedications.length > 0 ? (
+              <div className={styles.medicationsList}>
+                {topMedications.slice(0, 5).map((item, index) => (
+                  <div key={index} className={styles.medicationItem}>
+                    <div className={styles.medicationName}>{item.medicament}</div>
+                    <div className={styles.medicationCount}>{item.count} Unités</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.noData}>Aucun médicament disponible</div>
+            )}
+          </ChartCard>
         </div>
         </div>
       </div>
