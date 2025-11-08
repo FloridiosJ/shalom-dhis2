@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppHeader from '../components/AppHeader';
 import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
 import CreateDispensaireModal from '../components/CreateDispensaireModal';
@@ -61,6 +62,8 @@ const Dispensaires = () => {
 
   return (
     <div className={styles.pageBg}>
+      <AppHeader />
+      <div style={{ marginBottom: '1.5rem' }} />
       <div className={styles.card}>
         <div className={styles.header}>
           <button

@@ -1,7 +1,6 @@
 .pageBg {
   min-height: 100vh;
   background: linear-gradient(135deg, #e0f2fe 0%, #e8eaf6 50%, #f3e5f5 100%);
-  padding: 2rem 1rem;
 }
 
 .container {
@@ -570,9 +569,6 @@
 }
 
 @media (max-width: 768px) {
-  .pageBg {
-    padding: 1rem 0.5rem;
-  }
 
   .header {
     flex-wrap: wrap;
