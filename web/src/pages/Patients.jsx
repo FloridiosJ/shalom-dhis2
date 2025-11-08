@@ -8,7 +8,6 @@ import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import Avatar from '../components/Avatar';
 import Tooltip from '../components/Tooltip';
 import TableSkeleton from '../components/TableSkeleton';
-import FilterChips from '../components/FilterChips';
 import FloatingActionButton from '../components/FloatingActionButton';
 import { useToast } from '../components/Toast';
 import { useDebounce } from '../hooks/useDebounce';
@@ -29,9 +28,6 @@ const Patients = () => {
   const [sortField, setSortField] = useState('nom');
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
-  const [selectedDispensaire, setSelectedDispensaire] = useState('all');
-  const [selectedStatut, setSelectedStatut] = useState('all');
-  const [selectedSexe, setSelectedSexe] = useState('all');
   const { showToast } = useToast();
   const searchInputRef = React.useRef(null);
   
@@ -85,9 +81,9 @@ const Patients = () => {
   }, []);
 
   useEffect(() => {
-    // Reset to first page when search term or filters change
+    // Reset to first page when search term changes
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedDispensaire, selectedStatut, selectedSexe]);
+  }, [debouncedSearchTerm]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -117,23 +113,15 @@ const Patients = () => {
     }
   };
 
-  // Filtrage local avec debounced search et filtres
+  // Filtrage local avec debounced search
   const filteredPatients = patients.filter((p) => {
     const term = debouncedSearchTerm.toLowerCase();
-    const matchesSearch = (
+    return (
       p.nom?.toLowerCase().includes(term) ||
       p.prenom?.toLowerCase().includes(term) ||
       p.village?.toLowerCase().includes(term) ||
       p.numeroPatient?.toLowerCase().includes(term)
     );
-
-    const matchesDispensaire = selectedDispensaire === 'all' || p.dispensaire?.id === selectedDispensaire;
-    const matchesStatut = selectedStatut === 'all' || 
-      (selectedStatut === 'actif' && p.isActive) || 
-      (selectedStatut === 'inactif' && !p.isActive);
-    const matchesSexe = selectedSexe === 'all' || p.sexe === selectedSexe;
-
-    return matchesSearch && matchesDispensaire && matchesStatut && matchesSexe;
   });
 
   // Apply sorting with useMemo for performance
@@ -177,12 +165,6 @@ const Patients = () => {
     if (currentPage < totalPages && totalPages > 0) {
       setCurrentPage(currentPage + 1);
     }
-  };
-
-  const handleClearFilters = () => {
-    setSelectedDispensaire('all');
-    setSelectedStatut('all');
-    setSelectedSexe('all');
   };
 
   // Generate page numbers to display
@@ -262,16 +244,6 @@ const Patients = () => {
           </div>
         </div>
         
-        <FilterChips
-          dispensaires={dispensaires}
-          selectedDispensaire={selectedDispensaire}
-          onDispensaireChange={setSelectedDispensaire}
-          selectedStatut={selectedStatut}
-          onStatutChange={setSelectedStatut}
-          selectedSexe={selectedSexe}
-          onSexeChange={setSelectedSexe}
-          onClearAll={handleClearFilters}
-        />
         <div className={styles.tableWrapper}>
           {loading ? (
             <TableSkeleton rows={5} columns={8} />
