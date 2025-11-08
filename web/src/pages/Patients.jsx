@@ -5,7 +5,6 @@ import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
 import CreatePatientModal from '../components/CreatePatientModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
-import Avatar from '../components/Avatar';
 import Tooltip from '../components/Tooltip';
 import TableSkeleton from '../components/TableSkeleton';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -204,14 +203,28 @@ const Patients = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Patients">
       <div className={styles.pageBg}>
         <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.headerCenter}>
-              <h1 className={styles.title}>Patients</h1>
-              <div className={styles.subtitle}>Gérer les patients, informations personnelles et dossiers de santé</div>
+            <div className={styles.headerLeft}>
+              <div className={styles.searchWrapper}>
+                <span className={styles.searchIcon}>
+                  <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                <input
+                  ref={searchInputRef}
+                  className={styles.searchInput}
+                  type="text"
+                  placeholder="Rechercher un patient... (appuyez sur '/' pour rechercher)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  aria-label="Rechercher un patient"
+                />
+              </div>
             </div>
             <button
               className={styles.actionBtn}
@@ -224,25 +237,6 @@ const Patients = () => {
               Ajouter un patient
             </button>
           </div>
-
-        <div className={styles.tableTopBar}>
-          <div className={styles.searchWrapper}>
-            <span className={styles.searchIcon}>
-              <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              ref={searchInputRef}
-              className={styles.searchInput}
-              type="text"
-              placeholder="Rechercher un patient... (appuyez sur '/' pour rechercher)"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Rechercher un patient"
-            />
-          </div>
-        </div>
         
         <div className={styles.tableWrapper}>
           {loading ? (
@@ -299,12 +293,9 @@ const Patients = () => {
                   currentPatients.map((patient) => (
                     <tr key={patient.id} className={styles.tr}>
                       <td className={styles.td} data-label="Nom">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <Avatar firstName={patient.prenom} lastName={patient.nom} size="small" />
-                          <Tooltip text={patient.nom} position="top">
-                            <span className={styles.truncatedText}>{patient.nom}</span>
-                          </Tooltip>
-                        </div>
+                        <Tooltip text={patient.nom} position="top">
+                          <span className={styles.truncatedText}>{patient.nom}</span>
+                        </Tooltip>
                       </td>
                       <td className={styles.td} data-label="Prénom">
                         <Tooltip text={patient.prenom} position="top">
