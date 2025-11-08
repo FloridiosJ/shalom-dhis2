@@ -14,6 +14,11 @@
   transition: margin-left 0.3s ease;
 }
 
+/* Collapsed state - narrower margin */
+.mainContent.collapsed {
+  margin-left: 80px;
+}
+
 /* Page Content */
 .pageContent {
   flex: 1;
@@ -25,10 +30,18 @@
   .mainContent {
     margin-left: 0; /* No margin on mobile, sidebar is overlay */
   }
+
+  .mainContent.collapsed {
+    margin-left: 0; /* Keep no margin on mobile even when collapsed */
+  }
 }
 
 @media (max-width: 1024px) and (min-width: 769px) {
   .mainContent {
     margin-left: 220px; /* Adjusted for smaller sidebar on tablet */
+  }
+
+  .mainContent.collapsed {
+    margin-left: 80px; /* Collapsed sidebar on tablet */
   }
 }

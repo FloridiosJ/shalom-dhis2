@@ -11,7 +11,43 @@
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  transition: transform 0.3s ease;
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+/* Collapsed state */
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* Collapse/Expand Toggle Button */
+.collapseToggle {
+  position: absolute;
+  right: -12px;
+  top: 24px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #64748b;
+}
+
+.collapseToggle:hover {
+  background: #f8fafc;
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.collapseToggle:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 /* User Profile Section */
@@ -22,6 +58,12 @@
   padding: 24px 20px;
   border-bottom: 1px solid #e2e8f0;
   background: white;
+  transition: padding 0.3s ease;
+}
+
+.sidebar.collapsed .userProfile {
+  padding: 24px 16px;
+  justify-content: center;
 }
 
 .avatar {
@@ -36,11 +78,20 @@
   font-weight: 600;
   font-size: 18px;
   flex-shrink: 0;
+  transition: width 0.3s ease, height 0.3s ease, font-size 0.3s ease;
+}
+
+.sidebar.collapsed .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
 }
 
 .userInfo {
   flex: 1;
   min-width: 0;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
 .userName {
@@ -95,6 +146,12 @@
   position: relative;
 }
 
+.sidebar.collapsed .navItem {
+  padding: 12px 0;
+  justify-content: center;
+  gap: 0;
+}
+
 .navItem:hover {
   background: #f1f5f9;
   color: #1e293b;
@@ -134,6 +191,8 @@
 
 .navLabel {
   flex: 1;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
 /* Bottom Section */
@@ -194,10 +253,15 @@
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    width: 260px; /* Force full width on mobile even when collapsed */
   }
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .sidebar.collapsed {
+    width: 260px; /* Keep full width on mobile when open */
   }
 
   .mobileToggle {
@@ -208,6 +272,11 @@
 
   .overlay {
     display: block;
+  }
+
+  /* Hide collapse button on mobile */
+  .collapseToggle {
+    display: none;
   }
 }
 

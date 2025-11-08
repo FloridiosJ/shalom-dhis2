@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSidebarContext } from './Layout';
 import styles from './Sidebar.module.css';
 
 // SVG Icons as components
@@ -71,11 +72,29 @@ const CloseIcon = () => (
   </svg>
 );
 
+const ChevronLeftIcon = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+);
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
+  const { isCollapsed, setIsCollapsed } = useSidebarContext();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Sync local collapsed state with context
+  useEffect(() => {
+    // This ensures the Layout knows about the collapsed state
+  }, [isCollapsed]);
 
   // Define navigation items with role-based access
   const navigationItems = [
@@ -136,19 +155,31 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside 
-        className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}
+        className={`${styles.sidebar} ${isOpen ? styles.open : ''} ${isCollapsed ? styles.collapsed : ''}`}
         role="navigation"
         aria-label="Navigation principale"
       >
+        {/* Collapse/Expand Toggle Button */}
+        <button
+          className={styles.collapseToggle}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? 'Étendre le menu' : 'Réduire le menu'}
+          title={isCollapsed ? 'Étendre le menu' : 'Réduire le menu'}
+        >
+          {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </button>
+
         {/* User Profile Section */}
         <div className={styles.userProfile}>
           <div className={styles.avatar}>
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
-          <div className={styles.userInfo}>
-            <div className={styles.userName}>Dr. Shalom</div>
-            <div className={styles.userRole}>{user?.role || 'Administrateur'}</div>
-          </div>
+          {!isCollapsed && (
+            <div className={styles.userInfo}>
+              <div className={styles.userName}>Dr. Shalom</div>
+              <div className={styles.userRole}>{user?.role || 'Administrateur'}</div>
+            </div>
+          )}
         </div>
 
         {/* Navigation Items */}
@@ -160,9 +191,10 @@ const Sidebar = () => {
                   onClick={() => handleNavigation(item.path)}
                   className={`${styles.navItem} ${isActive(item.path) ? styles.active : ''}`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
+                  title={isCollapsed ? item.label : ''}
                 >
                   <span className={styles.navIcon}>{item.icon}</span>
-                  <span className={styles.navLabel}>{item.label}</span>
+                  {!isCollapsed && <span className={styles.navLabel}>{item.label}</span>}
                 </button>
               </li>
             ))}
@@ -178,9 +210,10 @@ const Sidebar = () => {
                   onClick={() => handleNavigation(item.path)}
                   className={`${styles.navItem} ${isActive(item.path) ? styles.active : ''}`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
+                  title={isCollapsed ? item.label : ''}
                 >
                   <span className={styles.navIcon}>{item.icon}</span>
-                  <span className={styles.navLabel}>{item.label}</span>
+                  {!isCollapsed && <span className={styles.navLabel}>{item.label}</span>}
                 </button>
               </li>
             ))}
@@ -188,9 +221,10 @@ const Sidebar = () => {
               <button
                 onClick={handleLogout}
                 className={`${styles.navItem} ${styles.logoutItem}`}
+                title={isCollapsed ? 'Déconnexion' : ''}
               >
                 <span className={styles.navIcon}><LogoutIcon /></span>
-                <span className={styles.navLabel}>Déconnexion</span>
+                {!isCollapsed && <span className={styles.navLabel}>Déconnexion</span>}
               </button>
             </li>
           </ul>
