@@ -60,7 +60,7 @@ const Patients = () => {
     try {
       const list = await patientService.getAll();
       setPatients(list);
-    } catch (error) {
+    } catch {
       setPatients([]);
       showToast('Erreur lors du chargement des patients', 'error');
     } finally {
@@ -81,6 +81,7 @@ const Patients = () => {
   useEffect(() => {
     fetchPatients();
     fetchDispensaires();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
