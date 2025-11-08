@@ -134,7 +134,7 @@ const Reports = () => {
   // Show loading state on initial load
   if (loading && !globalStats && !dispensaireStats) {
     return (
-      <Layout>
+      <Layout title="Rapports & Analytics">
         <div className={styles.pageBg}>
           <div className={styles.container}>
             <div className={styles.loading}>Chargement des rapports...</div>
@@ -145,32 +145,29 @@ const Reports = () => {
   }
 
   return (
-    <Layout>
+    <Layout title="Rapports & Analytics">
       <div className={styles.pageBg}>
         <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.container}>
           {/* En-tête */}
           <div className={styles.header}>
-            <div className={styles.titleContainer}>
-              <h1 className={styles.title}>📊 Rapports & Analytics</h1>
             {selectedDispensaire !== 'all' && dispensaireStats && (
               <p className={styles.subtitle}>
                 {dispensaireStats.dispensaire.name} - {dispensaireStats.dispensaire.code}
               </p>
             )}
+            <button
+              className={`${styles.sidebarToggle} ${styles.mobileOnly}`}
+              type="button"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              aria-label={isSidebarOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale"}
+              aria-expanded={isSidebarOpen}
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
-          <button
-            className={`${styles.sidebarToggle} ${styles.mobileOnly}`}
-            type="button"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            aria-label={isSidebarOpen ? "Fermer la barre latérale" : "Ouvrir la barre latérale"}
-            aria-expanded={isSidebarOpen}
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
 
         {/* Export message */}
         {exportMessage && (

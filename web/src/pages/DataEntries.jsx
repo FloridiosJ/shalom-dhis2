@@ -149,12 +149,18 @@ const DataEntries = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Consultations">
       <div className={styles.pageBg}>
         <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.title}>Consultations</div>
+            <div className={styles.headerLeft}>
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                placeholder="Rechercher par patient, diagnostic, date..."
+              />
+            </div>
             {!isAdmin() && (
               <button className={styles.actionBtn} onClick={() => setModalOpen(true)}>
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
@@ -164,11 +170,6 @@ const DataEntries = () => {
               </button>
             )}
           </div>
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-          placeholder="Rechercher par patient, diagnostic, date..."
-        />
         {fetchError && (
           <div className={styles.errorBanner}>
             ⚠️ {fetchError}

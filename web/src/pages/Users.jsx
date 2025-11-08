@@ -75,13 +75,12 @@ const Users = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Gestion des utilisateurs">
       <div className={styles.pageBg}>
         <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.headerCenter}>
-              <h1 className={styles.title}>Gestion des utilisateurs</h1>
+            <div className={styles.headerLeft}>
             </div>
             <button
               className={styles.actionBtn}

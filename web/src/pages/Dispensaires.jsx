@@ -59,15 +59,28 @@ const Dispensaires = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Dispensaires">
       <div className={styles.pageBg}>
         <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.headerCenter}>
-              <h1 className={styles.title}>Dispensaires</h1>
-            <div className={styles.subtitle}>Gérer les dispensaires et centres de santé</div>
-          </div>
+            <div className={styles.headerLeft}>
+              <div className={styles.searchWrapper}>
+                <span className={styles.searchIcon}>
+                  <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                <input
+                  className={styles.searchInput}
+                  type="text"
+                  placeholder="Rechercher un dispensaire..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  aria-label="Rechercher un dispensaire"
+                />
+              </div>
+            </div>
           <button
             className={styles.actionBtn}
             onClick={() => setShowCreateModal(true)}
@@ -81,22 +94,6 @@ const Dispensaires = () => {
         </div>
 
         <div className={styles.tableWrapper}>
-          <div className={styles.tableTopBar}>
-            <div className={styles.searchWrapper}>
-              <span className={styles.searchIcon}>
-                <svg style={{ width: '16px', height: '16px', color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              <input
-                className={styles.searchInput}
-                type="text"
-                placeholder="Rechercher un dispensaire..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
           <table className={styles.table}>
             <thead>
               <tr>
