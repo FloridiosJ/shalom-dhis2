@@ -9,6 +9,7 @@ import Avatar from '../components/Avatar';
 import Tooltip from '../components/Tooltip';
 import TableSkeleton from '../components/TableSkeleton';
 import FilterChips from '../components/FilterChips';
+import FloatingActionButton from '../components/FloatingActionButton';
 import { useToast } from '../components/Toast';
 import { useDebounce } from '../hooks/useDebounce';
 
@@ -324,7 +325,7 @@ const Patients = () => {
                 ) : (
                   currentPatients.map((patient) => (
                     <tr key={patient.id} className={styles.tr}>
-                      <td className={styles.td}>
+                      <td className={styles.td} data-label="Nom">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <Avatar firstName={patient.prenom} lastName={patient.nom} size="small" />
                           <Tooltip text={patient.nom} position="top">
@@ -332,24 +333,24 @@ const Patients = () => {
                           </Tooltip>
                         </div>
                       </td>
-                      <td className={styles.td}>
+                      <td className={styles.td} data-label="Prénom">
                         <Tooltip text={patient.prenom} position="top">
                           <span className={styles.truncatedText}>{patient.prenom}</span>
                         </Tooltip>
                       </td>
-                      <td className={styles.td}>{patient.age}</td>
-                      <td className={styles.td}>
+                      <td className={styles.td} data-label="Âge">{patient.age}</td>
+                      <td className={styles.td} data-label="Âge légal">
                         <span className={patient.isMineur ? styles.badgeMineur : styles.badgeMajeur}>
                           {patient.isMineur ? 'Mineur' : 'Majeur'}
                         </span>
                       </td>
-                      <td className={styles.td}>{patient.sexe}</td>
-                      <td className={styles.td}>
+                      <td className={styles.td} data-label="Sexe">{patient.sexe}</td>
+                      <td className={styles.td} data-label="Dispensaire">
                         <Tooltip text={patient.dispensaire?.name || '-'} position="top">
                           <span className={styles.truncatedText}>{patient.dispensaire?.name || '-'}</span>
                         </Tooltip>
                       </td>
-                      <td className={styles.td}>
+                      <td className={styles.td} data-label="Statut">
                         <span className={patient.isActive ? styles.badgeActive : styles.badgeInactive}>
                           {patient.isActive ? 'Actif' : 'Inactif'}
                         </span>
@@ -475,6 +476,12 @@ const Patients = () => {
           error={deleteError}
         />
         </div>
+        
+        {/* Floating Action Button for mobile */}
+        <FloatingActionButton
+          onClick={() => setShowCreateModal(true)}
+          label="Ajouter un patient"
+        />
       </div>
     </Layout>
   );
