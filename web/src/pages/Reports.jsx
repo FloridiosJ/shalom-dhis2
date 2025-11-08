@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
-import AppHeader from '../components/AppHeader';
+import { useAuth } from '../hooks/useAuth';
+import Layout from '../components/Layout';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
 import ReportsSidebar from "../components/ReportsSidebar";
@@ -17,7 +17,7 @@ import {
 } from "../hooks/useReports";
 
 const Reports = () => {
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
   const [dateRange, setDateRange] = useState({
@@ -134,35 +134,25 @@ const Reports = () => {
   // Show loading state on initial load
   if (loading && !globalStats && !dispensaireStats) {
     return (
-      <div className={styles.pageBg}>
-        <AppHeader />
-        <div className={styles.container}>
-          <div className={styles.loading}>Chargement des rapports...</div>
+      <Layout>
+        <div className={styles.pageBg}>
+          <div className={styles.container}>
+            <div className={styles.loading}>Chargement des rapports...</div>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className={styles.pageBg}>
-      <AppHeader />
-      <div style={{ marginBottom: '1.5rem' }} />
-      <div className={styles.container}>
-        {/* En-tête */}
-        <div className={styles.header}>
-          <button
-            className={styles.actionBtn}
-            type="button"
-            onClick={() => navigate('/dashboard')}
-            aria-label="Retour au dashboard"
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Retour au dashboard
-          </button>
-          <div className={styles.titleContainer}>
-            <h1 className={styles.title}>📊 Rapports & Analytics</h1>
+    <Layout>
+      <div className={styles.pageBg}>
+        <div style={{ marginBottom: '1.5rem' }} />
+        <div className={styles.container}>
+          {/* En-tête */}
+          <div className={styles.header}>
+            <div className={styles.titleContainer}>
+              <h1 className={styles.title}>📊 Rapports & Analytics</h1>
             {selectedDispensaire !== 'all' && dispensaireStats && (
               <p className={styles.subtitle}>
                 {dispensaireStats.dispensaire.name} - {dispensaireStats.dispensaire.code}
@@ -368,8 +358,9 @@ const Reports = () => {
             onExport={handleExport}
           />
         </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

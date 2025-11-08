@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AppHeader from '../components/AppHeader';
+import Layout from '../components/Layout';
 import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
 import CreateDispensaireModal from '../components/CreateDispensaireModal';
@@ -18,7 +17,6 @@ const Dispensaires = () => {
   const [dispensaireToDelete, setDispensaireToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const navigate = useNavigate();
 
   // Récupère la liste des dispensaires (même logique que Users.jsx)
   const fetchDispensaires = async () => {
@@ -61,23 +59,13 @@ const Dispensaires = () => {
   };
 
   return (
-    <div className={styles.pageBg}>
-      <AppHeader />
-      <div style={{ marginBottom: '1.5rem' }} />
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <button
-            className={styles.actionBtn}
-            type="button"
-            onClick={() => navigate('/dashboard')}
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Retour au dashboard
-          </button>
-          <div className={styles.headerCenter}>
-            <h1 className={styles.title}>Dispensaires</h1>
+    <Layout>
+      <div className={styles.pageBg}>
+        <div style={{ marginBottom: '1.5rem' }} />
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.headerCenter}>
+              <h1 className={styles.title}>Dispensaires</h1>
             <div className={styles.subtitle}>Gérer les dispensaires et centres de santé</div>
           </div>
           <button
@@ -191,8 +179,9 @@ const Dispensaires = () => {
           loading={deleteLoading}
           error={deleteError}
         />
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

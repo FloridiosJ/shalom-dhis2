@@ -1,12 +1,8 @@
 import React from 'react';
-import { useAuth } from '../hooks/useAuth';
 import DiamondIcon from './DiamondIcon';
-import { LogoutIcon } from './DashboardIcons';
 import styles from './AppHeader.module.css';
 
 const AppHeader = ({ title = 'SDC Shalom' }) => {
-  const { logout } = useAuth();
-
   return (
     <div className={styles.header}>
       <div className={styles.headerContent}>
@@ -16,14 +12,6 @@ const AppHeader = ({ title = 'SDC Shalom' }) => {
             {title}
           </h1>
         </div>
-        
-        <button
-          onClick={logout}
-          className={styles.logoutButton}
-        >
-          <LogoutIcon />
-          Déconnexion
-        </button>
       </div>
     </div>
   );

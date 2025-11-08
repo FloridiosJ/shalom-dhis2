@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AppHeader from '../components/AppHeader';
+import Layout from '../components/Layout';
 import patientService from '../services/patients';
 import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
@@ -22,7 +21,6 @@ const Patients = () => {
   const [itemsPerPage] = useState(10);
   const [sortField, setSortField] = useState('nom');
   const [sortDirection, setSortDirection] = useState('asc');
-  const navigate = useNavigate();
 
   // Récupère la liste des patients
   const fetchPatients = async () => {
@@ -171,36 +169,26 @@ const Patients = () => {
   };
 
   return (
-    <div className={styles.pageBg}>
-      <AppHeader />
-      <div style={{ marginBottom: '1.5rem' }} />
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <button
-            className={styles.actionBtn}
-            type="button"
-            onClick={() => navigate('/dashboard')}
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Retour au dashboard
-          </button>
-          <div className={styles.headerCenter}>
-            <h1 className={styles.title}>Patients</h1>
-            <div className={styles.subtitle}>Gérer les patients, informations personnelles et dossiers de santé</div>
+    <Layout>
+      <div className={styles.pageBg}>
+        <div style={{ marginBottom: '1.5rem' }} />
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.headerCenter}>
+              <h1 className={styles.title}>Patients</h1>
+              <div className={styles.subtitle}>Gérer les patients, informations personnelles et dossiers de santé</div>
+            </div>
+            <button
+              className={styles.actionBtn}
+              onClick={() => setShowCreateModal(true)}
+              type="button"
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Ajouter un patient
+            </button>
           </div>
-          <button
-            className={styles.actionBtn}
-            onClick={() => setShowCreateModal(true)}
-            type="button"
-          >
-            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Ajouter un patient
-          </button>
-        </div>
 
         <div className={styles.tableTopBar}>
           <div className={styles.searchWrapper}>
@@ -393,8 +381,9 @@ const Patients = () => {
           loading={deleteLoading}
           error={deleteError}
         />
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

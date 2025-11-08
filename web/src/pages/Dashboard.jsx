@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import DashboardCard from '../components/DashboardCard';
-import AppHeader from '../components/AppHeader';
+import Layout from '../components/Layout';
 import {
   DispensaireIcon,
   DataIcon,
@@ -71,38 +71,38 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className={styles.container}>
-      <AppHeader />
+    <Layout>
+      <div className={styles.container}>
+        {/* Bannière utilisateur */}
+        <div className={styles.userBanner}>
+          <div className={styles.userInfo}>
+            <h2 className={styles.welcomeTitle}>
+              Bienvenue, {user?.email}
+            </h2>
+            <p className={styles.roleInfo}>
+              Votre rôle : {user?.role}
+            </p>
+          </div>
+        </div>
 
-      {/* Bannière utilisateur */}
-      <div className={styles.userBanner}>
-        <div className={styles.userInfo}>
-          <h2 className={styles.welcomeTitle}>
-            Bienvenue, {user?.email}
-          </h2>
-          <p className={styles.roleInfo}>
-            Votre rôle : {user?.role}
-          </p>
+        {/* Grille des cartes */}
+        <div className={styles.cardsContainer}>
+          <div className={styles.cardsGrid}>
+            {cardData.map((card, index) => (
+              <DashboardCard
+                key={index}
+                title={card.title}
+                subtitle={card.subtitle}
+                description={card.description}
+                icon={card.icon}
+                color={card.color}
+                onClick={() => navigate(card.path)}
+              />
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Grille des cartes */}
-      <div className={styles.cardsContainer}>
-        <div className={styles.cardsGrid}>
-          {cardData.map((card, index) => (
-            <DashboardCard
-              key={index}
-              title={card.title}
-              subtitle={card.subtitle}
-              description={card.description}
-              icon={card.icon}
-              color={card.color}
-              onClick={() => navigate(card.path)}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+    </Layout>
   );
 };
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import AppHeader from '../components/AppHeader';
+import Layout from '../components/Layout';
 import styles from "./DataEntries.module.css";
 import CreateDataEntryModal from "../components/CreateDataEntryModal";
 import CreatePatientModal from "../components/CreatePatientModal";
@@ -31,7 +30,6 @@ const DataEntries = () => {
   const [fetchError, setFetchError] = useState("");
   const [createPatientModalOpen, setCreatePatientModalOpen] = useState(false);
   const [prefilledPatientName, setPrefilledPatientName] = useState("");
-  const navigate = useNavigate();
   const { isAdmin } = useAuth();
 
   useEffect(() => {
@@ -151,30 +149,24 @@ const DataEntries = () => {
   };
 
   return (
-    <div className={styles.pageBg}>
-      <AppHeader />
-      <div style={{ marginBottom: '1.5rem' }} />
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <button className={styles.actionBtn} onClick={() => navigate('/dashboard')}>
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Retour au dashboard
-          </button>
-          <div className={styles.title}>Consultations</div>
-          {!isAdmin() && (
-            <button className={styles.actionBtn} onClick={() => setModalOpen(true)}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Ajouter une consultation
-            </button>
-          )}
-        </div>
-        <SearchBar
-          value={search}
-          onChange={setSearch}
+    <Layout>
+      <div className={styles.pageBg}>
+        <div style={{ marginBottom: '1.5rem' }} />
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.title}>Consultations</div>
+            {!isAdmin() && (
+              <button className={styles.actionBtn} onClick={() => setModalOpen(true)}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Ajouter une consultation
+              </button>
+            )}
+          </div>
+          <SearchBar
+            value={search}
+            onChange={setSearch}
           placeholder="Rechercher par patient, diagnostic, date..."
         />
         {fetchError && (
@@ -340,8 +332,9 @@ const DataEntries = () => {
           loading={deleteLoading}
           error={deleteError}
         />
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
