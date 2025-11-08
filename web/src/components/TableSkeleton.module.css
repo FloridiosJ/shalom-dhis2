@@ -1,0 +1,48 @@
+.skeletonWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.skeletonHeader,
+.skeletonCell {
+  height: 16px;
+  background: linear-gradient(90deg, #e5e7eb 25%, #f1f5f9 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonHeader {
+  width: 80%;
+  height: 18px;
+}
+
+.skeletonCell {
+  width: 90%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

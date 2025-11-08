@@ -1,0 +1,32 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.small {
+  width: 28px;
+  height: 28px;
+  font-size: 0.7rem;
+}
+
+.medium {
+  width: 36px;
+  height: 36px;
+  font-size: 0.875rem;
+}
+
+.large {
+  width: 48px;
+  height: 48px;
+  font-size: 1.125rem;
+}
+
+.initials {
+  line-height: 1;
+}
