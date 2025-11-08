@@ -5,9 +5,15 @@ import usersService from '../services/usersService';
 import dispensaireService from '../services/dispensaires';
 import styles from './Users.module.css';
 import CreateOrEditUserModal from '../components/CreateOrEditUserModal';
+import ModernSearchBar from '../components/ModernSearchBar';
+import ModernPagination from '../components/ModernPagination';
+import IconButton from '../components/IconButton';
+import BadgeStatus from '../components/BadgeStatus';
+import TableSkeleton from '../components/TableSkeleton';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [dispensaires, setDispensaires] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,12 +24,18 @@ const Users = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // Récupère la liste des utilisateurs
   const fetchUsers = () => {
     setLoading(true);
     usersService.getAll()
-      .then(setUsers)
+      .then(data => {
+        setUsers(data);
+        setFilteredUsers(data);
+      })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   };
@@ -47,6 +59,25 @@ const Users = () => {
      
   }, []);
 
+  // Filter users based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredUsers(users);
+      setCurrentPage(1);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = users.filter(user => 
+      user.nom?.toLowerCase().includes(query) ||
+      user.prenom?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      user.role?.toLowerCase().includes(query)
+    );
+    setFilteredUsers(filtered);
+    setCurrentPage(1);
+  }, [searchQuery, users]);
+
   // Rafraîchir la liste après création ou modification
   const handleUserSaved = () => {
     fetchUsers();
@@ -66,7 +97,10 @@ const Users = () => {
       setDeleteModalOpen(false);
       setUserToDelete(null);
       // Rafraîchir la liste
-      usersService.getAll().then(setUsers);
+      usersService.getAll().then(data => {
+        setUsers(data);
+        setFilteredUsers(data);
+      });
     } catch (e) {
       setDeleteError(e.message || 'Erreur lors de la suppression');
     } finally {
@@ -74,93 +108,122 @@ const Users = () => {
     }
   };
 
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleFilterClick = () => {
+    // Placeholder for filter functionality
+    console.log('Filter button clicked');
+  };
+
   return (
     <Layout title="Gestion des utilisateurs">
       <div className={styles.pageBg}>
-        <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.card}>
+          <div className={styles.pageHeader}>
+            <h1 className={styles.pageTitle}>Gestion des utilisateurs</h1>
+          </div>
+
           <div className={styles.header}>
-            <div className={styles.headerLeft}>
-            </div>
+            <ModernSearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Rechercher par nom..."
+              onFilterClick={handleFilterClick}
+            />
             <button
-              className={styles.actionBtn}
+              className={styles.addButton}
               onClick={() => { setEditingUser(null); setModalOpen(true); }}
               type="button"
+              aria-label="Ajouter un utilisateur"
             >
-              + Créer un utilisateur
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Ajouter un utilisateur</span>
             </button>
           </div>
 
         {/* Table */}
         <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.th}>Email</th>
-                <th className={styles.th}>Nom</th>
-                <th className={styles.th}>Prénom</th>
-                <th className={styles.th}>Rôle</th>
-                <th className={styles.th}>Statut</th>
-                <th className={styles.th}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={6} className={styles.td} style={{ textAlign: 'center', background: '#f9fafb' }}>
-                    Chargement...
-                  </td>
-                </tr>
-              )}
-              {error && (
-                <tr>
-                  <td colSpan={6} className={styles.td} style={{ textAlign: 'center', color: '#ef4444', background: '#f9fafb' }}>
-                    {error}
-                  </td>
-                </tr>
-              )}
-              {!loading && !error && users.length === 0 && (
-                <tr>
-                  <td colSpan={6} className={styles.td} style={{ textAlign: 'center', color: '#64748b', background: '#f9fafb' }}>
-                    Aucun utilisateur trouvé.
-                  </td>
-                </tr>
-              )}
-              {!loading && !error && users.map((u, idx) => (
-                <tr
-                  key={u.id}
-                  className={styles.tr}
-                  style={hoveredRow === idx ? { background: '#f0f9ff' } : {}}
-                  onMouseEnter={() => setHoveredRow(idx)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                >
-                  <td className={styles.td}>{u.email}</td>
-                  <td className={styles.td}>{u.nom}</td>
-                  <td className={styles.td}>{u.prenom}</td>
-                  <td className={styles.td}>{u.role}</td>
-                  <td className={styles.td}>
-                    <span className={`${styles.badge} ${u.isActive ? styles.badgeActive : styles.badgeInactive}`}>
-                      {u.isActive ? 'Actif' : 'Inactif'}
-                    </span>
-                  </td>
-                  <td className={styles.td}>
-                    <button
-                      className={`${styles.btn} ${styles.btnEdit}`}
-                      onClick={() => { setEditingUser(u); setModalOpen(true); }}
+          {loading ? (
+            <TableSkeleton rows={5} columns={6} />
+          ) : error ? (
+            <div className={styles.errorMessage}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2"/>
+                <path d="M12 8v4M12 16h.01" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <p>{error}</p>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className={styles.emptyMessage}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="8" r="4" stroke="#94a3b8" strokeWidth="1.5"/>
+                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <p>{searchQuery ? 'Aucun utilisateur trouvé pour cette recherche.' : 'Aucun utilisateur trouvé.'}</p>
+            </div>
+          ) : (
+            <>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>EMAIL</th>
+                    <th className={styles.th}>NOM</th>
+                    <th className={styles.th}>PRÉNOM</th>
+                    <th className={styles.th}>RÔLE</th>
+                    <th className={styles.th}>STATUT</th>
+                    <th className={styles.th}>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedUsers.map((u, idx) => (
+                    <tr
+                      key={u.id}
+                      className={styles.tr}
+                      style={hoveredRow === idx ? { background: '#f0f9ff' } : {}}
+                      onMouseEnter={() => setHoveredRow(idx)}
+                      onMouseLeave={() => setHoveredRow(null)}
                     >
-                      Modifier
-                    </button>
-                    <button
-                      className={`${styles.btn} ${styles.btnDelete}`}
-                      onClick={() => handleDeleteClick(u)}
-                    >
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      <td className={styles.td}>{u.email}</td>
+                      <td className={`${styles.td} ${styles.tdBold}`}>{u.nom}</td>
+                      <td className={styles.td}>{u.prenom}</td>
+                      <td className={styles.td}>{u.role}</td>
+                      <td className={styles.td}>
+                        <BadgeStatus isActive={u.isActive} />
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.actionButtons}>
+                          <IconButton
+                            variant="edit"
+                            onClick={() => { setEditingUser(u); setModalOpen(true); }}
+                            ariaLabel={`Modifier ${u.nom} ${u.prenom}`}
+                          />
+                          <IconButton
+                            variant="delete"
+                            onClick={() => handleDeleteClick(u)}
+                            ariaLabel={`Supprimer ${u.nom} ${u.prenom}`}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <ModernPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredUsers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            </>
+          )}
         </div>
       </div>
       {/* Modale création / édition utilisateur */}
