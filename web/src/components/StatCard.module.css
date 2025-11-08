@@ -77,18 +77,24 @@
   gap: 0.25rem;
   font-size: 0.875rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
+  padding: 0.375rem 0.625rem;
   border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trendIcon {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .trendUp {
   color: #059669;
-  background: #d1fae5;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
 }
 
 .trendDown {
   color: #dc2626;
-  background: #fee2e2;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
 }
 
 .content {

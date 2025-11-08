@@ -9,10 +9,16 @@ const Tooltip = ({ children, text, position = 'top' }) => {
       className={styles.tooltipWrapper}
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
+      onFocus={() => setIsVisible(true)}
+      onBlur={() => setIsVisible(false)}
     >
       {children}
       {isVisible && text && (
-        <div className={`${styles.tooltip} ${styles[position]}`}>
+        <div 
+          className={`${styles.tooltip} ${styles[position]}`}
+          role="tooltip"
+          aria-live="polite"
+        >
           {text}
         </div>
       )}
