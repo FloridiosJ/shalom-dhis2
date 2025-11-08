@@ -22,6 +22,12 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
+.headerLeft {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
 .actionBtn {
   background: #2563eb;
   color: #fff;
@@ -201,53 +207,81 @@
 }
 
 /* Pagination Styles */
-.pagination {
+.paginationWrapper {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
+  margin-top: 1.5rem;
   padding: 1rem 0;
-  border-top: 1px solid #e5e7eb;
-}
-
-.paginationBtn {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.paginationBtn:hover:not(:disabled) {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-}
-
-.paginationBtn:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-  opacity: 0.6;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .paginationInfo {
   color: #64748b;
+  font-size: 0.9rem;
+}
+
+.paginationControls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pageBtn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #334155;
+  font-size: 0.875rem;
   font-weight: 500;
-  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 36px;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f9fafb;
+}
+
+.pageBtn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.pageBtn.active:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }
 
 @media (max-width: 700px) {
   .card { padding: 1rem 0.5rem; }
   .th, .td { padding: 0.5rem; font-size: 0.95rem; }
   .searchInput { width: 100%; }
-  .pagination {
+  
+  .paginationWrapper {
     flex-direction: column;
     gap: 0.75rem;
   }
-  .paginationBtn {
+  
+  .paginationInfo {
+    text-align: center;
     width: 100%;
+  }
+  
+  .paginationControls {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }

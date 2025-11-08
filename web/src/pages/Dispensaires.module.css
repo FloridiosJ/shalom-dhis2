@@ -8,9 +8,13 @@
   background: #fff;
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(30,41,59,0.09);
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 30px;
   padding: 1.5rem 2rem 1.5rem 2rem;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .container {
@@ -25,6 +29,13 @@
   gap: 1.2rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+}
+
+.headerLeft {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .headerTitle {
@@ -149,11 +160,11 @@
 .tableWrapper {
   margin-top: 0;
   overflow-x: auto;
-  /* 230px accounts for: page padding (1.5rem top + bottom = ~48px), 
-     card padding (~48px top + bottom), header (~80px), 
-     search bar (~50px), and pagination area (~80px) */
-  max-height: calc(100vh - 320px);
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
+  padding: 0 4px;
+  flex: 1;
+  min-height: 0;
 }
 
 .tableTopBar {
@@ -216,7 +227,8 @@
 }
 
 .tr:hover {
-  background: #f0f9ff;
+  background: #f6f8fa;
+  transition: background-color 0.2s ease;
 }
 
 .orgTypeBadge {
@@ -267,6 +279,15 @@
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+.truncatedText {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .iconBtnEdit,
@@ -344,6 +365,12 @@
   box-shadow: 0 6px 24px rgba(59,130,246,0.18);
 }
 
+@media (max-width: 700px) {
+  .actionBtn {
+    display: none; /* Hide on mobile, use FAB instead */
+  }
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -352,6 +379,7 @@
 @media (max-width: 700px) {
   .card {
     padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+    border-radius: 12px;
   }
   .header {
     flex-direction: column;
@@ -369,6 +397,83 @@
   }
   .statsGrid {
     grid-template-columns: 1fr;
+  }
+  .tableTopBar {
+    padding: 0 0.5rem;
+  }
+  .searchWrapper {
+    min-width: 100%;
+  }
+  
+  /* Make table responsive on mobile - display as cards */
+  .tableWrapper {
+    max-height: none;
+    overflow-x: visible;
+  }
+  
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .table thead {
+    display: none; /* Hide headers on mobile */
+  }
+  
+  .table tbody {
+    display: block;
+  }
+  
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: white;
+  }
+  
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .table td:last-child {
+    border-bottom: none;
+    justify-content: flex-end;
+  }
+  
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+  
+  .table td:last-child::before {
+    content: "";
+  }
+  
+  .paginationWrapper {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .paginationInfo {
+    text-align: center;
+    width: 100%;
+  }
+  
+  .paginationControls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .truncatedText {
+    max-width: 150px;
   }
 }
 

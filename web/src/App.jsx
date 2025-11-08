@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ToastProvider } from "./components/Toast";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -27,98 +28,100 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <Routes>
-            {/* Routes publiques */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
+        <ToastProvider>
+          <Router>
+            <Routes>
+              {/* Routes publiques */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Routes protégées */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Routes protégées */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Routes avec rôles spécifiques */}
-            <Route
-              path="/organisations"
-              element={
-                <ProtectedRoute roles={["admin", "manager"]}>
-                  <Organisations />
-                </ProtectedRoute>
-              }
-            />
+              {/* Routes avec rôles spécifiques */}
+              <Route
+                path="/organisations"
+                element={
+                  <ProtectedRoute roles={["admin", "manager"]}>
+                    <Organisations />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute roles={["admin", "manager"]}>
-                  <Users />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute roles={["admin", "manager"]}>
+                    <Users />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* ✅ Routes accessibles aux agents */}
-            <Route
-              path="/data-entries"
-              element={
-                <ProtectedRoute roles={["admin", "manager", "agent"]}>
-                  <DataEntries />
-                </ProtectedRoute>
-              }
-            />
+              {/* ✅ Routes accessibles aux agents */}
+              <Route
+                path="/data-entries"
+                element={
+                  <ProtectedRoute roles={["admin", "manager", "agent"]}>
+                    <DataEntries />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/dispensaires"
-              element={
-                <ProtectedRoute roles={["admin", "manager"]}>
-                  <Dispensaires />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/dispensaires"
+                element={
+                  <ProtectedRoute roles={["admin", "manager"]}>
+                    <Dispensaires />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/patients"
-              element={
-                <ProtectedRoute roles={["admin", "manager", "agent"]}>
-                  <Patients />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/patients"
+                element={
+                  <ProtectedRoute roles={["admin", "manager", "agent"]}>
+                    <Patients />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* ✅ Reports uniquement pour admin et manager */}
-            <Route
-              path="/reports"
-              element={
-                <ProtectedRoute roles={["admin", "manager"]}>
-                  <Reports />
-                </ProtectedRoute>
-              }
-            />
+              {/* ✅ Reports uniquement pour admin et manager */}
+              <Route
+                path="/reports"
+                element={
+                  <ProtectedRoute roles={["admin", "manager"]}>
+                    <Reports />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute roles={["admin"]}>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Router>
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Router>
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

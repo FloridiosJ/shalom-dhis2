@@ -6,7 +6,6 @@ import CreateDataEntryModal from "../components/CreateDataEntryModal";
 import CreatePatientModal from "../components/CreatePatientModal";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import SearchBar from "../components/SearchBar";
-import Pagination from "../components/Pagination";
 import DataEntryRow from "../components/DataEntryRow";
 import useSortedPaginatedData from "../hooks/useSortedPaginatedData";
 import dataEntryService from "../services/dataEntries";
@@ -103,6 +102,55 @@ const DataEntries = () => {
     getSortValue,
   });
 
+  // Pagination navigation handlers
+  const handlePrevPage = () => {
+    if (currentPage > 1 && totalPages > 0) {
+      handlePageChange(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages && totalPages > 0) {
+      handlePageChange(currentPage + 1);
+    }
+  };
+
+  // Generate page numbers to display (same as Patients page)
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+
   // CRUD handlers
   const handleCreate = async (input) => {
     // ✅ Le payload est déjà nettoyé dans le modal
@@ -149,12 +197,18 @@ const DataEntries = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Consultations">
       <div className={styles.pageBg}>
         <div style={{ marginBottom: '1.5rem' }} />
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.title}>Consultations</div>
+            <div className={styles.headerLeft}>
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                placeholder="Rechercher par patient, diagnostic, date..."
+              />
+            </div>
             {!isAdmin() && (
               <button className={styles.actionBtn} onClick={() => setModalOpen(true)}>
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
@@ -164,11 +218,6 @@ const DataEntries = () => {
               </button>
             )}
           </div>
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-          placeholder="Rechercher par patient, diagnostic, date..."
-        />
         {fetchError && (
           <div className={styles.errorBanner}>
             ⚠️ {fetchError}
@@ -270,14 +319,47 @@ const DataEntries = () => {
         </div>
         
         {/* Pagination Controls */}
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredEntries.length}
-          startIndex={indexOfFirstItem}
-          endIndex={indexOfLastItem}
-          onPageChange={handlePageChange}
-        />
+        {filteredEntries.length > 0 && (
+          <div className={styles.paginationWrapper}>
+            <div className={styles.paginationInfo}>
+              Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, filteredEntries.length)} sur {filteredEntries.length} consultations
+            </div>
+            <div className={styles.paginationControls}>
+              <button
+                className={styles.pageBtn}
+                onClick={handlePrevPage}
+                disabled={currentPage === 1 || totalPages === 0}
+                type="button"
+              >
+                Précédent
+              </button>
+              {getPageNumbers().map((page, index) => (
+                page === '...' ? (
+                  <span key={`ellipsis-${index}`} className={styles.pageBtn} style={{ cursor: 'default', border: 'none', background: 'transparent' }}>
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={page}
+                    className={`${styles.pageBtn} ${currentPage === page ? styles.active : ''}`}
+                    onClick={() => handlePageChange(page)}
+                    type="button"
+                  >
+                    {page}
+                  </button>
+                )
+              ))}
+              <button
+                className={styles.pageBtn}
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                type="button"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Modale création */}
         <CreateDataEntryModal
