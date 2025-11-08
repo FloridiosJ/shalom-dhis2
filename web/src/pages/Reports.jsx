@@ -6,6 +6,8 @@ import { StatCardSkeleton } from "../components/Skeleton";
 import ReportsSidebar from "../components/ReportsSidebar";
 import ReportsMainPanel from "../components/ReportsMainPanel";
 import Tooltip from "../components/Tooltip";
+import ActiveFilters from "../components/ActiveFilters";
+import { useToast } from "../components/Toast";
 import reportService from "../services/reports";
 import {
   useDispensaires,
@@ -18,6 +20,7 @@ import {
 } from "../hooks/useReports";
 
 const Reports = () => {
+  const { showToast } = useToast();
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
   const [dateRange, setDateRange] = useState({
@@ -25,7 +28,6 @@ const Reports = () => {
     endDate: new Date().toISOString().split('T')[0]
   });
   const [exportLoading, setExportLoading] = useState(false);
-  const [exportMessage, setExportMessage] = useState(null);
   const [activeWidget, setActiveWidget] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -74,7 +76,6 @@ const Reports = () => {
 
   const handleExport = async (format) => {
     setExportLoading(true);
-    setExportMessage(null);
 
     try {
       // Build filters object
@@ -91,29 +92,43 @@ const Reports = () => {
       const result = await reportService.exportReport(format, filters);
 
       if (result.success) {
-        setExportMessage({ type: 'success', text: result.message });
+        showToast(result.message || `Export ${format.toUpperCase()} réussi`, 'success');
         
         // Trigger download
         if (result.url) {
           window.open(result.url, '_blank');
         }
       } else {
-        setExportMessage({ type: 'error', text: result.message });
+        showToast(result.message || `Erreur lors de l'export ${format.toUpperCase()}`, 'error');
       }
     } catch (error) {
       console.error('Export error:', error);
-      setExportMessage({ 
-        type: 'error', 
-        text: `Erreur lors de l'export: ${error.message}` 
-      });
+      showToast(`Erreur lors de l'export: ${error.message}`, 'error');
     } finally {
       setExportLoading(false);
-      
-      // Clear message after 5 seconds
-      setTimeout(() => {
-        setExportMessage(null);
-      }, 5000);
     }
+  };
+
+  const handleRemoveFilter = (filterKey) => {
+    if (filterKey === 'dispensaire') {
+      setSelectedDispensaire('all');
+    } else if (filterKey === 'period') {
+      setPeriod('month');
+    } else if (filterKey === 'dateRange') {
+      setDateRange({
+        startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0]
+      });
+    }
+  };
+
+  const handleClearAllFilters = () => {
+    setSelectedDispensaire('all');
+    setPeriod('month');
+    setDateRange({
+      startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0]
+    });
   };
 
   // Déterminer quelles stats afficher
@@ -189,26 +204,6 @@ const Reports = () => {
               </svg>
             </button>
           </div>
-
-        {/* Export message */}
-        {exportMessage && (
-          <div 
-            style={{
-              padding: '12px 16px',
-              borderRadius: '8px',
-              marginBottom: '20px',
-              backgroundColor: exportMessage.type === 'success' ? '#d4edda' : '#f8d7da',
-              color: exportMessage.type === 'success' ? '#155724' : '#721c24',
-              border: `1px solid ${exportMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span>{exportMessage.type === 'success' ? '✅' : '❌'}</span>
-            <span>{exportMessage.text}</span>
-          </div>
-        )}
 
         {/* Filtres */}
         <div className={styles.filters}>
@@ -306,6 +301,18 @@ const Reports = () => {
             </Tooltip>
           </div>
         </div>
+
+        {/* Active Filters */}
+        <ActiveFilters
+          filters={{
+            dispensaire: selectedDispensaire,
+            dispensaireLabel: dispensaires.find(d => d.id === selectedDispensaire)?.name,
+            period: period,
+            dateRange: dateRange,
+          }}
+          onRemoveFilter={handleRemoveFilter}
+          onClearAll={handleClearAllFilters}
+        />
 
         {/* Statistiques globales ou du dispensaire */}
         <div className={styles.statsGrid}>
