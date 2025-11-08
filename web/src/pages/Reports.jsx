@@ -160,9 +160,6 @@ const Reports = () => {
           {/* Page Header - Centered */}
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>Rapports & Analytique</h1>
-            <p className={styles.pageSubtitle}>
-              Aperçu des métriques et tendances clés.
-            </p>
           </div>
 
         {/* Filtres - Compact Card */}
@@ -244,7 +241,6 @@ const Reports = () => {
             icon="👥"
             color="blue"
             trend={{ value: +5.2, isPositive: true }}
-            subtitle="vs mois précédent"
           />
           <StatCard
             title="Total Consultations"
@@ -252,7 +248,6 @@ const Reports = () => {
             icon="🏥"
             color="green"
             trend={{ value: +8.1, isPositive: true }}
-            subtitle="vs mois précédent"
           />
           <StatCard
             title="Dispensaires Actifs"
@@ -260,7 +255,6 @@ const Reports = () => {
             icon="🏢"
             color="purple"
             trend={{ value: -1.5, isPositive: false }}
-            subtitle="vs mois précédent"
           />
         </div>
 
