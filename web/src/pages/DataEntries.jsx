@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import AppHeader from '../components/AppHeader';
 import styles from "./DataEntries.module.css";
 import CreateDataEntryModal from "../components/CreateDataEntryModal";
 import CreatePatientModal from "../components/CreatePatientModal";
@@ -10,9 +13,7 @@ import useSortedPaginatedData from "../hooks/useSortedPaginatedData";
 import dataEntryService from "../services/dataEntries";
 import patientService from "../services/patients";
 import dispensaireService from "../services/dispensaires";
-import categoriesService from "../services/categories"; // ✅ Ajout
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import categoriesService from "../services/categories";
 
 const DataEntries = () => {
   const [dataEntries, setDataEntries] = useState([]);
@@ -151,6 +152,8 @@ const DataEntries = () => {
 
   return (
     <div className={styles.pageBg}>
+      <AppHeader />
+      <div style={{ marginBottom: '1.5rem' }} />
       <div className={styles.card}>
         <div className={styles.header}>
           <button className={styles.actionBtn} onClick={() => navigate('/dashboard')}>

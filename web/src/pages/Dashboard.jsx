@@ -2,14 +2,13 @@ import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import DashboardCard from '../components/DashboardCard';
-import DiamondIcon from '../components/DiamondIcon';
+import AppHeader from '../components/AppHeader';
 import {
   DispensaireIcon,
   DataIcon,
   ReportIcon,
   UserIcon,
   SettingsIcon,
-  LogoutIcon,
   PatientIcon
 } from '../components/DashboardIcons';
 import styles from './Dashboard.module.css';
@@ -17,7 +16,7 @@ import styles from './Dashboard.module.css';
 
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const cardData = [
@@ -73,25 +72,7 @@ const Dashboard = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.logoContainer}>
-            <DiamondIcon />
-            <h1 className={styles.title}>
-              SDC Shalom
-            </h1>
-          </div>
-          
-          <button
-            onClick={logout}
-            className={styles.logoutButton}
-          >
-            <LogoutIcon />
-            Déconnexion
-          </button>
-        </div>
-      </div>
+      <AppHeader />
 
       {/* Bannière utilisateur */}
       <div className={styles.userBanner}>

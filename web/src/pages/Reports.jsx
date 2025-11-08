@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import AppHeader from '../components/AppHeader';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
 import ReportsSidebar from "../components/ReportsSidebar";
@@ -134,6 +135,7 @@ const Reports = () => {
   if (loading && !globalStats && !dispensaireStats) {
     return (
       <div className={styles.pageBg}>
+        <AppHeader />
         <div className={styles.container}>
           <div className={styles.loading}>Chargement des rapports...</div>
         </div>
@@ -143,6 +145,8 @@ const Reports = () => {
 
   return (
     <div className={styles.pageBg}>
+      <AppHeader />
+      <div style={{ marginBottom: '1.5rem' }} />
       <div className={styles.container}>
         {/* En-tête */}
         <div className={styles.header}>

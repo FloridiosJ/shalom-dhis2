@@ -4,55 +4,6 @@
   padding: 0;
 }
 
-.header {
-  background-color: white;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.headerContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logoContainer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1;
-}
-
-.logoutButton {
-  background-color: #dc2626;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logoutButton:hover {
-  background-color: #b91c1c;
-  transform: translateY(-1px);
-}
-
 .userBanner {
   background: linear-gradient(135deg, #E0F2FE 0%, #DBEAFE 100%);
   padding: 2rem;
@@ -97,19 +48,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .header {
-    padding: 1rem;
-  }
-  
-  .title {
-    font-size: 1.5rem;
-  }
-  
-  .logoutButton {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-  }
-  
   .userBanner {
     padding: 1.5rem;
   }
@@ -133,22 +71,16 @@
 }
 
 @media (max-width: 480px) {
-  .header {
-    padding: 0.75rem;
+  .userBanner {
+    padding: 1.5rem;
   }
   
-  .headerContent {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
+  .cardsContainer {
+    padding: 1rem;
   }
   
-  .title {
-    font-size: 1.25rem;
-    text-align: center;
-  }
-  
-  .logoutButton {
-    width: auto;
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }

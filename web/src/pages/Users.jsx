@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Ajout de l'import
+import { useNavigate } from 'react-router-dom';
+import AppHeader from '../components/AppHeader';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import usersService from '../services/usersService';
-import dispensaireService from '../services/dispensaires'; // Import du service dispensaire
+import dispensaireService from '../services/dispensaires';
 import styles from './Users.module.css';
 import CreateOrEditUserModal from '../components/CreateOrEditUserModal';
 
@@ -77,7 +78,7 @@ const Users = () => {
 
   return (
     <div className={styles.pageBg}>
-      {/* Espacement sous le bouton */}
+      <AppHeader />
       <div style={{ marginBottom: '1.5rem' }} />
       <div className={styles.card}>
         <div className={styles.header}>

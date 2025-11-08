@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import AppHeader from '../components/AppHeader';
 import { organisationService } from '../services/organisations';
 
 const Organisations = () => {
@@ -105,22 +106,27 @@ const Organisations = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#f9fafb'
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #e5e7eb',
-            borderTop: '4px solid #3b82f6',
-            borderRadius: '50%',
-            margin: '0 auto 1rem',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p style={{ color: '#6b7280' }}>Chargement des organisations...</p>
+        <AppHeader />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 'calc(100vh - 100px)'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #e5e7eb',
+              borderTop: '4px solid #3b82f6',
+              borderRadius: '50%',
+              margin: '0 auto 1rem',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p style={{ color: '#6b7280' }}>Chargement des organisations...</p>
+          </div>
         </div>
       </div>
     );
@@ -130,19 +136,24 @@ const Organisations = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#f9fafb'
       }}>
+        <AppHeader />
         <div style={{
-          backgroundColor: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '8px',
-          padding: '1rem',
-          color: '#dc2626'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 'calc(100vh - 100px)'
         }}>
-          Erreur: {error.message}
+          <div style={{
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '1rem',
+            color: '#dc2626'
+          }}>
+            Erreur: {error.message}
+          </div>
         </div>
       </div>
     );
@@ -151,9 +162,10 @@ const Organisations = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f9fafb',
-      padding: '2rem'
+      backgroundColor: '#f9fafb'
     }}>
+      <AppHeader />
+      <div style={{ padding: '2rem' }}>
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto'

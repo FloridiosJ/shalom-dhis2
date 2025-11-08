@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppHeader from '../components/AppHeader';
 import patientService from '../services/patients';
 import dispensaireService from '../services/dispensaires';
-import styles from './Dispensaires.module.css'; // Réutilise le même module CSS
+import styles from './Dispensaires.module.css';
 import CreatePatientModal from '../components/CreatePatientModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 
@@ -171,6 +172,8 @@ const Patients = () => {
 
   return (
     <div className={styles.pageBg}>
+      <AppHeader />
+      <div style={{ marginBottom: '1.5rem' }} />
       <div className={styles.card}>
         <div className={styles.header}>
           <button
