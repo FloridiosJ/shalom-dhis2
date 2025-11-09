@@ -294,38 +294,6 @@
   vertical-align: middle;
 }
 
-.iconBtnEdit,
-.iconBtnDelete {
-  padding: 0.5rem;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.iconBtnEdit {
-  color: #2563eb;
-}
-.iconBtnEdit:hover,
-.iconBtnEdit:focus {
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-.iconBtnDelete {
-  color: #dc2626;
-  margin-left: 0.3rem;
-}
-.iconBtnDelete:hover,
-.iconBtnDelete:focus {
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
 .loading {
   text-align: center;
   color: #2563eb;

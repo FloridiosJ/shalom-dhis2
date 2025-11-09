@@ -4,6 +4,8 @@ import dispensaireService from '../services/dispensaires';
 import styles from './Dispensaires.module.css';
 import CreateDispensaireModal from '../components/CreateDispensaireModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import EditButton from '../components/EditButton';
+import DeleteButton from '../components/DeleteButton';
 
 const Dispensaires = () => {
   const [dispensaires, setDispensaires] = useState([]);
@@ -117,29 +119,17 @@ const Dispensaires = () => {
                     <td className={styles.td}>{dispensaire.synoda || '-'}</td>
                     <td className={styles.td}>{dispensaire.fileovana || '-'}</td>
                     <td className={styles.td} style={{ textAlign: 'right' }}>
-                      <button
-                        className={styles.iconBtnEdit}
-                        aria-label="Modifier"
+                      <EditButton
                         onClick={() => {
                           setDispensaireToEdit(dispensaire);
                           setShowEditModal(true);
                         }}
-                        type="button"
-                      >
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 0 0 .707-.293l9.414-9.414a2 2 0 0 0 0-2.828l-3.172-3.172a2 2 0 0 0-2.828 0L4.293 14.879A1 1 0 0 0 4 15.586V20z"/>
-                        </svg>
-                      </button>
-                      <button
-                        className={styles.iconBtnDelete}
-                        aria-label="Supprimer"
+                        ariaLabel="Modifier"
+                      />
+                      <DeleteButton
                         onClick={() => openDeleteModal(dispensaire)}
-                        type="button"
-                      >
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m5 0H4"/>
-                        </svg>
-                      </button>
+                        ariaLabel="Supprimer"
+                      />
                     </td>
                   </tr>
                 ))
