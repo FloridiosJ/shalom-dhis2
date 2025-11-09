@@ -13,18 +13,6 @@
   margin: 0 auto;
 }
 
-.pageHeader {
-  margin-bottom: 1.5rem;
-}
-
-.pageTitle {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
 .header {
   display: flex;
   align-items: center;

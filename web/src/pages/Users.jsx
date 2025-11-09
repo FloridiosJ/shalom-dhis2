@@ -124,10 +124,6 @@ const Users = () => {
     <Layout title="Gestion des utilisateurs">
       <div className={styles.pageBg}>
         <div className={styles.card}>
-          <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Gestion des utilisateurs</h1>
-          </div>
-
           <div className={styles.header}>
             <ModernSearchBar
               value={searchQuery}

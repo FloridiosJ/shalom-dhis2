@@ -23,7 +23,7 @@
 }
 
 .edit {
-  color: #64748b;
+  color: #475569;
 }
 
 .edit:hover:not(:disabled) {
@@ -32,7 +32,7 @@
 }
 
 .delete {
-  color: #64748b;
+  color: #475569;
 }
 
 .delete:hover:not(:disabled) {
