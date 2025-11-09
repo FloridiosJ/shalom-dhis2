@@ -2,8 +2,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -23,7 +23,7 @@
 }
 
 .edit {
-  color: #475569;
+  color: #64748b;
 }
 
 .edit:hover:not(:disabled) {
@@ -32,7 +32,7 @@
 }
 
 .delete {
-  color: #475569;
+  color: #64748b;
 }
 
 .delete:hover:not(:disabled) {
@@ -42,7 +42,7 @@
 
 @media (max-width: 768px) {
   .iconButton {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 }
