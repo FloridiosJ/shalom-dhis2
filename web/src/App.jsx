@@ -13,6 +13,7 @@ import Dispensaires from "./pages/Dispensaires";
 import Users from "./pages/Users";
 import Patients from "./pages/Patients";
 import Reports from "./pages/Reports";
+import TestUserModal from "./pages/TestUserModal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ function App() {
               {/* Routes publiques */}
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/test-user-modal" element={<TestUserModal />} />
 
               {/* Routes protégées */}
               <Route
