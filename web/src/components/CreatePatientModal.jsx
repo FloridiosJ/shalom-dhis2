@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import patientService from '../services/patients';
 import { RELIGIONS, SEXES } from '../constants';
-import styles from './CreateUserModal.module.css';
+import styles from './CreatePatientModal.module.css';
 
 const PatientModal = ({
   open,

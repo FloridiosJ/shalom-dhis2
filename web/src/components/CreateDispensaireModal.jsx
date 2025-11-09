@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import styles from './CreateUserModal.module.css';
+import styles from './CreateDispensaireModal.module.css';
 import dispensaireService from '../services/dispensaires';
 import { SYNODA_OPTIONS } from '../constants';
 
