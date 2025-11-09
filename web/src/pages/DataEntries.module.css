@@ -168,10 +168,7 @@
   margin-left: 0.25rem;
   transition: background 0.2s;
 }
-.iconBtnEdit { color: #2563eb; }
-.iconBtnEdit:hover { background: #dbeafe; }
-.iconBtnDelete { color: #dc2626; }
-.iconBtnDelete:hover { background: #fee2e2; }
+
 .badge {
   display: inline-block;
   padding: 0.25em 0.75em;

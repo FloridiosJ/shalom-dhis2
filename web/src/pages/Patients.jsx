@@ -8,6 +8,8 @@ import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import Tooltip from '../components/Tooltip';
 import TableSkeleton from '../components/TableSkeleton';
 import FloatingActionButton from '../components/FloatingActionButton';
+import EditButton from '../components/EditButton';
+import DeleteButton from '../components/DeleteButton';
 import { useToast } from '../components/Toast';
 import { useDebounce } from '../hooks/useDebounce';
 
@@ -320,37 +322,25 @@ const Patients = () => {
                         </span>
                       </td>
                       <td className={styles.td} style={{ textAlign: 'right' }}>
-                        <Tooltip text="Modifier le patient" position="left">
-                          <button
-                            className={styles.iconBtnEdit}
-                            aria-label="Modifier le patient"
-                            onClick={() => {
-                              setPatientToEdit(patient);
-                              setShowEditModal(true);
-                            }}
-                            type="button"
-                          >
-                            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 0 0 .707-.293l9.414-9.414a2 2 0 0 0 0-2.828l-3.172-3.172a2 2 0 0 0-2.828 0L4.293 14.879A1 1 0 0 0 4 15.586V20z"/>
-                            </svg>
-                          </button>
-                        </Tooltip>
-                        <Tooltip text="Supprimer le patient" position="left">
-                          <button
-                            className={styles.iconBtnDelete}
-                            aria-label="Supprimer le patient"
-                            onClick={() => {
-                              setPatientToDelete(patient);
-                              setDeleteError('');
-                              setShowDeleteModal(true);
-                            }}
-                            type="button"
-                          >
-                            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m5 0H4"/>
-                            </svg>
-                          </button>
-                        </Tooltip>
+                        <EditButton
+                          onClick={() => {
+                            setPatientToEdit(patient);
+                            setShowEditModal(true);
+                          }}
+                          ariaLabel="Modifier le patient"
+                          tooltipText="Modifier le patient"
+                          tooltipPosition="left"
+                        />
+                        <DeleteButton
+                          onClick={() => {
+                            setPatientToDelete(patient);
+                            setDeleteError('');
+                            setShowDeleteModal(true);
+                          }}
+                          ariaLabel="Supprimer le patient"
+                          tooltipText="Supprimer le patient"
+                          tooltipPosition="left"
+                        />
                       </td>
                     </tr>
                   ))

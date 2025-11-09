@@ -7,7 +7,8 @@ import styles from './Users.module.css';
 import CreateOrEditUserModal from '../components/CreateOrEditUserModal';
 import ModernSearchBar from '../components/ModernSearchBar';
 import ModernPagination from '../components/ModernPagination';
-import IconButton from '../components/IconButton';
+import EditButton from '../components/EditButton';
+import DeleteButton from '../components/DeleteButton';
 import BadgeStatus from '../components/BadgeStatus';
 import TableSkeleton from '../components/TableSkeleton';
 
@@ -195,13 +196,11 @@ const Users = () => {
                       </td>
                       <td className={styles.td}>
                         <div className={styles.actionButtons}>
-                          <IconButton
-                            variant="edit"
+                          <EditButton
                             onClick={() => { setEditingUser(u); setModalOpen(true); }}
                             ariaLabel={`Modifier ${u.nom} ${u.prenom}`}
                           />
-                          <IconButton
-                            variant="delete"
+                          <DeleteButton
                             onClick={() => handleDeleteClick(u)}
                             ariaLabel={`Supprimer ${u.nom} ${u.prenom}`}
                           />
