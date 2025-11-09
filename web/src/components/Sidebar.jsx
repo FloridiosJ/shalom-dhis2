@@ -163,8 +163,9 @@ const Sidebar = () => {
         <button
           className={styles.collapseToggle}
           onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? 'Étendre le menu' : 'Réduire le menu'}
-          title={isCollapsed ? 'Étendre le menu' : 'Réduire le menu'}
+          aria-label={isCollapsed ? 'Étendre la barre latérale' : 'Réduire la barre latérale'}
+          aria-expanded={!isCollapsed}
+          title={isCollapsed ? 'Étendre la barre latérale' : 'Réduire la barre latérale'}
         >
           {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         </button>
