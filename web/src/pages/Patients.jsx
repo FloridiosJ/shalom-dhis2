@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Layout from '../components/Layout';
 import patientService from '../services/patients';
 import dispensaireService from '../services/dispensaires';
-import styles from './Dispensaires.module.css';
+import styles from './Patients.module.css';
 import CreatePatientModal from '../components/CreatePatientModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import Tooltip from '../components/Tooltip';

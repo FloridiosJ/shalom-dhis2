@@ -1,5 +1,5 @@
-/* Dispensaire Module Styles */
-/* Convention: All classes use semantic names specific to dispensaire context */
+/* Patient Module Styles */
+/* Convention: All classes prefixed with patient- or use semantic names specific to patient context */
 
 .pageBg {
   height: 100vh;
@@ -244,6 +244,7 @@
   font-weight: 500;
 }
 
+/* Patient-specific badge styles */
 .badgeActive {
   display: inline-block;
   background-color: #10b981;
@@ -480,7 +481,7 @@
   }
 }
 
-/* Pagination styles */
+/* Patient Pagination styles */
 .paginationWrapper {
   display: flex;
   justify-content: space-between;

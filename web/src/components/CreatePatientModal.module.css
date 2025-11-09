@@ -1,0 +1,254 @@
+/* Patient Modal Styles */
+/* Convention: patient-modal-* prefix for patient-specific modal styles */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(30,41,59,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(59,130,246,0.13);
+  max-width: 600px;
+  width: 100%;
+  padding: 2.2rem 1.6rem 1.6rem 1.6rem;
+  position: relative;
+  box-sizing: border-box;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(32px);
+  animation: modalIn 0.33s cubic-bezier(.4,1.4,.6,1) forwards;
+}
+
+@keyframes modalIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 1.45rem;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.errorZone {
+  min-height: 32px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorMsg {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.7em 1em;
+  font-size: 0.98rem;
+  text-align: center;
+  width: 100%;
+}
+
+.formGroup {
+  margin-bottom: 18px;
+}
+
+.label {
+  color: #2563eb;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65em 1em;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: #1e293b;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  display: block;
+  appearance: none;
+}
+
+.input:focus,
+.select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px #2563eb22;
+}
+
+.inputError,
+.selectError {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.errorField {
+  color: #ef4444;
+  font-size: 0.93rem;
+  margin-top: 3px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.genBtn {
+  background: #e0e7ef;
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45em 0.8em;
+  font-weight: 600;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 0 0 #2563eb00;
+}
+
+.genBtn:focus {
+  box-shadow: 0 0 0 2px #2563eb33;
+}
+
+.genBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.checkboxRow {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 2px;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: #22c55e;
+  margin-right: 8px;
+  border: 2px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(34,197,94,0.08);
+  outline: 2px solid #2563eb;
+}
+
+.checkboxLabel {
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btnRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.cancelBtn {
+  background: #f1f5f9;
+  color: #334155;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7em 1.5em;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(100,116,139,0.07);
+  transition: background 0.2s, box-shadow 0.2s;
+  flex: 1 1 120px;
+  max-width: 180px;
+}
+
+.cancelBtn:focus {
+  box-shadow: 0 0 0 2px #2563eb33;
+}
+
+.submitBtn {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7em 1.5em;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.13);
+  transition: background 0.2s, box-shadow 0.2s;
+  flex: 2 1 200px;
+  max-width: 240px;
+  width: 100%;
+}
+
+.submitBtn:focus {
+  box-shadow: 0 0 0 2px #2563eb33;
+}
+
+.modalScrollable {
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 18px;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* For a perfect rendering on Webkit (Chrome/Safari) */
+.modalScrollable::-webkit-scrollbar {
+  border-radius: 18px;
+  background: transparent;
+  width: 10px;
+}
+.modalScrollable::-webkit-scrollbar-thumb {
+  background: #e0e7ef;
+  border-radius: 18px;
+}
+
+@media (max-width: 600px) {
+  .modal {
+    max-width: 100vw !important;
+    padding: 1rem 0.8rem 1rem 0.8rem !important;
+  }
+  .btnRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .submitBtn {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100%;
+  }
+}
