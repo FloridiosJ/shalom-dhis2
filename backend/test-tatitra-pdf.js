@@ -10,7 +10,7 @@ async function testTatitraPDF() {
 
   // Sample test data matching the structure expected by the generator
   const testData = {
-    zones: ['Ampitsopitsoka', 'Onara', 'Andamonty', 'Boeny Aranta', 'Ankelitaly', 'Ampanasina', 'Mananara'],
+    zones: ['Ampitsopitsoka', 'Boeny Aranta', 'Ankelitaly', 'Ampanasina', 'Mananara', 'Onara', 'Andamonty'],
     section1: {
       prayerMeetings: 19,
       visitorsReceived: 470,
@@ -18,40 +18,37 @@ async function testTatitraPDF() {
         {
           category: 'Zaza (12 taona noho midina)',
           zones: [
-            { male: 8, female: 10 },
-            { male: 87, female: 124 },
-            { male: 5, female: 10 },
-            { male: 14, female: 8 },
-            { male: 6, female: 5 },
-            { male: 120, female: 157 },
-            { male: 10, female: 15 },
-            { male: 250, female: 329 }
+            { male: 0, female: 0 },   // Ampitsopitsoka
+            { male: 0, female: 0 },   // Boeny Aranta
+            { male: 14, female: 16 }, // Ankelitaly
+            { male: 0, female: 0 },   // Ampanasina
+            { male: 0, female: 0 },   // Mananara
+            { male: 0, female: 0 },   // Onara
+            { male: 0, female: 0 }    // Andamonty
           ]
         },
         {
           category: 'Tanora (13 taona - 30 taona)',
           zones: [
-            { male: 7, female: 6 },
-            { male: 11, female: 60 },
-            { male: 4, female: 5 },
-            { male: 13, female: 15 },
-            { male: 7, female: 4 },
-            { male: 42, female: 90 },
-            { male: 8, female: 12 },
-            { male: 92, female: 192 }
+            { male: 0, female: 0 },   // Ampitsopitsoka
+            { male: 0, female: 0 },   // Boeny Aranta
+            { male: 14, female: 16 }, // Ankelitaly
+            { male: 0, female: 0 },   // Ampanasina
+            { male: 0, female: 0 },   // Mananara
+            { male: 0, female: 0 },   // Onara
+            { male: 0, female: 0 }    // Andamonty
           ]
         },
         {
           category: 'Olon-dehibe maherin\'ny 30 taona',
           zones: [
-            { male: 8, female: 6 },
-            { male: 5, female: 0 },
-            { male: 2, female: 2 },
-            { male: 19, female: 10 },
-            { male: 5, female: 4 },
-            { male: 39, female: 22 },
-            { male: 6, female: 8 },
-            { male: 84, female: 52 }
+            { male: 0, female: 0 },   // Ampitsopitsoka
+            { male: 0, female: 0 },   // Boeny Aranta
+            { male: 11, female: 9 },  // Ankelitaly
+            { male: 0, female: 0 },   // Ampanasina
+            { male: 0, female: 0 },   // Mananara
+            { male: 0, female: 0 },   // Onara
+            { male: 0, female: 0 }    // Andamonty
           ]
         }
       ]

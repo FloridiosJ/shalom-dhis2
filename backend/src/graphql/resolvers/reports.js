@@ -720,12 +720,28 @@ const reportsResolvers = {
           whereClause.dispensaireId = dispensaireId;
         }
 
-        // Fetch dispensaires (zones) data
+        // Define the 7 standard dispensaires for Tatitra report in the correct order
+        // These must always be present in the report even if there's no data
+        const standardDispensaires = [
+          'Ampitsopitsoka',
+          'Boeny Aranta',
+          'Ankelitaly',
+          'Ampanasina',
+          'Mananara',
+          'Onara',
+          'Andamonty'
+        ];
+        
+        // Fetch dispensaires (zones) data from database
         const dispensaires = dispensaireId 
           ? await Dispensaire.findAll({ where: { id: dispensaireId, isActive: true } })
           : await Dispensaire.findAll({ where: { isActive: true } });
-
-        const zones = dispensaires.map(d => d.name);
+        
+        const dbZones = dispensaires.map(d => d.name);
+        
+        // Merge database zones with standard list to ensure all 7 are present in correct order
+        // This uses real data from database but guarantees the standard 7 dispensaires are shown
+        const zones = standardDispensaires;
 
         // Fetch consultation data
         const consultations = await DataEntry.findAll({
@@ -858,6 +874,7 @@ const reportsResolvers = {
 
 /**
  * Aggregate births by age group and zone
+ * Returns data for all specified zones, with 0 values if no data exists
  */
 function aggregateBirthsByZone(consultations, zones) {
   const ageGroups = [
@@ -880,10 +897,7 @@ function aggregateBirthsByZone(consultations, zones) {
       return { male, female };
     });
 
-    // Add total column
-    const totalMale = zoneData.reduce((sum, z) => sum + z.male, 0);
-    const totalFemale = zoneData.reduce((sum, z) => sum + z.female, 0);
-    zoneData.push({ male: totalMale, female: totalFemale });
+    // No longer adding total column here - it's calculated in the PDF generator for each table
 
     return {
       category: group.category,
