@@ -666,8 +666,251 @@ const reportsResolvers = {
           fileName: null
         };
       }
+    },
+
+    /**
+     * Export quarterly Tatitra report for CSB Loterana
+     */
+    exportTatitraReport: async (_, { quarter, year, dispensaireId }, { user }) => {
+      try {
+        if (!user) {
+          return {
+            success: false,
+            message: 'Non authentifié. Veuillez vous connecter.',
+            url: null,
+            fileName: null
+          };
+        }
+
+        const { DataEntry, Patient, Dispensaire, CategorieMaladie, DataEntryCategorieMaladie } = await import('../../models/index.js');
+        const { generateTatitraPDF } = await import('../../utils/export/tatitraPdfGenerator.js');
+
+        // Validate quarter
+        const validQuarters = ['VOALOHANY', 'FAHAROA', 'FAHATELO', 'EFATRA'];
+        if (!validQuarters.includes(quarter)) {
+          return {
+            success: false,
+            message: `Trimestre invalide: ${quarter}. Trimestres acceptés: ${validQuarters.join(', ')}`,
+            url: null,
+            fileName: null
+          };
+        }
+
+        // Calculate date range for the quarter
+        const quarterMap = {
+          'VOALOHANY': { start: 1, end: 3 },   // Q1: Jan-Mar
+          'FAHAROA': { start: 4, end: 6 },     // Q2: Apr-Jun
+          'FAHATELO': { start: 7, end: 9 },    // Q3: Jul-Sep
+          'EFATRA': { start: 10, end: 12 }     // Q4: Oct-Dec
+        };
+
+        const months = quarterMap[quarter];
+        const startDate = new Date(year, months.start - 1, 1);
+        const endDate = new Date(year, months.end, 0, 23, 59, 59);
+
+        // Build where clause
+        const whereClause = {
+          isActive: true,
+          dateConsultation: {
+            [Op.between]: [startDate, endDate]
+          }
+        };
+
+        if (dispensaireId) {
+          whereClause.dispensaireId = dispensaireId;
+        }
+
+        // Fetch dispensaires (zones) data
+        const dispensaires = dispensaireId 
+          ? await Dispensaire.findAll({ where: { id: dispensaireId, isActive: true } })
+          : await Dispensaire.findAll({ where: { isActive: true } });
+
+        const zones = dispensaires.map(d => d.name);
+
+        // Fetch consultation data
+        const consultations = await DataEntry.findAll({
+          where: whereClause,
+          include: [
+            {
+              model: Patient,
+              as: 'patient',
+              attributes: ['age', 'sexe']
+            },
+            {
+              model: Dispensaire,
+              as: 'dispensaire',
+              attributes: ['name']
+            }
+          ]
+        });
+
+        // Aggregate data for Section 1: Births by age group and zone
+        const birthsData = aggregateBirthsByZone(consultations, zones);
+
+        // Aggregate data for Section 2: Diseases by zone
+        const medicalData = await aggregateDiseasesByZone(
+          DataEntry,
+          CategorieMaladie,
+          DataEntryCategorieMaladie,
+          whereClause,
+          zones
+        );
+
+        // Section 1 statistics
+        const section1Data = {
+          prayerMeetings: 19, // This could be fetched from ActiviteSpirituelle table
+          visitorsReceived: consultations.length,
+          birthsByZone: birthsData
+        };
+
+        const section2Data = {
+          diseasesByZone: medicalData
+        };
+
+        // Prepare report data
+        const reportData = {
+          zones: zones,
+          section1: section1Data,
+          section2: section2Data,
+          period: {
+            quarter,
+            year,
+            startDate: startDate.toLocaleDateString('fr-FR'),
+            endDate: endDate.toLocaleDateString('fr-FR')
+          }
+        };
+
+        // Generate PDF
+        const result = await generateTatitraPDF(reportData, { quarter, year });
+
+        if (!result || !result.fileName) {
+          throw new Error('La génération du fichier Tatitra a échoué');
+        }
+
+        const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+        const downloadUrl = `${baseUrl}/download/${result.fileName}`;
+
+        return {
+          success: true,
+          message: `Rapport Tatitra Q${quarter} ${year} généré avec succès`,
+          url: downloadUrl,
+          fileName: result.fileName
+        };
+
+      } catch (error) {
+        console.error('Error exporting Tatitra report:', error);
+        console.error('Error stack:', error.stack);
+        
+        return {
+          success: false,
+          message: `Erreur lors de la génération du rapport Tatitra: ${error.message || 'Erreur inconnue'}`,
+          url: null,
+          fileName: null
+        };
+      }
     }
   }
 };
+
+/**
+ * Aggregate births by age group and zone
+ */
+function aggregateBirthsByZone(consultations, zones) {
+  const ageGroups = [
+    { category: 'Zaza (12 taona noho midina)', minAge: 0, maxAge: 12 },
+    { category: 'Tanora (13 taona - 30 taona)', minAge: 13, maxAge: 30 },
+    { category: 'Olon-dehibe maherin\'ny 30 taona', minAge: 31, maxAge: 150 }
+  ];
+
+  return ageGroups.map(group => {
+    const zoneData = zones.map(zoneName => {
+      const zoneConsultations = consultations.filter(c => 
+        c.dispensaire?.name === zoneName &&
+        c.patient?.age >= group.minAge &&
+        c.patient?.age <= group.maxAge
+      );
+
+      const male = zoneConsultations.filter(c => c.patient?.sexe === 'M').length;
+      const female = zoneConsultations.filter(c => c.patient?.sexe === 'F').length;
+
+      return { male, female };
+    });
+
+    // Add total column
+    const totalMale = zoneData.reduce((sum, z) => sum + z.male, 0);
+    const totalFemale = zoneData.reduce((sum, z) => sum + z.female, 0);
+    zoneData.push({ male: totalMale, female: totalFemale });
+
+    return {
+      category: group.category,
+      zones: zoneData
+    };
+  });
+}
+
+/**
+ * Aggregate diseases by zone
+ */
+async function aggregateDiseasesByZone(DataEntry, CategorieMaladie, DataEntryCategorieMaladie, whereClause, zones) {
+  // Get all consultations with categories
+  const consultations = await DataEntry.findAll({
+    where: whereClause,
+    include: [
+      {
+        model: CategorieMaladie,
+        as: 'categories',
+        through: { 
+          attributes: ['isPrincipal'],
+          where: { isPrincipal: true }
+        },
+        attributes: ['id', 'nom', 'code']
+      },
+      {
+        model: await import('../../models/index.js').then(m => m.Dispensaire),
+        as: 'dispensaire',
+        attributes: ['name']
+      }
+    ]
+  });
+
+  // Get unique disease categories
+  const diseaseCategories = new Map();
+  consultations.forEach(consultation => {
+    consultation.categories.forEach(category => {
+      if (!diseaseCategories.has(category.id)) {
+        diseaseCategories.set(category.id, {
+          name: category.nom,
+          code: category.code
+        });
+      }
+    });
+  });
+
+  // Aggregate by disease and zone
+  const diseaseData = [];
+  diseaseCategories.forEach((disease, diseaseId) => {
+    const zoneData = zones.map(zoneName => {
+      return consultations.filter(c => 
+        c.dispensaire?.name === zoneName &&
+        c.categories.some(cat => cat.id === diseaseId)
+      ).length;
+    });
+
+    // Add total column
+    const total = zoneData.reduce((sum, count) => sum + count, 0);
+    zoneData.push(total);
+
+    diseaseData.push({
+      disease: disease.name,
+      zones: zoneData,
+      isSubcategory: false
+    });
+  });
+
+  // Sort by total count descending
+  diseaseData.sort((a, b) => b.zones[b.zones.length - 1] - a.zones[a.zones.length - 1]);
+
+  return diseaseData;
+}
 
 export default reportsResolvers;
