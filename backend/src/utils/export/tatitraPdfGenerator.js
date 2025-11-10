@@ -7,6 +7,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Sanitize filename component to prevent path injection
+ * @param {string} value - Value to sanitize
+ * @returns {string} - Sanitized value
+ */
+function sanitizeFilename(value) {
+  if (!value) return 'unknown';
+  // Remove any characters that aren't alphanumeric, underscore, or hyphen
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+/**
  * Generate Tatitra quarterly report PDF for CSB Loterana
  * @param {Object} data - Quarterly report data
  * @param {Object} filters - Report filters (quarter, year, etc.)
@@ -15,9 +26,13 @@ const __dirname = path.dirname(__filename);
 export async function generateTatitraPDF(data, filters) {
   return new Promise((resolve, reject) => {
     try {
+      // Sanitize user inputs to prevent path injection
+      const sanitizedQuarter = sanitizeFilename(filters.quarter || 'Q4');
+      const sanitizedYear = sanitizeFilename(filters.year || new Date().getFullYear());
+      
       // Generate unique filename with timestamp
       const timestamp = Date.now();
-      const fileName = `tatitra_${filters.quarter || 'Q4'}_${filters.year || new Date().getFullYear()}_${timestamp}.pdf`;
+      const fileName = `tatitra_${sanitizedQuarter}_${sanitizedYear}_${timestamp}.pdf`;
       const exportsDir = path.join(__dirname, '../../../exports');
       const filePath = path.join(exportsDir, fileName);
 
