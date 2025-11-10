@@ -786,6 +786,9 @@ const reportsResolvers = {
         // Aggregate non-Christian consultations by zone and gender
         const nonChristianData = aggregateNonChristianByZone(consultations, zones);
 
+        // Aggregate data for Section 2: Consultants and Consultations summary
+        const consultantsSummary = aggregateConsultantsByZone(consultations, zones);
+        
         // Aggregate data for Section 2: Diseases by zone
         const medicalData = await aggregateDiseasesByZone(
           DataEntry,
@@ -819,6 +822,7 @@ const reportsResolvers = {
         };
 
         const section2Data = {
+          consultantsByZone: consultantsSummary,
           diseasesByZone: medicalData
         };
 
@@ -938,6 +942,34 @@ function aggregateNonChristianByZone(consultations, zones) {
     category: 'Tsy Kristianina (Non-chrétiens)',
     zones: zoneData
   };
+}
+
+/**
+ * Aggregate consultants (unique patients) and consultations by zone
+ * Returns summary of people treated and total consultations per CSB
+ */
+function aggregateConsultantsByZone(consultations, zones) {
+  const zoneData = zones.map(zoneName => {
+    const zoneConsultations = consultations.filter(c => 
+      c.dispensaire?.name === zoneName
+    );
+
+    // Count unique patients (consultants)
+    const uniquePatients = new Set(zoneConsultations.map(c => c.patientId));
+    const consultants = uniquePatients.size;
+
+    // Count total consultations
+    const totalConsultations = zoneConsultations.length;
+
+    return { consultants, consultations: totalConsultations };
+  });
+
+  // Calculate totals
+  const totalConsultants = zoneData.reduce((sum, z) => sum + z.consultants, 0);
+  const totalConsultations = zoneData.reduce((sum, z) => sum + z.consultations, 0);
+  zoneData.push({ consultants: totalConsultants, consultations: totalConsultations });
+
+  return zoneData;
 }
 
 /**

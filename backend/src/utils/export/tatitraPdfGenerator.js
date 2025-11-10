@@ -408,15 +408,146 @@ function addSection2_AsaFitsaboana(doc, data, margin, pageWidth) {
     .text('2- MAHAKASIKA NY ASA FITSABOANA', margin, startY)
     .moveDown(0.5);
   
-  // Subsection title
+  // Subsection 1: Ny olona notsaboina (People treated)
   doc.fontSize(10)
     .font('Helvetica')
-    .text('• Aretina matelim-pitranga :', margin, doc.y)
+    .text('• Ny olona notsaboina :', margin, doc.y)
+    .moveDown(0.3);
+  
+  // Draw consultants table
+  const consultantsData = data.section2?.consultantsByZone || getDefaultConsultantsData();
+  drawConsultantsTable(doc, consultantsData, margin, pageWidth);
+  
+  doc.moveDown(1);
+  
+  // Subsection 2: Aretina matetim-pitranga (Diseases by frequency)
+  doc.fontSize(10)
+    .font('Helvetica')
+    .text('• Aretina matetim-pitranga :', margin, doc.y)
     .moveDown(0.3);
   
   // Draw medical consultations table
   const medicalData = data.section2?.diseasesByZone || getDefaultMedicalData();
   drawMedicalTable(doc, medicalData, margin, pageWidth);
+}
+
+/**
+ * Draw consultants summary table (Ny olona notsaboina)
+ * Table with 3 columns: CSB, Consultant, Consultation
+ */
+function drawConsultantsTable(doc, tableData, margin, pageWidth) {
+  const startY = doc.y;
+  const tableWidth = pageWidth - 2 * margin;
+  
+  // Define columns widths
+  const csbColWidth = tableWidth * 0.5;  // 50% for CSB name
+  const consultantColWidth = tableWidth * 0.25;  // 25% for Consultant count
+  const consultationColWidth = tableWidth * 0.25;  // 25% for Consultation count
+  
+  let currentY = startY;
+  
+  // Draw header row
+  doc.fontSize(9).font('Helvetica-Bold');
+  
+  // CSB header
+  doc.rect(margin, currentY, csbColWidth, 25).stroke();
+  doc.text('CSB', margin + 5, currentY + 8, {
+    width: csbColWidth - 10,
+    align: 'left'
+  });
+  
+  // Consultant header
+  let currentX = margin + csbColWidth;
+  doc.rect(currentX, currentY, consultantColWidth, 25).stroke();
+  doc.text('Consultant', currentX + 5, currentY + 8, {
+    width: consultantColWidth - 10,
+    align: 'center'
+  });
+  
+  // Consultation header
+  currentX += consultantColWidth;
+  doc.rect(currentX, currentY, consultationColWidth, 25).stroke();
+  doc.text('Consultation', currentX + 5, currentY + 8, {
+    width: consultationColWidth - 10,
+    align: 'center'
+  });
+  
+  currentY += 25;
+  
+  // Get zones list (all standard zones + Total)
+  const zones = [
+    'Ampitsopitsoka',
+    'Boeny Aranta',
+    'Ankelitaly',
+    'Ampanasina',
+    'Mananara',
+    'Onara',
+    'Andamonty'
+  ];
+  
+  // Draw data rows
+  doc.fontSize(8).font('Helvetica');
+  zones.forEach((zoneName, idx) => {
+    const rowHeight = 20;
+    const rowData = tableData[idx] || { consultants: 0, consultations: 0 };
+    
+    // CSB name
+    doc.rect(margin, currentY, csbColWidth, rowHeight).stroke();
+    doc.text(zoneName, margin + 5, currentY + 5, {
+      width: csbColWidth - 10,
+      align: 'left'
+    });
+    
+    // Consultant count
+    currentX = margin + csbColWidth;
+    doc.rect(currentX, currentY, consultantColWidth, rowHeight).stroke();
+    doc.text(String(rowData.consultants).padStart(2, '0'), currentX + 5, currentY + 5, {
+      width: consultantColWidth - 10,
+      align: 'center'
+    });
+    
+    // Consultation count
+    currentX += consultantColWidth;
+    doc.rect(currentX, currentY, consultationColWidth, rowHeight).stroke();
+    doc.text(String(rowData.consultations).padStart(2, '0'), currentX + 5, currentY + 5, {
+      width: consultationColWidth - 10,
+      align: 'center'
+    });
+    
+    currentY += rowHeight;
+  });
+  
+  // Draw Total row
+  const rowHeight = 22;
+  const totalData = tableData[zones.length] || { consultants: 0, consultations: 0 };
+  
+  doc.fontSize(9).font('Helvetica-Bold');
+  
+  // Total label
+  doc.rect(margin, currentY, csbColWidth, rowHeight).stroke();
+  doc.text('Total', margin + 5, currentY + 6, {
+    width: csbColWidth - 10,
+    align: 'left'
+  });
+  
+  // Total consultants
+  currentX = margin + csbColWidth;
+  doc.rect(currentX, currentY, consultantColWidth, rowHeight).stroke();
+  doc.text(String(totalData.consultants).padStart(2, '0'), currentX + 5, currentY + 6, {
+    width: consultantColWidth - 10,
+    align: 'center'
+  });
+  
+  // Total consultations
+  currentX += consultantColWidth;
+  doc.rect(currentX, currentY, consultationColWidth, rowHeight).stroke();
+  doc.text(String(totalData.consultations).padStart(2, '0'), currentX + 5, currentY + 6, {
+    width: consultationColWidth - 10,
+    align: 'center'
+  });
+  
+  currentY += rowHeight;
+  doc.y = currentY;
 }
 
 /**
@@ -878,6 +1009,22 @@ function drawEventsSection(doc, eventsData, margin, pageWidth) {
     
     doc.moveDown(0.5);
   });
+}
+
+/**
+ * Get default consultants data structure
+ */
+function getDefaultConsultantsData() {
+  return [
+    { consultants: 0, consultations: 0 },  // Ampitsopitsoka
+    { consultants: 0, consultations: 0 },  // Boeny Aranta
+    { consultants: 0, consultations: 0 },  // Ankelitaly
+    { consultants: 0, consultations: 0 },  // Ampanasina
+    { consultants: 0, consultations: 0 },  // Mananara
+    { consultants: 0, consultations: 0 },  // Onara
+    { consultants: 0, consultations: 0 },  // Andamonty
+    { consultants: 0, consultations: 0 }   // Total
+  ];
 }
 
 /**
