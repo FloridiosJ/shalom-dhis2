@@ -27,6 +27,3 @@ docker-compose.override.yml
 backend/exports/*.pdf
 backend/exports/*.csv
 backend/exports/*.xlsx
-
-# Test scripts
-backend/test-tatitra-pdf.js

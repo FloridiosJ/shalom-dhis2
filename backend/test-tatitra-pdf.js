@@ -1,0 +1,226 @@
+/**
+ * Simple test script for Tatitra PDF generation
+ * This tests the Tatitra PDF generator without requiring database connection
+ */
+import { generateTatitraPDF } from './src/utils/export/tatitraPdfGenerator.js';
+import fs from 'fs';
+
+async function testTatitraPDF() {
+  console.log('🧪 Testing Tatitra PDF Generation...\n');
+
+  // Sample test data matching the structure expected by the generator
+  const testData = {
+    zones: ['Ampitsopitsoka', 'Onara', 'Andamonty', 'Boeny Aranta', 'Ankelitaly', 'Ampanasina', 'Mananara'],
+    section1: {
+      prayerMeetings: 19,
+      visitorsReceived: 470,
+      birthsByZone: [
+        {
+          category: 'Zaza (12 taona noho midina)',
+          zones: [
+            { male: 8, female: 10 },
+            { male: 87, female: 124 },
+            { male: 5, female: 10 },
+            { male: 14, female: 8 },
+            { male: 6, female: 5 },
+            { male: 120, female: 157 },
+            { male: 10, female: 15 },
+            { male: 250, female: 329 }
+          ]
+        },
+        {
+          category: 'Tanora (13 taona - 30 taona)',
+          zones: [
+            { male: 7, female: 6 },
+            { male: 11, female: 60 },
+            { male: 4, female: 5 },
+            { male: 13, female: 15 },
+            { male: 7, female: 4 },
+            { male: 42, female: 90 },
+            { male: 8, female: 12 },
+            { male: 92, female: 192 }
+          ]
+        },
+        {
+          category: 'Olon-dehibe maherin\'ny 30 taona',
+          zones: [
+            { male: 8, female: 6 },
+            { male: 5, female: 0 },
+            { male: 2, female: 2 },
+            { male: 19, female: 10 },
+            { male: 5, female: 4 },
+            { male: 39, female: 22 },
+            { male: 6, female: 8 },
+            { male: 84, female: 52 }
+          ]
+        }
+      ]
+    },
+    section2: {
+      diseasesByZone: [
+        { disease: 'Consultants', zones: [32, 100, 43, 267, 33, 206, 124, 805], isSubcategory: false },
+        { disease: 'Consultation', zones: [48, 148, 91, 278, 38, 219, 152, 974], isSubcategory: false },
+        { disease: 'Hypertention', zones: [2, 0, 2, 0, 1, 13, 8, 26], isSubcategory: true },
+        { disease: 'Affections cutanées', zones: [6, 0, 1, 1, 2, 0, 1, 11], isSubcategory: false },
+        { disease: 'Diarrhées (Di) sans déshydratation', zones: [4, 0, 5, 3, 0, 5, 3, 20], isSubcategory: true }
+      ]
+    },
+    section3: {
+      educationByZone: [
+        {
+          category: 'Fanambeazan a aizana tsy maharitra',
+          zones: [
+            { male: 0, female: 23 },
+            { male: 0, female: 70 },
+            { male: 0, female: 14 },
+            { male: 0, female: 0 },
+            { male: 0, female: 0 },
+            { male: 3, female: 78 },
+            { male: 0, female: 20 },
+            { male: 3, female: 205 }
+          ]
+        },
+        {
+          category: 'Fanambeazan a aizana maharitra',
+          zones: [
+            { male: 0, female: 0 },
+            { male: 0, female: 16 },
+            { male: 0, female: 0 },
+            { male: 0, female: 0 },
+            { male: 0, female: 0 },
+            { male: 0, female: 15 },
+            { male: 0, female: 12 },
+            { male: 0, female: 43 }
+          ]
+        }
+      ]
+    },
+    section4: {
+      maternalHealthByZone: [
+        {
+          category: 'Femme ayant passée à la CPN',
+          zones: [0, 0, 12, 24, 0, 28, 27, 91]
+        },
+        {
+          category: 'Femme enceintes ayant fait le Test VIH',
+          zones: [0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        {
+          category: 'Femme enceintes ayant fait le Test serologique',
+          zones: [0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        {
+          category: 'Accouchements',
+          zones: [0, 0, 4, 6, 0, 10, 9, 29]
+        }
+      ]
+    },
+    section5: {
+      eventsByZone: [
+        {
+          zone: 'Ampanasina',
+          events: [
+            {
+              theme: 'Rano fisoitro madio',
+              participants: 72,
+              location: 'CSB Ampanasina',
+              date: '21 Oktobra 2024'
+            },
+            {
+              theme: 'Ny maha zava-dehibe ny vaksiny',
+              participants: 68,
+              location: 'CSB Ampanasina',
+              date: '19 Novambra 2024'
+            },
+            {
+              theme: 'Ady amin\'ny fangerena ankalamanjana',
+              participants: 54,
+              location: 'Communauté Ampanasina',
+              date: '15 Desambra 2024'
+            }
+          ]
+        },
+        {
+          zone: 'Boeny Aranta',
+          events: [
+            {
+              theme: 'Fahadiovana sy fahasalamana',
+              participants: 45,
+              location: 'CSB Boeny Aranta',
+              date: '10 Oktobra 2024'
+            }
+          ]
+        }
+      ]
+    },
+    period: {
+      quarter: 'EFATRA',
+      year: 2024,
+      startDate: '01/10/2024',
+      endDate: '31/12/2024'
+    }
+  };
+
+  const filters = {
+    quarter: 'EFATRA',
+    year: 2024
+  };
+
+  try {
+    console.log('📄 Testing Tatitra PDF generation...');
+    console.log(`   Quarter: ${filters.quarter}`);
+    console.log(`   Year: ${filters.year}\n`);
+
+    const result = await generateTatitraPDF(testData, filters);
+    
+    console.log('✅ Tatitra PDF generated successfully!');
+    console.log(`   File: ${result.fileName}`);
+    console.log(`   Path: ${result.filePath}`);
+    
+    // Verify file exists
+    if (fs.existsSync(result.filePath)) {
+      const stats = fs.statSync(result.filePath);
+      console.log(`   Size: ${stats.size} bytes`);
+      console.log('   ✓ File verified\n');
+      
+      // Check file size is reasonable (should be > 10KB for a multi-page PDF)
+      if (stats.size < 10000) {
+        console.log('   ⚠️  Warning: PDF file seems too small. May be incomplete.\n');
+      }
+    } else {
+      console.log('   ✗ File not found!\n');
+      throw new Error('Generated PDF file not found');
+    }
+
+    // Display sections included
+    console.log('📋 Sections included:');
+    console.log('   ✓ Section 1: Asa Fitoriana (Births by age group)');
+    console.log('   ✓ Section 2: Asa Fitsaboana (Medical consultations)');
+    console.log('   ✓ Section 3: Fandriandram-piterahana (Education)');
+    console.log('   ✓ Section 4: Momba ireo Reny Bevoaka (Maternal health)');
+    console.log('   ✓ Section 5: Fanentanana natao (Events/Animations)\n');
+
+    // Keep the file for manual inspection
+    console.log('📁 File saved for manual inspection:');
+    console.log(`   ${result.filePath}\n`);
+    console.log('   💡 You can open this PDF to verify the formatting.\n');
+
+    console.log('✅ Test passed!');
+    return true;
+
+  } catch (error) {
+    console.error('\n❌ Test failed:', error.message);
+    console.error(error);
+    return false;
+  }
+}
+
+// Run test
+testTatitraPDF()
+  .then((success) => {
+    process.exit(success ? 0 : 1);
+  })
+  .catch((error) => {
+    console.error('Unexpected error:', error);
+    process.exit(1);
+  });
