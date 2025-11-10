@@ -455,13 +455,13 @@ function drawEducationTable(doc, tableData, margin, pageWidth) {
   const startY = doc.y;
   const tableWidth = pageWidth - 2 * margin;
   
-  // Define columns for zones
+  // Define columns for zones - matching reference image exactly
   const zoneCols = [
-    'Ampilsopilsoka',
+    'Ampilsopitsoka',
     'Onara',
-    'Andamonty',
+    'Andamon ty',
     'Boeny Aranta',
-    'Ankelilaly',
+    'Ankelilal y',
     'Apanasina',
     'Mananara',
     'FITAMBARANY'
@@ -807,7 +807,7 @@ function getDefaultMaternalHealthData() {
 function getDefaultEventsData() {
   return [
     {
-      zone: 'Ampanasing',
+      zone: 'Ampanasina',
       events: [
         {
           theme: 'Rano fisoitro madio',
