@@ -320,9 +320,13 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
     });
     currentX += cols[0].width;
     
-    // Calculate subtotals for this row's dispensaries
+    // Calculate TOTAL across ALL zones for Fitambarany column
     let rowMaleTotal = 0;
     let rowFemaleTotal = 0;
+    row.zones.forEach(zoneData => {
+      rowMaleTotal += zoneData.male || 0;
+      rowFemaleTotal += zoneData.female || 0;
+    });
     
     // Data columns for specified dispensaires
     for (let i = 0; i < dispensaires.length; i++) {
@@ -330,9 +334,6 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
       // Find the zone data by dispensaire name
       const zoneIndex = getZoneIndexByName(dispensaires[i]);
       const zoneData = row.zones[zoneIndex] || { male: 0, female: 0 };
-      
-      rowMaleTotal += zoneData.male;
-      rowFemaleTotal += zoneData.female;
       
       // Male count
       doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
@@ -351,7 +352,7 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
       currentX += cols[i + 1].width;
     }
     
-    // Fitambarany column (subtotal for this subset of dispensaires)
+    // Fitambarany column (total across ALL dispensaires, not just this table's subset)
     const subWidth = cols[cols.length - 1].width / 2;
     
     // Male total
