@@ -1,0 +1,98 @@
+.formGroup {
+  margin-bottom: 18px;
+}
+
+.label {
+  color: #2563eb;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.inputRow {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: #1e293b;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: #fff;
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #e2e8f0;
+}
+
+.inputError {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.genBtn {
+  background: #e0e7ff;
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.genBtn:hover:not(:disabled) {
+  background: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+.genBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.genBtn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.genBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.errorField {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -2,6 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import usersService from '../services/usersService';
 import { USER_ROLES, SPECIALITES } from '../constants';
 import styles from './CreateUserModal.module.css';
+import {
+  InputField,
+  InputWithGenerator,
+  SelectField,
+  StatusSwitch,
+  ModalFooter,
+  ModalTitle,
+  FormRow,
+} from './form';
 
 function randomString(length = 8) {
   return Math.random().toString(36).slice(-length);
@@ -204,20 +213,15 @@ const CreateOrEditUserModal = ({
         className={`${styles.modal} ${form.role === 'agent' ? styles.modalScrollable : ''}`}
         onClick={e => e.stopPropagation()}
       >
-        <h2 className={styles.title}>
-          <svg width={26} height={26} fill="none" viewBox="0 0 24 24">
-            <circle cx="12" cy="7" r="5" fill="#2563eb" opacity="0.15"/>
-            <circle cx="12" cy="7" r="4" fill="#2563eb"/>
-            <rect x="4" y="15" width="16" height="6" rx="3" fill="#2563eb" opacity="0.15"/>
-            <rect x="6" y="16" width="12" height="4" rx="2" fill="#2563eb"/>
-          </svg>
-          {isEdit ? "Modifier l'utilisateur" : "Créer un utilisateur"}
-        </h2>
-        <div className={styles.subtitle}>
-          {isEdit
-            ? "Modifiez les informations de l'utilisateur puis enregistrez."
-            : "Remplissez les informations pour ajouter un utilisateur au système."}
-        </div>
+        <ModalTitle
+          title={isEdit ? "Modifier l'utilisateur" : "Ajouter un nouvel utilisateur"}
+          subtitle={
+            isEdit
+              ? "Modifiez les informations de l'utilisateur puis enregistrez."
+              : "Remplissez les informations pour ajouter un utilisateur au système."
+          }
+        />
+        
         <div aria-live="polite" className={styles.errorZone}>
           {serverError && (
             <div className={styles.errorMsg}>
@@ -225,248 +229,147 @@ const CreateOrEditUserModal = ({
             </div>
           )}
         </div>
+
         <form onSubmit={handleSubmit} autoComplete="off">
-          {/* Email */}
-          <div className={styles.formGroup}>
-            <label htmlFor="email" className={styles.label}>
-              Email <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
-              ref={firstInputRef}
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={form.email}
-              onChange={handleChange}
-              disabled={loading || isEdit}
-              aria-label="Email"
-              tabIndex={0}
-              placeholder="exemple@domaine.com"
-              className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
-            />
-            {errors.email && <div className={styles.errorField}>{errors.email}</div>}
-          </div>
           {/* Login */}
-          <div className={styles.formGroup}>
-            <label htmlFor="login" className={styles.label}>
-              Login
-            </label>
-            <div className={styles.inputRow}>
-              <input
-                id="login"
-                name="login"
-                type="text"
-                value={form.login}
-                onChange={handleChange}
-                aria-label="Login"
-                tabIndex={0}
-                placeholder="Auto-généré ou personnalisé"
-                className={`${styles.input} ${errors.login ? styles.inputError : ''}`}
-                style={{ flex: 1 }}
-                disabled={loading || isEdit}
-              />
-              {!isEdit && (
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  aria-label="Générer login"
-                  onClick={handleGenerateLogin}
-                  className={styles.genBtn}
-                >Générer</button>
-              )}
-            </div>
-            {errors.login && <div className={styles.errorField}>{errors.login}</div>}
-          </div>
+          <InputWithGenerator
+            label="Login"
+            id="login"
+            name="login"
+            value={form.login}
+            onChange={handleChange}
+            onGenerate={handleGenerateLogin}
+            placeholder="Auto-généré ou personnalisé"
+            error={errors.login}
+            disabled={loading || isEdit}
+            showGenerator={!isEdit}
+            inputRef={firstInputRef}
+          />
+
           {/* Mot de passe */}
-          <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>
-              Mot de passe
-            </label>
-            <div className={styles.inputRow}>
-              <input
-                id="password"
-                name="password"
-                type="text"
-                value={form.password}
-                onChange={handleChange}
-                disabled={loading}
-                aria-label="Mot de passe"
-                tabIndex={0}
-                placeholder={isEdit ? "Laisser vide pour ne pas changer" : "Mot de passe sécurisé"}
-                className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
-                style={{ flex: 1 }}
-              />
-              {!isEdit && (
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  aria-label="Générer mot de passe"
-                  onClick={handleGeneratePassword}
-                  disabled={loading}
-                  className={styles.genBtn}
-                >Générer</button>
-              )}
-            </div>
-            {errors.password && <div className={styles.errorField}>{errors.password}</div>}
-          </div>
-          {/* Nom */}
-          <div className={styles.formGroup}>
-            <label htmlFor="nom" className={styles.label}>
-              Nom <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
-              id="nom"
-              name="nom"
-              type="text"
-              required
-              value={form.nom}
-              onChange={handleChange}
-              disabled={loading}
-              aria-label="Nom"
-              tabIndex={0}
-              placeholder="Nom de famille"
-              className={`${styles.input} ${errors.nom ? styles.inputError : ''}`}
-            />
-            {errors.nom && <div className={styles.errorField}>{errors.nom}</div>}
-          </div>
-          {/* Prénom */}
-          <div className={styles.formGroup}>
-            <label htmlFor="prenom" className={styles.label}>
-              Prénom <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
+          <InputWithGenerator
+            label="Mot de passe"
+            id="password"
+            name="password"
+            type="text"
+            value={form.password}
+            onChange={handleChange}
+            onGenerate={handleGeneratePassword}
+            placeholder={isEdit ? "Laisser vide pour ne pas changer" : "Mot de passe sécurisé"}
+            error={errors.password}
+            disabled={loading}
+            showGenerator={!isEdit}
+          />
+
+          {/* Email */}
+          <InputField
+            label="Email"
+            id="email"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            placeholder="nom@exemple.com"
+            error={errors.email}
+            disabled={loading || isEdit}
+            autoComplete="email"
+          />
+
+          {/* Prénom et Nom - Side by side */}
+          <FormRow gap="md">
+            <InputField
+              label="Prénom"
               id="prenom"
               name="prenom"
-              type="text"
-              required
               value={form.prenom}
               onChange={handleChange}
-              disabled={loading}
-              aria-label="Prénom"
-              tabIndex={0}
-              placeholder="Prénom"
-              className={`${styles.input} ${errors.prenom ? styles.inputError : ''}`}
-            />
-            {errors.prenom && <div className={styles.errorField}>{errors.prenom}</div>}
-          </div>
-          {/* Rôle */}
-          <div className={styles.formGroup}>
-            <label htmlFor="role" className={styles.label}>
-              Rôle <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <select
-              id="role"
-              name="role"
               required
-              value={form.role}
-              onChange={handleChange}
+              placeholder="Entrez le prénom"
+              error={errors.prenom}
               disabled={loading}
-              aria-label="Rôle"
-              tabIndex={0}
-              className={`${styles.select} ${errors.role ? styles.selectError : ''}`}
-            >
-              <option value="">Sélectionner un rôle</option>
-              {USER_ROLES.map(r => (
-                <option key={r.value} value={r.value}>
-                  {r.icon} {r.label}
-                </option>
-              ))}
-            </select>
-            {errors.role && <div className={styles.errorField}>{errors.role}</div>}
-          </div>
+            />
+            <InputField
+              label="Nom"
+              id="nom"
+              name="nom"
+              value={form.nom}
+              onChange={handleChange}
+              required
+              placeholder="Entrez le nom"
+              error={errors.nom}
+              disabled={loading}
+            />
+          </FormRow>
+
+          {/* Rôle */}
+          <SelectField
+            label="Rôle"
+            id="role"
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            options={USER_ROLES}
+            required
+            placeholder="Sélectionnez un rôle"
+            error={errors.role}
+            disabled={loading}
+          />
+
           {/* Spécialité (agent) */}
           {form.role === 'agent' && (
-            <div className={styles.formGroup}>
-              <label htmlFor="specialite" className={styles.label}>
-                Spécialité <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <select
-                id="specialite"
-                name="specialite"
-                required
-                value={form.specialite}
-                onChange={handleChange}
-                disabled={loading}
-                aria-label="Spécialité"
-                tabIndex={0}
-                className={`${styles.select} ${errors.specialite ? styles.selectError : ''}`}
-              >
-                <option value="">Sélectionner une spécialité</option>
-                {SPECIALITES.map(s => (
-                  <option key={s.value} value={s.value}>
-                    {s.icon} {s.label}
-                  </option>
-                ))}
-              </select>
-              {errors.specialite && <div className={styles.errorField}>{errors.specialite}</div>}
-            </div>
+            <SelectField
+              label="Spécialité"
+              id="specialite"
+              name="specialite"
+              value={form.specialite}
+              onChange={handleChange}
+              options={SPECIALITES}
+              required
+              placeholder="Sélectionnez une spécialité"
+              error={errors.specialite}
+              disabled={loading}
+            />
           )}
+
           {/* Dispensaire (agent) */}
           {form.role === 'agent' && (
-            <div className={styles.formGroup}>
-              <label htmlFor="dispensaireId" className={styles.label}>
-                Dispensaire <span aria-hidden="true" style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <select
-                id="dispensaireId"
-                name="dispensaireId"
-                required
-                value={form.dispensaireId}
-                onChange={handleChange}
-                disabled={loading || dispensaires.length === 0}
-                aria-label="Dispensaire"
-                tabIndex={0}
-                className={`${styles.select} ${errors.dispensaireId ? styles.selectError : ''}`}
-              >
-                <option value="">
-                  {dispensaires.length === 0 ? 'Chargement...' : 'Sélectionner un dispensaire'}
-                </option>
-                {dispensaires.map(d => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
-              {errors.dispensaireId && <div className={styles.errorField}>{errors.dispensaireId}</div>}
-            </div>
+            <SelectField
+              label="Dispensaire"
+              id="dispensaireId"
+              name="dispensaireId"
+              value={form.dispensaireId}
+              onChange={handleChange}
+              options={dispensaires.map(d => ({ value: d.id, label: d.name }))}
+              required
+              placeholder={dispensaires.length === 0 ? 'Chargement...' : 'Sélectionnez un dispensaire'}
+              error={errors.dispensaireId}
+              disabled={loading || dispensaires.length === 0}
+            />
           )}
+
           {/* Statut actif */}
-          <div className={styles.checkboxRow}>
-            <input
+          {isEdit && (
+            <StatusSwitch
               id="isActive"
               name="isActive"
-              type="checkbox"
               checked={form.isActive}
               onChange={handleChange}
               disabled={loading}
-              aria-label="Statut actif"
-              tabIndex={0}
-              className={styles.checkbox}
+              activeLabel="Actif"
+              inactiveLabel="Inactif"
+              ariaLabel="Statut de l'utilisateur"
             />
-            <label htmlFor="isActive" className={styles.checkboxLabel}>
-              Utilisateur actif
-            </label>
-          </div>
+          )}
+
           {/* Boutons */}
-          <div className={styles.btnRow}>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              tabIndex={0}
-              aria-label="Annuler"
-              className={styles.cancelBtn}
-            >Annuler</button>
-            <button
-              type="submit"
-              disabled={loading}
-              tabIndex={0}
-              aria-label={isEdit ? "Enregistrer" : "Créer l'utilisateur"}
-              className={styles.submitBtn}
-            >
-              {loading ? (isEdit ? 'Enregistrement...' : 'Création...') : (isEdit ? 'Enregistrer' : "Créer l'utilisateur")}
-            </button>
-          </div>
+          <ModalFooter
+            onCancel={onClose}
+            cancelLabel="Annuler"
+            submitLabel={isEdit ? "Enregistrer" : "Enregistrer"}
+            loading={loading}
+            loadingLabel={isEdit ? 'Enregistrement...' : 'Création...'}
+          />
         </form>
       </div>
     </div>

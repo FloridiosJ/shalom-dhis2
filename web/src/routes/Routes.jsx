@@ -5,12 +5,14 @@ import { Dashboard } from '../pages/Dashboard';
 import { Organisations } from '../pages/Organisations';
 import { Dispensaires } from '../pages/Dispensaires';
 import { DataEntries } from '../pages/DataEntries';
+import TestUserModal from '../pages/TestUserModal';
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/test-user-modal" element={<TestUserModal />} />
       <Route
         path="/dashboard"
         element={

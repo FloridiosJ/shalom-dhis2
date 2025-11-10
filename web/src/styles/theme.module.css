@@ -1,0 +1,52 @@
+/**
+ * Theme Module - Shared design tokens and styles
+ * Used across reusable form components
+ */
+
+/* Color Palette */
+.colorPrimary { color: #2563eb; }
+.colorSecondary { color: #64748b; }
+.colorSuccess { color: #22c55e; }
+.colorDanger { color: #ef4444; }
+.colorText { color: #1e293b; }
+.colorTextLight { color: #64748b; }
+
+/* Background Colors */
+.bgPrimary { background: #2563eb; }
+.bgLight { background: #f8fafc; }
+.bgDanger { background: #fef2f2; }
+.bgSuccess { background: #f0fdf4; }
+
+/* Spacing */
+.spacing-xs { gap: 4px; }
+.spacing-sm { gap: 8px; }
+.spacing-md { gap: 12px; }
+.spacing-lg { gap: 16px; }
+.spacing-xl { gap: 24px; }
+
+/* Border Radius */
+.radius-sm { border-radius: 6px; }
+.radius-md { border-radius: 8px; }
+.radius-lg { border-radius: 12px; }
+.radius-xl { border-radius: 16px; }
+
+/* Shadows */
+.shadow-sm { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+.shadow-md { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); }
+.shadow-lg { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); }
+
+/* Transitions */
+.transition-default {
+  transition: all 0.2s ease;
+}
+
+/* Focus Styles */
+.focusRing:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.focusRingDanger:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
