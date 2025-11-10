@@ -171,7 +171,7 @@ function addSection1_AsaFitoriana(doc, data, margin, pageWidth) {
   doc.fontSize(10)
     .font('Helvetica')
     .text(`· Isan'ny fotoam-bavaka tao amin'ny toeram-pitsaboana : ${data.section1?.prayerMeetings || 19}`)
-    .text(`· Isan'ny Hasila nitady fitsaboana tao : ${totalVisitors} (tsy Kristianina: ${nonChristianVisitors})`)
+    .text(`· Isan'ny Hasila nitady fitsaboana tao : ${totalVisitors}`)
     .moveDown(0.5);
   
   // Table: Births by zone and gender
