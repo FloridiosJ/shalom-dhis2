@@ -177,22 +177,61 @@ function addSection1_AsaFitoriana(doc, data, margin, pageWidth) {
 }
 
 /**
- * Draw births statistics table
+ * Draw births statistics table - Split into 2 tables as per requirements
  */
 function drawBirthsTable(doc, tableData, margin, pageWidth) {
   const startY = doc.y;
+  
+  // Define the 7 dispensaries in order
+  const allDispensaires = [
+    'Ampitsopitsoka',
+    'Boeny Aranta', 
+    'Ankelitaly',
+    'Ampanasina',
+    'Mananara',
+    'Onara',
+    'Andamonty'
+  ];
+  
+  // First table: First 4 dispensaries + Fitambarany
+  const table1Dispensaires = allDispensaires.slice(0, 4);
+  drawSingleBirthsTable(doc, tableData, margin, pageWidth, table1Dispensaires, true);
+  
+  // Add spacing between tables
+  doc.moveDown(1);
+  
+  // Second table: Last 3 dispensaries + Fitambarany
+  const table2Dispensaires = allDispensaires.slice(4, 7);
+  drawSingleBirthsTable(doc, tableData, margin, pageWidth, table2Dispensaires, false);
+  
+  doc.moveDown(0.5);
+}
+
+/**
+ * Draw a single births table with specified dispensaries
+ * @param {PDFDocument} doc - PDF document
+ * @param {Array} tableData - Table data with categories and zones
+ * @param {number} margin - Page margin
+ * @param {number} pageWidth - Page width
+ * @param {Array} dispensaires - List of dispensaries to include
+ * @param {boolean} isFirstTable - Whether this is the first table
+ */
+function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, isFirstTable) {
+  const startY = doc.y;
   const tableWidth = pageWidth - 2 * margin;
   
-  // Define columns
+  // Build columns array: First column + dispensaries + Fitambarany
   const cols = [
-    { header: 'Toerana :', width: 120 },
-    { header: 'Ampitsopitsoka', width: 60, subHeaders: ['Lahy', 'Vavy'] },
-    { header: 'Boeny Aranta', width: 60, subHeaders: ['Lahy', 'Vavy'] },
-    { header: 'Ankelitaly', width: 60, subHeaders: ['Lahy', 'Vavy'] },
-    { header: 'Ampanasina', width: 60, subHeaders: ['Lahy', 'Vavy'] },
-    { header: 'Mananara', width: 60, subHeaders: ['Lahy', 'Vavy'] },
-    { header: 'Fitambarany', width: 60, subHeaders: ['Lahy', 'Vavy'] }
+    { header: isFirstTable ? 'Toerana :' : '', width: 120 }
   ];
+  
+  // Add dispensary columns
+  dispensaires.forEach(disp => {
+    cols.push({ header: disp, width: 60, subHeaders: ['Lahy', 'Vavy'] });
+  });
+  
+  // Add Fitambarany column
+  cols.push({ header: 'Fitambarany', width: 60, subHeaders: ['Lahy', 'Vavy'] });
   
   // Calculate actual column widths to fit page
   const totalDesiredWidth = cols.reduce((sum, col) => sum + col.width, 0);
@@ -208,12 +247,14 @@ function drawBirthsTable(doc, tableData, margin, pageWidth) {
   // Main headers
   cols.forEach((col, idx) => {
     if (idx === 0) {
-      // First column - "Toerana"
+      // First column - "Toerana" (only show in first table)
       doc.rect(currentX, currentY, col.width, 40).stroke();
-      doc.text(col.header, currentX + 5, currentY + 15, {
-        width: col.width - 10,
-        align: 'left'
-      });
+      if (col.header) {
+        doc.text(col.header, currentX + 5, currentY + 15, {
+          width: col.width - 10,
+          align: 'left'
+        });
+      }
     } else {
       // Zone columns with sub-headers
       doc.rect(currentX, currentY, col.width, 20).stroke();
@@ -255,10 +296,19 @@ function drawBirthsTable(doc, tableData, margin, pageWidth) {
     });
     currentX += cols[0].width;
     
-    // Data columns
-    for (let i = 1; i < cols.length; i++) {
-      const subWidth = cols[i].width / 2;
-      const zoneData = row.zones[i - 1] || { male: 0, female: 0 };
+    // Calculate subtotals for this row's dispensaries
+    let rowMaleTotal = 0;
+    let rowFemaleTotal = 0;
+    
+    // Data columns for specified dispensaires
+    for (let i = 0; i < dispensaires.length; i++) {
+      const subWidth = cols[i + 1].width / 2;
+      // Find the zone data by dispensaire name
+      const zoneIndex = getZoneIndexByName(dispensaires[i]);
+      const zoneData = row.zones[zoneIndex] || { male: 0, female: 0 };
+      
+      rowMaleTotal += zoneData.male;
+      rowFemaleTotal += zoneData.female;
       
       // Male count
       doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
@@ -274,13 +324,47 @@ function drawBirthsTable(doc, tableData, margin, pageWidth) {
         align: 'center'
       });
       
-      currentX += cols[i].width;
+      currentX += cols[i + 1].width;
     }
+    
+    // Fitambarany column (subtotal for this subset of dispensaires)
+    const subWidth = cols[cols.length - 1].width / 2;
+    
+    // Male total
+    doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
+    doc.text(String(rowMaleTotal).padStart(2, '0'), currentX + 2, currentY + 5, {
+      width: subWidth - 4,
+      align: 'center'
+    });
+    
+    // Female total
+    doc.rect(currentX + subWidth, currentY, subWidth, rowHeight).stroke();
+    doc.text(String(rowFemaleTotal).padStart(2, '0'), currentX + subWidth + 2, currentY + 5, {
+      width: subWidth - 4,
+      align: 'center'
+    });
     
     currentY += rowHeight;
   });
   
-  doc.y = currentY + 10;
+  doc.y = currentY;
+}
+
+/**
+ * Get zone index by dispensaire name
+ * Maps dispensaire names to their index in the zones array
+ */
+function getZoneIndexByName(dispensaireName) {
+  const zoneMap = {
+    'Ampitsopitsoka': 0,
+    'Boeny Aranta': 1,
+    'Ankelitaly': 2,
+    'Ampanasina': 3,
+    'Mananara': 4,
+    'Onara': 5,
+    'Andamonty': 6
+  };
+  return zoneMap[dispensaireName] !== undefined ? zoneMap[dispensaireName] : 0;
 }
 
 /**
@@ -834,40 +918,44 @@ function getDefaultEventsData() {
 
 /**
  * Get default births data structure
+ * Returns data for all 7 standard dispensaries
  */
 function getDefaultBirthsData() {
   return [
     {
       category: 'Zaza (12 taona noho midina)',
       zones: [
-        { male: 8, female: 10 },
-        { male: 87, female: 124 },
-        { male: 5, female: 10 },
-        { male: 14, female: 8 },
-        { male: 6, female: 5 },
-        { male: 120, female: 157 }
+        { male: 0, female: 0 },  // Ampitsopitsoka
+        { male: 0, female: 0 },  // Boeny Aranta
+        { male: 0, female: 0 },  // Ankelitaly
+        { male: 0, female: 0 },  // Ampanasina
+        { male: 0, female: 0 },  // Mananara
+        { male: 0, female: 0 },  // Onara
+        { male: 0, female: 0 }   // Andamonty
       ]
     },
     {
       category: 'Tanora (13 taona - 30 taona)',
       zones: [
-        { male: 7, female: 6 },
-        { male: 11, female: 60 },
-        { male: 4, female: 5 },
-        { male: 13, female: 15 },
-        { male: 7, female: 4 },
-        { male: 42, female: 90 }
+        { male: 0, female: 0 },  // Ampitsopitsoka
+        { male: 0, female: 0 },  // Boeny Aranta
+        { male: 0, female: 0 },  // Ankelitaly
+        { male: 0, female: 0 },  // Ampanasina
+        { male: 0, female: 0 },  // Mananara
+        { male: 0, female: 0 },  // Onara
+        { male: 0, female: 0 }   // Andamonty
       ]
     },
     {
       category: 'Olon-dehibe maherin\'ny 30 taona',
       zones: [
-        { male: 8, female: 6 },
-        { male: 5, female: 0 },
-        { male: 2, female: 2 },
-        { male: 19, female: 10 },
-        { male: 5, female: 4 },
-        { male: 39, female: 22 }
+        { male: 0, female: 0 },  // Ampitsopitsoka
+        { male: 0, female: 0 },  // Boeny Aranta
+        { male: 0, female: 0 },  // Ankelitaly
+        { male: 0, female: 0 },  // Ampanasina
+        { male: 0, female: 0 },  // Mananara
+        { male: 0, female: 0 },  // Onara
+        { male: 0, female: 0 }   // Andamonty
       ]
     }
   ];
