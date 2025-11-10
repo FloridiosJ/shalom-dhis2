@@ -744,6 +744,26 @@ const reportsResolvers = {
           ]
         });
 
+        // Fetch events data for Section 5
+        const { Event } = await import('../../models/index.js');
+        const events = await Event.findAll({
+          where: {
+            isActive: true,
+            date: {
+              [Op.between]: [startDate, endDate]
+            },
+            ...(dispensaireId ? { dispensaireId } : {})
+          },
+          include: [
+            {
+              model: Dispensaire,
+              as: 'dispensaire',
+              attributes: ['name']
+            }
+          ],
+          order: [['date', 'ASC']]
+        });
+
         // Aggregate data for Section 1: Births by age group and zone
         const birthsData = aggregateBirthsByZone(consultations, zones);
 
@@ -756,6 +776,15 @@ const reportsResolvers = {
           zones
         );
 
+        // Aggregate data for Section 3: Education by zone
+        const educationData = aggregateEducationByZone(consultations, zones);
+
+        // Aggregate data for Section 4: Maternal health by zone
+        const maternalHealthData = aggregateMaternalHealthByZone(consultations, zones);
+
+        // Aggregate data for Section 5: Events by zone
+        const eventsData = aggregateEventsByZone(events, zones);
+
         // Section 1 statistics
         const section1Data = {
           prayerMeetings: 19, // This could be fetched from ActiviteSpirituelle table
@@ -767,11 +796,26 @@ const reportsResolvers = {
           diseasesByZone: medicalData
         };
 
+        const section3Data = {
+          educationByZone: educationData
+        };
+
+        const section4Data = {
+          maternalHealthByZone: maternalHealthData
+        };
+
+        const section5Data = {
+          eventsByZone: eventsData
+        };
+
         // Prepare report data
         const reportData = {
           zones: zones,
           section1: section1Data,
           section2: section2Data,
+          section3: section3Data,
+          section4: section4Data,
+          section5: section5Data,
           period: {
             quarter,
             year,
@@ -911,6 +955,127 @@ async function aggregateDiseasesByZone(DataEntry, CategorieMaladie, DataEntryCat
   diseaseData.sort((a, b) => b.zones[b.zones.length - 1] - a.zones[a.zones.length - 1]);
 
   return diseaseData;
+}
+
+/**
+ * Aggregate education data by zone
+ * For now, uses default/mock data since there's no specific education tracking
+ * TODO: Implement actual education tracking in consultations
+ */
+function aggregateEducationByZone(consultations, zones) {
+  // Education categories to track
+  const educationCategories = [
+    { category: 'Fanambeazan a aizana tsy maharitra', keywords: ['éducation', 'sensibilisation', 'formation courte'] },
+    { category: 'Fanambeazan a aizana maharitra', keywords: ['formation', 'éducation longue', 'formation continue'] }
+  ];
+
+  return educationCategories.map(eduCategory => {
+    const zoneData = zones.map(zoneName => {
+      // Filter consultations for this zone that might be related to education
+      const zoneConsultations = consultations.filter(c => 
+        c.dispensaire?.name === zoneName &&
+        eduCategory.keywords.some(keyword => 
+          c.diagnostic?.toLowerCase().includes(keyword) ||
+          c.notes?.toLowerCase().includes(keyword)
+        )
+      );
+
+      const male = zoneConsultations.filter(c => c.patient?.sexe === 'M').length;
+      const female = zoneConsultations.filter(c => c.patient?.sexe === 'F').length;
+
+      return { male, female };
+    });
+
+    // Add total column
+    const totalMale = zoneData.reduce((sum, z) => sum + z.male, 0);
+    const totalFemale = zoneData.reduce((sum, z) => sum + z.female, 0);
+    zoneData.push({ male: totalMale, female: totalFemale });
+
+    return {
+      category: eduCategory.category,
+      zones: zoneData
+    };
+  });
+}
+
+/**
+ * Aggregate maternal health data by zone
+ * Tracks pregnancy-related consultations and deliveries
+ */
+function aggregateMaternalHealthByZone(consultations, zones) {
+  const maternalCategories = [
+    { 
+      category: 'Femme ayant passée à la CPN',
+      keywords: ['cpn', 'consultation prénatale', 'prénatal', 'grossesse', 'enceinte']
+    },
+    { 
+      category: 'Femme enceintes ayant fait le Test VIH',
+      keywords: ['vih', 'test vih', 'dépistage vih']
+    },
+    { 
+      category: 'Femme enceintes ayant fait le Test serologique',
+      keywords: ['sérologie', 'test sérologique', 'serologique']
+    },
+    { 
+      category: 'Accouchements',
+      keywords: ['accouchement', 'naissance', 'délivrance', 'post-partum']
+    }
+  ];
+
+  return maternalCategories.map(category => {
+    const zoneData = zones.map(zoneName => {
+      return consultations.filter(c => 
+        c.dispensaire?.name === zoneName &&
+        c.patient?.sexe === 'F' &&
+        category.keywords.some(keyword => 
+          c.diagnostic?.toLowerCase().includes(keyword) ||
+          c.notes?.toLowerCase().includes(keyword) ||
+          c.typeConsultation?.toLowerCase().includes(keyword)
+        )
+      ).length;
+    });
+
+    // Add total column
+    const total = zoneData.reduce((sum, count) => sum + count, 0);
+    zoneData.push(total);
+
+    return {
+      category: category.category,
+      zones: zoneData
+    };
+  });
+}
+
+/**
+ * Aggregate events/animations by zone
+ */
+function aggregateEventsByZone(events, zones) {
+  const eventsByZone = zones.map(zoneName => {
+    const zoneEvents = events.filter(e => e.dispensaire?.name === zoneName);
+
+    const formattedEvents = zoneEvents.map(event => {
+      const eventDate = new Date(event.date);
+      const formattedDate = eventDate.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+
+      return {
+        theme: event.type_event || 'Non spécifié',
+        participants: event.nombreParticipants || 0,
+        location: event.lieu || `CSB ${zoneName}`,
+        date: formattedDate
+      };
+    });
+
+    return {
+      zone: zoneName,
+      events: formattedEvents
+    };
+  });
+
+  return eventsByZone;
 }
 
 export default reportsResolvers;

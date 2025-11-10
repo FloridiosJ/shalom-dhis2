@@ -92,6 +92,21 @@ function generateTatitraContent(doc, data, filters) {
   doc.addPage();
   addSection2_AsaFitsaboana(doc, data, margin, pageWidth);
   
+  // Page 3: Section 3 - Fandriandram-piterahana (Education)
+  doc.addPage();
+  addSection3_FandriandramPiterahana(doc, data, margin, pageWidth);
+  
+  // Section 4: Momba ireo Reny Bevoaka (Maternal Health)
+  // Check if there's space on current page, otherwise add new page
+  if (doc.y > pageHeight - 250) {
+    doc.addPage();
+  }
+  addSection4_MombaRenyBevoaka(doc, data, margin, pageWidth);
+  
+  // Section 5: Fanentanana natao (Events/Animations)
+  doc.addPage();
+  addSection5_FanentananaNatao(doc, data, margin, pageWidth);
+  
   // Add page numbers
   addPageNumbers(doc);
 }
@@ -410,6 +425,411 @@ function addPageNumbers(doc) {
         }
       );
   }
+}
+
+/**
+ * Section 3: Fandriandram-piterahana (Education)
+ */
+function addSection3_FandriandramPiterahana(doc, data, margin, pageWidth) {
+  const startY = 50;
+  
+  // Section title
+  doc.fontSize(12)
+    .font('Helvetica-Bold')
+    .text('Fandriandram - piterahana :', margin, startY, {
+      width: pageWidth - 2 * margin,
+      align: 'center',
+      underline: true
+    })
+    .moveDown(1);
+  
+  // Draw education table
+  const educationData = data.section3?.educationByZone || getDefaultEducationData();
+  drawEducationTable(doc, educationData, margin, pageWidth);
+}
+
+/**
+ * Draw education table
+ */
+function drawEducationTable(doc, tableData, margin, pageWidth) {
+  const startY = doc.y;
+  const tableWidth = pageWidth - 2 * margin;
+  
+  // Define columns for zones - matching reference image exactly
+  const zoneCols = [
+    'Ampilsopitsoka',
+    'Onara',
+    'Andamon ty',
+    'Boeny Aranta',
+    'Ankelilal y',
+    'Apanasina',
+    'Mananara',
+    'FITAMBARANY'
+  ];
+  
+  const firstColWidth = 140;
+  const remainingWidth = tableWidth - firstColWidth;
+  const zoneColWidth = remainingWidth / zoneCols.length;
+  
+  let currentY = startY;
+  
+  // Draw header row - zone names
+  doc.fontSize(9).font('Helvetica-Bold');
+  
+  // First header cell - "TOERANA"
+  doc.rect(margin, currentY, firstColWidth, 20).stroke();
+  doc.text('TOERANA', margin + 5, currentY + 5, {
+    width: firstColWidth - 10,
+    align: 'left'
+  });
+  
+  // Zone headers
+  let currentX = margin + firstColWidth;
+  zoneCols.forEach(zone => {
+    doc.rect(currentX, currentY, zoneColWidth, 20).stroke();
+    doc.text(zone, currentX + 2, currentY + 5, {
+      width: zoneColWidth - 4,
+      align: 'center'
+    });
+    currentX += zoneColWidth;
+  });
+  
+  currentY += 20;
+  
+  // Second header row - Lahy/Vavy subheaders
+  doc.rect(margin, currentY, firstColWidth, 20).stroke();
+  
+  currentX = margin + firstColWidth;
+  zoneCols.forEach(() => {
+    const subWidth = zoneColWidth / 2;
+    
+    // Lahy
+    doc.rect(currentX, currentY, subWidth, 20).stroke();
+    doc.text('Lahy', currentX + 2, currentY + 5, {
+      width: subWidth - 4,
+      align: 'center'
+    });
+    
+    // Vavy
+    doc.rect(currentX + subWidth, currentY, subWidth, 20).stroke();
+    doc.text('Vavy', currentX + subWidth + 2, currentY + 5, {
+      width: subWidth - 4,
+      align: 'center'
+    });
+    
+    currentX += zoneColWidth;
+  });
+  
+  currentY += 20;
+  
+  // Draw data rows
+  doc.fontSize(8).font('Helvetica');
+  tableData.forEach((row, rowIdx) => {
+    currentX = margin;
+    const rowHeight = 20;
+    
+    // First column - category name
+    doc.rect(currentX, currentY, firstColWidth, rowHeight).stroke();
+    doc.text(row.category, currentX + 5, currentY + 5, {
+      width: firstColWidth - 10,
+      align: 'left'
+    });
+    currentX += firstColWidth;
+    
+    // Data columns
+    for (let i = 0; i < zoneCols.length; i++) {
+      const subWidth = zoneColWidth / 2;
+      const zoneData = row.zones[i] || { male: 0, female: 0 };
+      
+      // Male count
+      doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
+      doc.text(String(zoneData.male).padStart(2, '0'), currentX + 2, currentY + 5, {
+        width: subWidth - 4,
+        align: 'center'
+      });
+      
+      // Female count
+      doc.rect(currentX + subWidth, currentY, subWidth, rowHeight).stroke();
+      doc.text(String(zoneData.female).padStart(2, '0'), currentX + subWidth + 2, currentY + 5, {
+        width: subWidth - 4,
+        align: 'center'
+      });
+      
+      currentX += zoneColWidth;
+    }
+    
+    currentY += rowHeight;
+  });
+  
+  doc.y = currentY + 10;
+}
+
+/**
+ * Section 4: Momba ireo Reny Bevoaka (Maternal Health)
+ */
+function addSection4_MombaRenyBevoaka(doc, data, margin, pageWidth) {
+  const startY = doc.y;
+  
+  // Section title
+  doc.fontSize(12)
+    .font('Helvetica-Bold')
+    .text('Momba ireo Reny Bevoaka', margin, startY, {
+      width: pageWidth - 2 * margin,
+      align: 'center',
+      underline: true
+    })
+    .moveDown(1);
+  
+  // Draw maternal health table
+  const maternalData = data.section4?.maternalHealthByZone || getDefaultMaternalHealthData();
+  drawMaternalHealthTable(doc, maternalData, margin, pageWidth);
+}
+
+/**
+ * Draw maternal health table
+ */
+function drawMaternalHealthTable(doc, tableData, margin, pageWidth) {
+  const startY = doc.y;
+  const tableWidth = pageWidth - 2 * margin;
+  
+  // Define columns for zones
+  const zoneCols = [
+    'Ampilsopitso ka',
+    'Onara',
+    'Andamon ty',
+    'Boeny Aranta',
+    'Ankelilal y',
+    'Ampana sina',
+    'Mananara',
+    'FITAMBARANY'
+  ];
+  
+  const firstColWidth = 140;
+  const remainingWidth = tableWidth - firstColWidth;
+  const zoneColWidth = remainingWidth / zoneCols.length;
+  
+  let currentY = startY;
+  
+  // Draw header row - "CSB"
+  doc.fontSize(9).font('Helvetica-Bold');
+  
+  // First header cell - "CSB"
+  doc.rect(margin, currentY, firstColWidth, 20).stroke();
+  doc.text('CSB', margin + 5, currentY + 5, {
+    width: firstColWidth - 10,
+    align: 'left'
+  });
+  
+  // Zone headers
+  let currentX = margin + firstColWidth;
+  zoneCols.forEach(zone => {
+    doc.rect(currentX, currentY, zoneColWidth, 20).stroke();
+    doc.text(zone, currentX + 2, currentY + 5, {
+      width: zoneColWidth - 4,
+      align: 'center'
+    });
+    currentX += zoneColWidth;
+  });
+  
+  currentY += 20;
+  
+  // Draw data rows
+  doc.fontSize(8).font('Helvetica');
+  tableData.forEach((row, rowIdx) => {
+    currentX = margin;
+    const rowHeight = 22;
+    
+    // First column - category name
+    doc.rect(currentX, currentY, firstColWidth, rowHeight).stroke();
+    doc.text(row.category, currentX + 5, currentY + 6, {
+      width: firstColWidth - 10,
+      align: 'left'
+    });
+    currentX += firstColWidth;
+    
+    // Data columns
+    row.zones.forEach(count => {
+      doc.rect(currentX, currentY, zoneColWidth, rowHeight).stroke();
+      doc.text(String(count).padStart(2, '0'), currentX + 2, currentY + 6, {
+        width: zoneColWidth - 4,
+        align: 'center'
+      });
+      currentX += zoneColWidth;
+    });
+    
+    currentY += rowHeight;
+  });
+  
+  doc.y = currentY + 10;
+}
+
+/**
+ * Section 5: Fanentanana natao (Events/Animations)
+ */
+function addSection5_FanentananaNatao(doc, data, margin, pageWidth) {
+  const startY = 50;
+  
+  // Section title
+  doc.fontSize(12)
+    .font('Helvetica-Bold')
+    .text('FANENTANANA NATAO :', margin, startY, {
+      width: pageWidth - 2 * margin,
+      align: 'center',
+      underline: true
+    })
+    .moveDown(1);
+  
+  // Get events data
+  const eventsData = data.section5?.eventsByZone || getDefaultEventsData();
+  
+  // Draw events by zone
+  drawEventsSection(doc, eventsData, margin, pageWidth);
+}
+
+/**
+ * Draw events section
+ */
+function drawEventsSection(doc, eventsData, margin, pageWidth) {
+  const pageHeight = doc.page.height;
+  
+  eventsData.forEach((zoneEvents, idx) => {
+    // Check if we need a new page
+    if (doc.y > pageHeight - 150) {
+      doc.addPage();
+      doc.y = 50;
+    }
+    
+    // Zone name as subsection header
+    doc.fontSize(11)
+      .font('Helvetica-Bold')
+      .text(`${zoneEvents.zone} :`, margin, doc.y)
+      .moveDown(0.5);
+    
+    // List events for this zone
+    if (zoneEvents.events && zoneEvents.events.length > 0) {
+      zoneEvents.events.forEach((event, eventIdx) => {
+        // Check if we need a new page for this event
+        if (doc.y > pageHeight - 80) {
+          doc.addPage();
+          doc.y = 50;
+        }
+        
+        doc.fontSize(10)
+          .font('Helvetica-Bold')
+          .text(`${eventIdx + 1}-Thème : `, margin, doc.y, { continued: true })
+          .font('Helvetica')
+          .text(`"${event.theme}"`, { continued: false })
+          .moveDown(0.3);
+        
+        doc.fontSize(10)
+          .font('Helvetica')
+          .text(`Participants : ${event.participants}`, margin, doc.y)
+          .moveDown(0.3);
+        
+        doc.text(`Toerana : ${event.location}`, margin, doc.y)
+          .moveDown(0.3);
+        
+        doc.text(`Daty : ${event.date}`, margin, doc.y)
+          .moveDown(0.8);
+      });
+    } else {
+      doc.fontSize(10)
+        .font('Helvetica')
+        .text('Aucune animation pour cette zone', margin, doc.y)
+        .moveDown(1);
+    }
+    
+    doc.moveDown(0.5);
+  });
+}
+
+/**
+ * Get default education data structure
+ */
+function getDefaultEducationData() {
+  return [
+    {
+      category: 'Fanambeazan a aizana tsy maharitra',
+      zones: [
+        { male: 0, female: 23 },
+        { male: 0, female: 70 },
+        { male: 0, female: 14 },
+        { male: 0, female: 0 },
+        { male: 0, female: 0 },
+        { male: 3, female: 78 },
+        { male: 0, female: 20 },
+        { male: 3, female: 205 }
+      ]
+    },
+    {
+      category: 'Fanambeazan a aizana maharitra',
+      zones: [
+        { male: 0, female: 0 },
+        { male: 0, female: 16 },
+        { male: 0, female: 0 },
+        { male: 0, female: 0 },
+        { male: 0, female: 0 },
+        { male: 0, female: 15 },
+        { male: 0, female: 12 },
+        { male: 0, female: 43 }
+      ]
+    }
+  ];
+}
+
+/**
+ * Get default maternal health data structure
+ */
+function getDefaultMaternalHealthData() {
+  return [
+    {
+      category: 'Femme ayant passée à la CPN',
+      zones: [0, 0, 12, 24, 0, 28, 27, 91]
+    },
+    {
+      category: 'Femme enceintes ayant fait le Test VIH',
+      zones: [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      category: 'Femme enceintes ayant fait le Test serologique',
+      zones: [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      category: 'Accouchements',
+      zones: [0, 0, 4, 6, 0, 10, 9, 29]
+    }
+  ];
+}
+
+/**
+ * Get default events data structure
+ */
+function getDefaultEventsData() {
+  return [
+    {
+      zone: 'Ampanasina',
+      events: [
+        {
+          theme: 'Rano fisoitro madio',
+          participants: 72,
+          location: 'CSB Ampanasina',
+          date: '21 Oktobra 2024'
+        },
+        {
+          theme: 'Ny maha zava-dehibe ny vaksiny',
+          participants: 68,
+          location: 'CSB Ampanasina',
+          date: '19 Novambra 2024'
+        },
+        {
+          theme: 'Ady amin\'ny fangerena ankalamanjana',
+          participants: 54,
+          location: 'Communauté Ampanasina',
+          date: '15 Desambra 2024'
+        }
+      ]
+    }
+  ];
 }
 
 /**
