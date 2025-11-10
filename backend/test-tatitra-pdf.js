@@ -14,6 +14,7 @@ async function testTatitraPDF() {
     section1: {
       prayerMeetings: 19,
       visitorsReceived: 470,
+      nonChristianVisitors: 85, // Test non-Christian count
       birthsByZone: [
         {
           category: 'Zaza (12 taona noho midina)',
@@ -51,15 +52,29 @@ async function testTatitraPDF() {
             { male: 0, female: 0 }    // Andamonty
           ]
         }
-      ]
+      ],
+      nonChristiansByZone: {
+        category: 'Tsy Kristianina (Non-chrétiens)',
+        zones: [
+          { male: 5, female: 8 },   // Ampitsopitsoka
+          { male: 3, female: 7 },   // Boeny Aranta
+          { male: 12, female: 15 }, // Ankelitaly
+          { male: 4, female: 6 },   // Ampanasina
+          { male: 2, female: 3 },   // Mananara
+          { male: 6, female: 9 },   // Onara
+          { male: 3, female: 2 }    // Andamonty
+        ]
+      }
     },
     section2: {
       diseasesByZone: [
         { disease: 'Consultants', zones: [32, 100, 43, 267, 33, 206, 124, 805], isSubcategory: false },
         { disease: 'Consultation', zones: [48, 148, 91, 278, 38, 219, 152, 974], isSubcategory: false },
-        { disease: 'Hypertention', zones: [2, 0, 2, 0, 1, 13, 8, 26], isSubcategory: true },
-        { disease: 'Affections cutanées', zones: [6, 0, 1, 1, 2, 0, 1, 11], isSubcategory: false },
-        { disease: 'Diarrhées (Di) sans déshydratation', zones: [4, 0, 5, 3, 0, 5, 3, 20], isSubcategory: true }
+        { disease: 'Hypertention artérielle essentielle non spécifiée', zones: [2, 0, 2, 0, 1, 13, 8, 26], isSubcategory: true },
+        { disease: 'Affections cutanées et du tissu sous-cutané', zones: [6, 0, 1, 1, 2, 0, 1, 11], isSubcategory: false },
+        { disease: 'Diarrhées (Di) sans déshydratation avec complications', zones: [4, 0, 5, 3, 0, 5, 3, 20], isSubcategory: true },
+        { disease: 'Infections respiratoires aigües des voies supérieures', zones: [8, 12, 6, 15, 4, 18, 9, 72], isSubcategory: false },
+        { disease: 'Paludisme à Plasmodium falciparum sans complication', zones: [15, 25, 18, 32, 12, 28, 20, 150], isSubcategory: false }
       ]
     },
     section3: {

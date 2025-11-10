@@ -165,14 +165,24 @@ function addSection1_AsaFitoriana(doc, data, margin, pageWidth) {
     .moveDown(0.5);
   
   // Statistics
+  const totalVisitors = data.section1?.visitorsReceived || 470;
+  const nonChristianVisitors = data.section1?.nonChristianVisitors || 0;
+  
   doc.fontSize(10)
     .font('Helvetica')
     .text(`· Isan'ny fotoam-bavaka tao amin'ny toeram-pitsaboana : ${data.section1?.prayerMeetings || 19}`)
-    .text(`· Isan'ny Hasila nitady fitsaboana tao : ${data.section1?.visitorsReceived || 470}`)
+    .text(`· Isan'ny Hasila nitady fitsaboana tao : ${totalVisitors} (tsy Kristianina: ${nonChristianVisitors})`)
     .moveDown(0.5);
   
   // Table: Births by zone and gender
   const tableData = data.section1?.birthsByZone || getDefaultBirthsData();
+  const nonChristianData = data.section1?.nonChristiansByZone;
+  
+  // Add non-Christian row if data exists
+  if (nonChristianData) {
+    tableData.push(nonChristianData);
+  }
+  
   drawBirthsTable(doc, tableData, margin, pageWidth);
 }
 
@@ -220,9 +230,23 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
   const startY = doc.y;
   const tableWidth = pageWidth - 2 * margin;
   
+  // Calculate dynamic width for category column
+  doc.fontSize(8).font('Helvetica');
+  let maxCategoryWidth = 120; // Minimum width
+  tableData.forEach(row => {
+    const textWidth = doc.widthOfString(row.category);
+    const requiredWidth = textWidth + 15; // Add padding
+    if (requiredWidth > maxCategoryWidth) {
+      maxCategoryWidth = requiredWidth;
+    }
+  });
+  
+  // Cap the maximum width
+  const firstColWidth = Math.min(maxCategoryWidth, tableWidth * 0.3);
+  
   // Build columns array: First column + dispensaries + Fitambarany
   const cols = [
-    { header: isFirstTable ? 'Toerana :' : '', width: 120 }
+    { header: isFirstTable ? 'Toerana :' : '', width: firstColWidth }
   ];
   
   // Add dispensary columns
@@ -296,9 +320,13 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
     });
     currentX += cols[0].width;
     
-    // Calculate subtotals for this row's dispensaries
+    // Calculate TOTAL across ALL zones for Fitambarany column
     let rowMaleTotal = 0;
     let rowFemaleTotal = 0;
+    row.zones.forEach(zoneData => {
+      rowMaleTotal += zoneData.male || 0;
+      rowFemaleTotal += zoneData.female || 0;
+    });
     
     // Data columns for specified dispensaires
     for (let i = 0; i < dispensaires.length; i++) {
@@ -306,9 +334,6 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
       // Find the zone data by dispensaire name
       const zoneIndex = getZoneIndexByName(dispensaires[i]);
       const zoneData = row.zones[zoneIndex] || { male: 0, female: 0 };
-      
-      rowMaleTotal += zoneData.male;
-      rowFemaleTotal += zoneData.female;
       
       // Male count
       doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
@@ -327,7 +352,7 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
       currentX += cols[i + 1].width;
     }
     
-    // Fitambarany column (subtotal for this subset of dispensaires)
+    // Fitambarany column (total across ALL dispensaires, not just this table's subset)
     const subWidth = cols[cols.length - 1].width / 2;
     
     // Male total
@@ -391,7 +416,7 @@ function addSection2_AsaFitsaboana(doc, data, margin, pageWidth) {
 }
 
 /**
- * Draw medical consultations table
+ * Draw medical consultations table with dynamic column sizing
  */
 function drawMedicalTable(doc, tableData, margin, pageWidth) {
   const startY = doc.y;
@@ -409,7 +434,22 @@ function drawMedicalTable(doc, tableData, margin, pageWidth) {
     'FITAM BARANY'
   ];
   
-  const firstColWidth = 140;
+  // Calculate required width for disease names (first column)
+  // Set font for measuring text width
+  doc.fontSize(8).font('Helvetica');
+  
+  let maxDiseaseWidth = 140; // Minimum width
+  tableData.forEach(row => {
+    const textWidth = doc.widthOfString(row.disease);
+    const requiredWidth = textWidth + (row.isSubcategory ? 25 : 15); // Add padding and indent
+    if (requiredWidth > maxDiseaseWidth) {
+      maxDiseaseWidth = requiredWidth;
+    }
+  });
+  
+  // Cap the maximum width to ensure zone columns are visible
+  const maxFirstColWidth = Math.min(maxDiseaseWidth, tableWidth * 0.4); // Max 40% of table width
+  const firstColWidth = maxFirstColWidth;
   const remainingWidth = tableWidth - firstColWidth;
   const zoneColWidth = remainingWidth / zoneCols.length;
   
@@ -456,13 +496,22 @@ function drawMedicalTable(doc, tableData, margin, pageWidth) {
   // Draw data rows
   doc.fontSize(8).font('Helvetica');
   tableData.forEach((row, rowIdx) => {
-    const rowHeight = row.isSubcategory ? 18 : 20;
+    // Calculate row height dynamically based on text wrapping
+    const textX = margin + (row.isSubcategory ? 15 : 5);
+    const availableWidth = firstColWidth - (row.isSubcategory ? 20 : 10);
+    
+    // Measure height needed for the disease name with wrapping
+    const textHeight = doc.heightOfString(row.disease, {
+      width: availableWidth,
+      align: 'left'
+    });
+    
+    const rowHeight = Math.max(row.isSubcategory ? 18 : 20, textHeight + 10);
     
     // Disease name
     doc.rect(margin, currentY, firstColWidth, rowHeight).stroke();
-    const textX = margin + (row.isSubcategory ? 15 : 5);
     doc.text(row.disease, textX, currentY + 5, {
-      width: firstColWidth - (row.isSubcategory ? 20 : 10),
+      width: availableWidth,
       align: 'left'
     });
     
