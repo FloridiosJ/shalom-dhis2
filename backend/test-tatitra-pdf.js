@@ -67,9 +67,17 @@ async function testTatitraPDF() {
       }
     },
     section2: {
+      consultantsByZone: [
+        { consultants: 32, consultations: 48 },   // Ampitsopitsoka
+        { consultants: 100, consultations: 148 }, // Boeny Aranta
+        { consultants: 43, consultations: 91 },   // Ankelitaly
+        { consultants: 267, consultations: 278 }, // Ampanasina
+        { consultants: 33, consultations: 38 },   // Mananara
+        { consultants: 206, consultations: 219 }, // Onara
+        { consultants: 124, consultations: 152 }, // Andamonty
+        { consultants: 805, consultations: 974 }  // Total
+      ],
       diseasesByZone: [
-        { disease: 'Consultants', zones: [32, 100, 43, 267, 33, 206, 124, 805], isSubcategory: false },
-        { disease: 'Consultation', zones: [48, 148, 91, 278, 38, 219, 152, 974], isSubcategory: false },
         { disease: 'Hypertention artérielle essentielle non spécifiée', zones: [2, 0, 2, 0, 1, 13, 8, 26], isSubcategory: true },
         { disease: 'Affections cutanées et du tissu sous-cutané', zones: [6, 0, 1, 1, 2, 0, 1, 11], isSubcategory: false },
         { disease: 'Diarrhées (Di) sans déshydratation avec complications', zones: [4, 0, 5, 3, 0, 5, 3, 20], isSubcategory: true },
