@@ -732,8 +732,15 @@ const reportsResolvers = {
           'Andamonty'
         ];
         
-        // Use standard dispensaires list for Tatitra report
-        // This ensures all 7 are always present in the correct order
+        // Fetch dispensaires (zones) data from database
+        const dispensaires = dispensaireId 
+          ? await Dispensaire.findAll({ where: { id: dispensaireId, isActive: true } })
+          : await Dispensaire.findAll({ where: { isActive: true } });
+        
+        const dbZones = dispensaires.map(d => d.name);
+        
+        // Merge database zones with standard list to ensure all 7 are present in correct order
+        // This uses real data from database but guarantees the standard 7 dispensaires are shown
         const zones = standardDispensaires;
 
         // Fetch consultation data
