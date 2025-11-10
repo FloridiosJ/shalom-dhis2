@@ -235,6 +235,30 @@ async function exportReport(format, filters) {
   return handleGraphQLErrors(response).exportReport;
 }
 
+/**
+ * Exporte le rapport trimestriel Tatitra
+ */
+async function exportTatitraReport(quarter, year, dispensaireId = null) {
+  const query = `
+    mutation ExportTatitraReport($quarter: String!, $year: Int!, $dispensaireId: ID) {
+      exportTatitraReport(quarter: $quarter, year: $year, dispensaireId: $dispensaireId) {
+        success
+        message
+        url
+        fileName
+      }
+    }
+  `;
+  
+  const variables = { 
+    quarter, 
+    year,
+    ...(dispensaireId && dispensaireId !== 'all' && { dispensaireId })
+  };
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).exportTatitraReport;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -242,5 +266,6 @@ export default {
   getTopMedications,
   getConsultationsEvolution,
   getStatsByDispensaire,
-  exportReport
+  exportReport,
+  exportTatitraReport
 };

@@ -1058,6 +1058,13 @@ type Mutation {
     format: String!
     filters: ReportFiltersInput!
   ): ExportResult!
+  
+  # Export quarterly Tatitra report for CSB Loterana
+  exportTatitraReport(
+    quarter: String!
+    year: Int!
+    dispensaireId: ID
+  ): ExportResult!
 }
 
 # ✅ AJOUTER ces types manquants pour les statistiques de consultation
