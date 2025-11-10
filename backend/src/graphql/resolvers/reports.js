@@ -750,7 +750,7 @@ const reportsResolvers = {
             {
               model: Patient,
               as: 'patient',
-              attributes: ['age', 'sexe']
+              attributes: ['age', 'sexe', 'religion']
             },
             {
               model: Dispensaire,
@@ -782,6 +782,9 @@ const reportsResolvers = {
 
         // Aggregate data for Section 1: Births by age group and zone
         const birthsData = aggregateBirthsByZone(consultations, zones);
+        
+        // Aggregate non-Christian consultations by zone and gender
+        const nonChristianData = aggregateNonChristianByZone(consultations, zones);
 
         // Aggregate data for Section 2: Diseases by zone
         const medicalData = await aggregateDiseasesByZone(
@@ -801,11 +804,18 @@ const reportsResolvers = {
         // Aggregate data for Section 5: Events by zone
         const eventsData = aggregateEventsByZone(events, zones);
 
+        // Count non-Christian consultations for header total
+        const nonChristianCount = consultations.filter(c => 
+          c.patient?.religion && c.patient.religion !== 'Kristianina'
+        ).length;
+
         // Section 1 statistics
         const section1Data = {
           prayerMeetings: 19, // This could be fetched from ActiviteSpirituelle table
           visitorsReceived: consultations.length,
-          birthsByZone: birthsData
+          nonChristianVisitors: nonChristianCount,
+          birthsByZone: birthsData,
+          nonChristiansByZone: nonChristianData
         };
 
         const section2Data = {
@@ -904,6 +914,30 @@ function aggregateBirthsByZone(consultations, zones) {
       zones: zoneData
     };
   });
+}
+
+/**
+ * Aggregate non-Christian consultations by zone and gender
+ * Returns counts of patients where religion != 'Kristianina'
+ */
+function aggregateNonChristianByZone(consultations, zones) {
+  const zoneData = zones.map(zoneName => {
+    const zoneConsultations = consultations.filter(c => 
+      c.dispensaire?.name === zoneName &&
+      c.patient?.religion && 
+      c.patient.religion !== 'Kristianina'
+    );
+
+    const male = zoneConsultations.filter(c => c.patient?.sexe === 'M').length;
+    const female = zoneConsultations.filter(c => c.patient?.sexe === 'F').length;
+
+    return { male, female };
+  });
+
+  return {
+    category: 'Tsy Kristianina (Non-chrétiens)',
+    zones: zoneData
+  };
 }
 
 /**
