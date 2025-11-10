@@ -22,3 +22,11 @@ build/
 *.pid
 *.seed
 docker-compose.override.yml
+
+# Exports (generated files)
+backend/exports/*.pdf
+backend/exports/*.csv
+backend/exports/*.xlsx
+
+# Test scripts
+backend/test-tatitra-pdf.js
