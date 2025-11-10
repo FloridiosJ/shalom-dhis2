@@ -244,7 +244,7 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
   // Cap the maximum width
   const firstColWidth = Math.min(maxCategoryWidth, tableWidth * 0.3);
   
-  // Build columns array: First column + dispensaries + Fitambarany
+  // Build columns array: First column + dispensaries + Fitambarany (only for second table)
   const cols = [
     { header: isFirstTable ? 'Toerana :' : '', width: firstColWidth }
   ];
@@ -254,8 +254,10 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
     cols.push({ header: disp, width: 60, subHeaders: ['Lahy', 'Vavy'] });
   });
   
-  // Add Fitambarany column
-  cols.push({ header: 'Fitambarany', width: 60, subHeaders: ['Lahy', 'Vavy'] });
+  // Add Fitambarany column only for the second table
+  if (!isFirstTable) {
+    cols.push({ header: 'Fitambarany', width: 60, subHeaders: ['Lahy', 'Vavy'] });
+  }
   
   // Calculate actual column widths to fit page
   const totalDesiredWidth = cols.reduce((sum, col) => sum + col.width, 0);
@@ -352,22 +354,24 @@ function drawSingleBirthsTable(doc, tableData, margin, pageWidth, dispensaires, 
       currentX += cols[i + 1].width;
     }
     
-    // Fitambarany column (total across ALL dispensaires, not just this table's subset)
-    const subWidth = cols[cols.length - 1].width / 2;
-    
-    // Male total
-    doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
-    doc.text(String(rowMaleTotal).padStart(2, '0'), currentX + 2, currentY + 5, {
-      width: subWidth - 4,
-      align: 'center'
-    });
-    
-    // Female total
-    doc.rect(currentX + subWidth, currentY, subWidth, rowHeight).stroke();
-    doc.text(String(rowFemaleTotal).padStart(2, '0'), currentX + subWidth + 2, currentY + 5, {
-      width: subWidth - 4,
-      align: 'center'
-    });
+    // Fitambarany column (total across ALL dispensaires) - only for second table
+    if (!isFirstTable) {
+      const subWidth = cols[cols.length - 1].width / 2;
+      
+      // Male total
+      doc.rect(currentX, currentY, subWidth, rowHeight).stroke();
+      doc.text(String(rowMaleTotal).padStart(2, '0'), currentX + 2, currentY + 5, {
+        width: subWidth - 4,
+        align: 'center'
+      });
+      
+      // Female total
+      doc.rect(currentX + subWidth, currentY, subWidth, rowHeight).stroke();
+      doc.text(String(rowFemaleTotal).padStart(2, '0'), currentX + subWidth + 2, currentY + 5, {
+        width: subWidth - 4,
+        align: 'center'
+      });
+    }
     
     currentY += rowHeight;
   });
