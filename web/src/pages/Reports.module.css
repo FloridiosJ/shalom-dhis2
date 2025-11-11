@@ -78,65 +78,6 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.exportButtons {
-  margin-left: auto;
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.exportBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  white-space: nowrap;
-}
-
-.exportBtn:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.exportBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.exportBtnTatitra {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  white-space: nowrap;
-}
-
-.exportBtnTatitra:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-}
-
-.exportBtnTatitra:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* KPI Stats Grid */
 .statsGrid {
   display: grid;
@@ -280,16 +221,6 @@
   .select,
   .input {
     width: 100%;
-  }
-
-  .exportButtons {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .exportBtn {
-    flex: 1;
-    justify-content: center;
   }
 
   .statsGrid {
