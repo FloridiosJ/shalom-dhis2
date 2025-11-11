@@ -1037,6 +1037,17 @@ type Mutation {
   createActiviteSpirituelle(input: CreateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   updateActiviteSpirituelle(id: ID!, input: UpdateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   deleteActiviteSpirituelle(id: ID!):ActiviteSprituelleResponse!
+
+  # Tatitra Report Export
+  exportTatitraReport(quarter: String!, year: Int!, dispensaireId: ID): ExportResult!
+}
+
+# Export result type for Tatitra reports
+type ExportResult {
+  success: Boolean!
+  message: String!
+  url: String
+  fileName: String
 }
 
 # ✅ AJOUTER ces types manquants pour les statistiques de consultation

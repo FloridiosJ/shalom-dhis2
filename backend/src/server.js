@@ -31,6 +31,27 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Download endpoint for exported files
+app.get('/download/:filename', (req, res) => {
+  const { filename } = req.params;
+  const exportsDir = join(__dirname, '..', 'exports');
+  const filePath = join(exportsDir, filename);
+  
+  // Security: Prevent directory traversal
+  if (!filePath.startsWith(exportsDir)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  res.download(filePath, (err) => {
+    if (err) {
+      console.error('Download error:', err);
+      if (!res.headersSent) {
+        res.status(404).json({ error: 'File not found' });
+      }
+    }
+  });
+});
+
 // Fonction pour démarrer le serveur
 async function startServer() {
   try {
