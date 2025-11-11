@@ -851,21 +851,6 @@ type DispensaireStats {
   topCategories: [CategoryStat!]!
 }
 
-type ExportResult {
-  success: Boolean!
-  message: String!
-  url: String
-  fileName: String
-}
-
-input ReportFiltersInput {
-  dispensaireId: ID
-  startDate: String
-  endDate: String
-  typeConsultation: String
-  categorieId: ID
-}
-
 type Query {
   # Auth
   me: User
@@ -1051,20 +1036,7 @@ type Mutation {
   # ActiviteSpirituelle mutations
   createActiviteSpirituelle(input: CreateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   updateActiviteSpirituelle(id: ID!, input: UpdateActiviteSprituelleInput!): ActiviteSprituelleResponse!
-  deleteActiviteSpirituelle(id: ID!): ActiviteSprituelleResponse!
-
-  # Exporter des rapports
-  exportReport(
-    format: String!
-    filters: ReportFiltersInput!
-  ): ExportResult!
-  
-  # Export quarterly Tatitra report for CSB Loterana
-  exportTatitraReport(
-    quarter: String!
-    year: Int!
-    dispensaireId: ID
-  ): ExportResult!
+  deleteActiviteSpirituelle(id: ID!):ActiviteSprituelleResponse!
 }
 
 # ✅ AJOUTER ces types manquants pour les statistiques de consultation

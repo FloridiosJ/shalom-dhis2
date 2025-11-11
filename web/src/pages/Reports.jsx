@@ -4,9 +4,6 @@ import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
 import ChartCard from "../components/ChartCard";
 import { StatCardSkeleton } from "../components/Skeleton";
-import { useToast } from "../components/Toast";
-import TatitraExportModal from "../components/TatitraExportModal";
-import reportService from "../services/reports";
 import {
   useDispensaires,
   useGlobalStats,
@@ -18,15 +15,12 @@ import {
 } from "../hooks/useReports";
 
 const Reports = () => {
-  const { showToast } = useToast();
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
-  const [exportLoading, setExportLoading] = useState(false);
-  const [tatitraModalOpen, setTatitraModalOpen] = useState(false);
 
   // Fetch data using react-query hooks
   const { data: dispensaires = [], isLoading: dispensairesLoading } = useDispensaires();
@@ -70,69 +64,6 @@ const Reports = () => {
     medicationsLoading || 
     evolutionLoading || 
     periodStatsLoading;
-
-  const handleExport = async (format) => {
-    setExportLoading(true);
-
-    try {
-      // Build filters object
-      const filters = {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate
-      };
-
-      if (selectedDispensaire !== 'all') {
-        filters.dispensaireId = selectedDispensaire;
-      }
-
-      // Call export mutation
-      const result = await reportService.exportReport(format, filters);
-
-      if (result.success) {
-        showToast(result.message || `Export ${format.toUpperCase()} réussi`, 'success');
-        
-        // Trigger download
-        if (result.url) {
-          window.open(result.url, '_blank');
-        }
-      } else {
-        showToast(result.message || `Erreur lors de l'export ${format.toUpperCase()}`, 'error');
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-      showToast(`Erreur lors de l'export: ${error.message}`, 'error');
-    } finally {
-      setExportLoading(false);
-    }
-  };
-
-  const handleTatitraExport = async ({ quarter, year }) => {
-    setExportLoading(true);
-
-    try {
-      const dispensaireId = selectedDispensaire !== 'all' ? selectedDispensaire : null;
-      const result = await reportService.exportTatitraReport(quarter, year, dispensaireId);
-
-      if (result.success) {
-        showToast(result.message || 'Export Tatitra réussi', 'success');
-        
-        // Trigger download
-        if (result.url) {
-          window.open(result.url, '_blank');
-        }
-        
-        // Close modal
-        setTatitraModalOpen(false);
-      } else {
-        showToast(result.message || 'Erreur lors de l\'export Tatitra', 'error');
-      }
-    } catch (error) {
-      console.error('Tatitra export error:', error);
-      showToast(`Erreur lors de l'export Tatitra: ${error.message}`, 'error');
-    } finally {
-      setExportLoading(false);
-    }
-  };
 
   // Déterminer quelles stats afficher
   const displayStats = selectedDispensaire !== 'all'
@@ -242,32 +173,6 @@ const Reports = () => {
                 aria-label="Sélectionner la date de fin"
               />
             </div>
-
-            <div className={styles.exportButtons}>
-              <button 
-                className={styles.exportBtn} 
-                onClick={() => handleExport('pdf')}
-                disabled={exportLoading}
-                aria-label="Exporter en PDF"
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export PDF
-              </button>
-              <button 
-                className={styles.exportBtnTatitra} 
-                onClick={() => setTatitraModalOpen(true)}
-                disabled={exportLoading}
-                aria-label="Exporter le rapport trimestriel Tatitra"
-                title="Rapport trimestriel CSB Loterana"
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Rapport Tatitra
-              </button>
-            </div>
           </div>
         </div>
 
@@ -342,14 +247,6 @@ const Reports = () => {
         </div>
         </div>
       </div>
-
-      {/* Tatitra Export Modal */}
-      <TatitraExportModal
-        isOpen={tatitraModalOpen}
-        onClose={() => setTatitraModalOpen(false)}
-        onExport={handleTatitraExport}
-        loading={exportLoading}
-      />
     </Layout>
   );
 };
