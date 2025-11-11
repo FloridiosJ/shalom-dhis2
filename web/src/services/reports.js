@@ -215,11 +215,41 @@ async function getStatsByDispensaire(dispensaireId, startDate = null, endDate = 
   return handleGraphQLErrors(response).dispensaireStats;
 }
 
+/**
+ * Export Tatitra quarterly report in PDF format
+ */
+async function exportTatitraReport(quarter, year, dispensaireId = null) {
+  const mutation = `
+    mutation ExportTatitraReport($quarter: String!, $year: Int!, $dispensaireId: ID) {
+      exportTatitraReport(
+        quarter: $quarter
+        year: $year
+        dispensaireId: $dispensaireId
+      ) {
+        success
+        message
+        url
+        fileName
+      }
+    }
+  `;
+  
+  const variables = { 
+    quarter,
+    year,
+    ...(dispensaireId && { dispensaireId })
+  };
+  
+  const response = await client.post('', { query: mutation, variables });
+  return handleGraphQLErrors(response).exportTatitraReport;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
   getTopDiagnostics,
   getTopMedications,
   getConsultationsEvolution,
-  getStatsByDispensaire
+  getStatsByDispensaire,
+  exportTatitraReport
 };

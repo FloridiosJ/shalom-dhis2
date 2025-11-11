@@ -4,6 +4,8 @@ import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
 import ChartCard from "../components/ChartCard";
 import { StatCardSkeleton } from "../components/Skeleton";
+import TatitraExportModal from "../components/TatitraExportModal";
+import reportsService from "../services/reports";
 import {
   useDispensaires,
   useGlobalStats,
@@ -21,6 +23,32 @@ const Reports = () => {
     startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
   });
+  const [showTatitraModal, setShowTatitraModal] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const handleTatitraExport = async (quarter, year) => {
+    try {
+      const dispensaireId = selectedDispensaire !== 'all' ? selectedDispensaire : null;
+      const result = await reportsService.exportTatitraReport(quarter, year, dispensaireId);
+      
+      if (result.success && result.url) {
+        // Trigger download
+        window.open(result.url, '_blank');
+        showToast(result.message || 'Rapport Tatitra généré avec succès', 'success');
+      } else {
+        throw new Error(result.message || 'Échec de la génération du rapport');
+      }
+    } catch (error) {
+      console.error('Error exporting Tatitra report:', error);
+      showToast(error.message || 'Erreur lors de l\'export du rapport', 'error');
+      throw error;
+    }
+  };
 
   // Fetch data using react-query hooks
   const { data: dispensaires = [], isLoading: dispensairesLoading } = useDispensaires();
@@ -176,6 +204,18 @@ const Reports = () => {
           </div>
         </div>
 
+        {/* Export Button Section */}
+        <div className={styles.exportSection}>
+          <button
+            className={styles.tatitraButton}
+            onClick={() => setShowTatitraModal(true)}
+            aria-label="Exporter le rapport Tatitra"
+          >
+            <span className={styles.buttonIcon}>📄</span>
+            <span className={styles.buttonText}>Rapport Tatitra</span>
+          </button>
+        </div>
+
         {/* KPI Cards */}
         <div className={styles.statsGrid}>
           <StatCard
@@ -247,6 +287,20 @@ const Reports = () => {
         </div>
         </div>
       </div>
+
+      {/* Tatitra Export Modal */}
+      <TatitraExportModal
+        isOpen={showTatitraModal}
+        onClose={() => setShowTatitraModal(false)}
+        onExport={handleTatitraExport}
+      />
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`${styles.toast} ${styles[toast.type]}`}>
+          {toast.message}
+        </div>
+      )}
     </Layout>
   );
 };

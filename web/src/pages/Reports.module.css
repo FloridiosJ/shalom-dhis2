@@ -231,4 +231,92 @@
   .chartsGrid {
     gap: var(--spacing-md);
   }
+
+  .exportSection {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .tatitraButton {
+    width: 100%;
+  }
+}
+
+/* Export Section */
+.exportSection {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.tatitraButton {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+}
+
+.tatitraButton:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.tatitraButton:active {
+  transform: translateY(0);
+}
+
+.buttonIcon {
+  font-size: 20px;
+}
+
+.buttonText {
+  font-size: 16px;
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  animation: slideIn 0.3s ease-out;
+  max-width: 400px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.toast.info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
