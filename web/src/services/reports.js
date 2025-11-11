@@ -215,57 +215,11 @@ async function getStatsByDispensaire(dispensaireId, startDate = null, endDate = 
   return handleGraphQLErrors(response).dispensaireStats;
 }
 
-/**
- * Exporte les données en PDF/Excel
- */
-async function exportReport(format, filters) {
-  const query = `
-    mutation ExportReport($format: String!, $filters: ReportFiltersInput!) {
-      exportReport(format: $format, filters: $filters) {
-        success
-        message
-        url
-        fileName
-      }
-    }
-  `;
-  
-  const variables = { format, filters };
-  const response = await client.post('', { query, variables });
-  return handleGraphQLErrors(response).exportReport;
-}
-
-/**
- * Exporte le rapport trimestriel Tatitra
- */
-async function exportTatitraReport(quarter, year, dispensaireId = null) {
-  const query = `
-    mutation ExportTatitraReport($quarter: String!, $year: Int!, $dispensaireId: ID) {
-      exportTatitraReport(quarter: $quarter, year: $year, dispensaireId: $dispensaireId) {
-        success
-        message
-        url
-        fileName
-      }
-    }
-  `;
-  
-  const variables = { 
-    quarter, 
-    year,
-    ...(dispensaireId && dispensaireId !== 'all' && { dispensaireId })
-  };
-  const response = await client.post('', { query, variables });
-  return handleGraphQLErrors(response).exportTatitraReport;
-}
-
 export default {
   getGlobalStats,
   getStatsByPeriod,
   getTopDiagnostics,
   getTopMedications,
   getConsultationsEvolution,
-  getStatsByDispensaire,
-  exportReport,
-  exportTatitraReport
+  getStatsByDispensaire
 };
