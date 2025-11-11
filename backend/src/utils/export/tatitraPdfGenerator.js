@@ -205,51 +205,58 @@ function generateSection2(data) {
   if (section2.consultantsByZone && section2.consultantsByZone.length > 0) {
     const tableBody = [];
     
-    // Header row
+    // Header row - same structure as Section 1
     const headerRow = [{ text: 'Toerana :', style: 'tableHeader', alignment: 'left' }];
     zones.forEach(zone => {
       headerRow.push({ text: zone, style: 'tableHeader', alignment: 'center' });
+      headerRow.push({ text: '', style: 'tableHeader' });  // Empty cell for visual spacing
     });
     headerRow.push({ text: 'Fitambarany', style: 'tableHeader', alignment: 'center' });
+    headerRow.push({ text: '', style: 'tableHeader' });  // Empty cell for visual spacing
     tableBody.push(headerRow);
 
-    // Sub-header - keeping it simple with just "Hasila" label
+    // Sub-header row - "Hasila" label and Lahy/Vavy pairs
     const subHeaderRow = [{ text: 'Hasila', style: 'tableHeader', alignment: 'left' }];
     for (let i = 0; i < zones.length + 1; i++) {
-      subHeaderRow.push({ text: 'Lahy Vavy', style: 'tableHeader', alignment: 'center' });
+      subHeaderRow.push({ text: 'Lahy', style: 'tableHeader', alignment: 'center' });
+      subHeaderRow.push({ text: 'Vavy', style: 'tableHeader', alignment: 'center' });
     }
     tableBody.push(subHeaderRow);
 
-    // Consultants row - ensure we have enough cells
+    // Consultants row - add two cells per zone (currently only total, put in first cell)
     const consultantsRow = [{ text: 'Consultant', alignment: 'left' }];
     for (let i = 0; i < zones.length; i++) {
       const zoneData = section2.consultantsByZone[i] || { consultants: 0 };
       consultantsRow.push({ text: zoneData.consultants.toString(), alignment: 'center' });
+      consultantsRow.push({ text: '', alignment: 'center' });  // Empty Vavy cell
     }
-    // Add total column
+    // Add total column (two cells)
     const totalConsultants = section2.consultantsByZone[zones.length] || 
       section2.consultantsByZone[section2.consultantsByZone.length - 1] || 
       { consultants: 0 };
     consultantsRow.push({ text: totalConsultants.consultants.toString(), alignment: 'center', bold: true });
+    consultantsRow.push({ text: '', alignment: 'center' });  // Empty Vavy cell
     tableBody.push(consultantsRow);
 
-    // Consultations row - ensure we have enough cells
+    // Consultations row - add two cells per zone
     const consultationsRow = [{ text: 'Consultation', alignment: 'left' }];
     for (let i = 0; i < zones.length; i++) {
       const zoneData = section2.consultantsByZone[i] || { consultations: 0 };
       consultationsRow.push({ text: zoneData.consultations.toString(), alignment: 'center' });
+      consultationsRow.push({ text: '', alignment: 'center' });  // Empty Vavy cell
     }
-    // Add total column
+    // Add total column (two cells)
     const totalConsultations = section2.consultantsByZone[zones.length] || 
       section2.consultantsByZone[section2.consultantsByZone.length - 1] || 
       { consultations: 0 };
     consultationsRow.push({ text: totalConsultations.consultations.toString(), alignment: 'center', bold: true });
+    consultationsRow.push({ text: '', alignment: 'center' });  // Empty Vavy cell
     tableBody.push(consultationsRow);
 
     content.push({
       table: {
         headerRows: 2,
-        widths: [120, ...Array(zones.length + 1).fill('*')],
+        widths: [120, ...Array((zones.length + 1) * 2).fill('*')],
         body: tableBody
       },
       layout: {
