@@ -80,10 +80,12 @@
   margin: 15px 0;
   font-size: 12px;
   line-height: 1.8;
+  color: #1a1a1a;
 }
 
 .summaryInfo p {
   margin: 5px 0;
+  color: #1a1a1a;
 }
 
 /* Tables */

@@ -224,7 +224,7 @@ const TatitraPreview = () => {
           
           <div className={styles.summaryInfo}>
             <p>· Isan'ny fotoam-bavaka tao amin'ny toeram-pitsaboana : {reportData.section1.prayerMeetings}</p>
-            <p>· Isan'ny Hasila nitady fitsaboana tao : {reportData.section1.visitorsReceived} (tsy Kristianina: {reportData.section1.nonChristians})</p>
+            <p>· Isan'ny Hasila nitady fitsaboana tao : {reportData.section1.visitorsReceived}</p>
           </div>
 
           <table className={styles.dataTable}>
