@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import styles from "./Reports.module.css";
 import StatCard from "../components/StatCard";
@@ -17,6 +18,7 @@ import {
 } from "../hooks/useReports";
 
 const Reports = () => {
+  const navigate = useNavigate();
   const [selectedDispensaire, setSelectedDispensaire] = useState('all');
   const [period, setPeriod] = useState('month');
   const [dateRange, setDateRange] = useState({
@@ -213,6 +215,14 @@ const Reports = () => {
           >
             <span className={styles.buttonIcon}>📄</span>
             <span className={styles.buttonText}>Rapport Tatitra</span>
+          </button>
+          <button
+            className={styles.previewButton}
+            onClick={() => navigate('/tatitra-preview')}
+            aria-label="Preview Tatitra"
+          >
+            <span className={styles.buttonIcon}>👁️</span>
+            <span className={styles.buttonText}>Preview Tatitra</span>
           </button>
         </div>
 
