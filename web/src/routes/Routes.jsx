@@ -7,6 +7,7 @@ import { Dispensaires } from '../pages/Dispensaires';
 import { DataEntries } from '../pages/DataEntries';
 import TestUserModal from '../pages/TestUserModal';
 import TatitraPreview from '../pages/TatitraPreview';
+import FitorianaStatsTest from '../pages/FitorianaStatsTest';
 
 export default function AppRoutes() {
   return (
@@ -51,6 +52,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <TatitraPreview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/fitoriana-stats-test"
+        element={
+          <ProtectedRoute>
+            <FitorianaStatsTest />
           </ProtectedRoute>
         }
       />
