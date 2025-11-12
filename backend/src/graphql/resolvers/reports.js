@@ -521,8 +521,263 @@ const reportsResolvers = {
   },
 
   Mutation: {
-    // Export mutations removed as per issue requirements
-    __typename: () => 'Mutation'
+    /**
+     * Export Tatitra quarterly report in PDF format
+     * @param {string} quarter - Quarter identifier (VOALOHANY, FAHAROA, FAHATELO, EFATRA)
+     * @param {number} year - Year (e.g., 2024)
+     * @param {string} dispensaireId - Optional dispensaire filter
+     * @returns {Object} Export result with success status, message, URL, and fileName
+     */
+    exportTatitraReport: async (_, { quarter, year, dispensaireId }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Patient, Dispensaire, Event, CategorieMaladie } = await import('../../models/index.js');
+      const { generateTatitraPDF } = await import('../../utils/export/tatitraPdfGenerator.js');
+
+      try {
+        // Validate quarter
+        const validQuarters = ['VOALOHANY', 'FAHAROA', 'FAHATELO', 'EFATRA'];
+        if (!validQuarters.includes(quarter)) {
+          throw new Error(`Invalid quarter. Must be one of: ${validQuarters.join(', ')}`);
+        }
+
+        // Calculate date range for the quarter
+        const quarterMonths = {
+          'VOALOHANY': [0, 2],   // Jan-Mar
+          'FAHAROA': [3, 5],      // Apr-Jun
+          'FAHATELO': [6, 8],     // Jul-Sep
+          'EFATRA': [9, 11]       // Oct-Dec
+        };
+
+        const [startMonth, endMonth] = quarterMonths[quarter];
+        const startDate = new Date(year, startMonth, 1);
+        const endDate = new Date(year, endMonth + 1, 0, 23, 59, 59);
+
+        // Build where clause for consultations
+        const whereClause = {
+          isActive: true,
+          dateConsultation: {
+            [Op.between]: [startDate, endDate]
+          }
+        };
+
+        if (dispensaireId) {
+          whereClause.dispensaireId = dispensaireId;
+        }
+
+        // Get all dispensaires (zones)
+        const dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          order: [['name', 'ASC']],
+          attributes: ['id', 'name']
+        });
+
+        const zones = dispensaires.map(d => d.name);
+
+        // Aggregate data for Section 1: MAHAKASIKA NY ASA FITORIANA
+        // For now, we'll use placeholder data since we need more context on how to aggregate this
+        const section1 = {
+          prayerMeetings: 0,
+          visitorsReceived: 0,
+          birthsByZone: [],
+          nonChristiansByZone: null
+        };
+
+        // Aggregate data for Section 2: MAHAKASIKA NY ASA FITSABOANA
+        const consultations = await DataEntry.findAll({
+          where: whereClause,
+          include: [
+            {
+              model: Patient,
+              as: 'patient',
+              attributes: ['id', 'age', 'sexe', 'dispensaireId']
+            },
+            {
+              model: Dispensaire,
+              as: 'dispensaire',
+              attributes: ['id', 'name']
+            },
+            {
+              model: CategorieMaladie,
+              as: 'categories',
+              through: { attributes: ['isPrincipal'] },
+              attributes: ['id', 'nom', 'code']
+            }
+          ]
+        });
+
+        // Count unique patients (consultants) and consultations by zone
+        const consultantsByZone = [];
+        const zoneStats = {};
+
+        dispensaires.forEach(disp => {
+          zoneStats[disp.id] = {
+            consultants: new Set(),
+            consultations: 0
+          };
+        });
+
+        consultations.forEach(consult => {
+          const zoneId = consult.dispensaireId;
+          if (zoneStats[zoneId]) {
+            zoneStats[zoneId].consultants.add(consult.patientId);
+            zoneStats[zoneId].consultations++;
+          }
+        });
+
+        let totalConsultants = 0;
+        let totalConsultations = 0;
+
+        dispensaires.forEach(disp => {
+          const stats = zoneStats[disp.id];
+          const consultantsCount = stats.consultants.size;
+          const consultationsCount = stats.consultations;
+          
+          consultantsByZone.push({
+            consultants: consultantsCount,
+            consultations: consultationsCount
+          });
+
+          totalConsultants += consultantsCount;
+          totalConsultations += consultationsCount;
+        });
+
+        // Add total
+        consultantsByZone.push({
+          consultants: totalConsultants,
+          consultations: totalConsultations
+        });
+
+        // Aggregate diseases by zone
+        const diseasesByZone = [];
+        const diseaseStats = {};
+
+        consultations.forEach(consult => {
+          consult.categories.forEach(cat => {
+            const diseaseKey = cat.nom;
+            if (!diseaseStats[diseaseKey]) {
+              diseaseStats[diseaseKey] = {
+                disease: cat.nom,
+                zones: Array(zones.length + 1).fill(0),
+                isSubcategory: cat.niveau > 1
+              };
+            }
+
+            const zoneIndex = dispensaires.findIndex(d => d.id === consult.dispensaireId);
+            if (zoneIndex !== -1) {
+              diseaseStats[diseaseKey].zones[zoneIndex]++;
+              diseaseStats[diseaseKey].zones[zones.length]++; // Total
+            }
+          });
+        });
+
+        Object.values(diseaseStats).forEach(disease => {
+          diseasesByZone.push(disease);
+        });
+
+        const section2 = {
+          consultantsByZone,
+          diseasesByZone
+        };
+
+        // For sections 3-6, we'll use empty data for now
+        const section3 = {
+          educationByZone: []
+        };
+
+        const section4 = {
+          maternalHealthByZone: []
+        };
+
+        // Get events for Section 5
+        const events = await Event.findAll({
+          where: {
+            isActive: true,
+            date: {
+              [Op.between]: [startDate, endDate]
+            }
+          },
+          include: [
+            {
+              model: Dispensaire,
+              as: 'dispensaire',
+              attributes: ['name']
+            }
+          ],
+          order: [['date', 'ASC']]
+        });
+
+        const eventsByZone = [];
+        const zoneEvents = {};
+
+        events.forEach(event => {
+          const zoneName = event.dispensaire ? event.dispensaire.name : 'Autre';
+          if (!zoneEvents[zoneName]) {
+            zoneEvents[zoneName] = [];
+          }
+
+          zoneEvents[zoneName].push({
+            theme: event.type_event,
+            participants: event.nombreParticipants,
+            location: event.lieu || zoneName,
+            date: new Date(event.date).toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })
+          });
+        });
+
+        Object.entries(zoneEvents).forEach(([zone, events]) => {
+          eventsByZone.push({ zone, events });
+        });
+
+        const section5 = {
+          eventsByZone
+        };
+
+        const section6 = {
+          newsByZone: []
+        };
+
+        // Prepare data for PDF generation
+        const pdfData = {
+          zones,
+          period: {
+            quarter,
+            year,
+            startDate: startDate.toLocaleDateString('fr-FR'),
+            endDate: endDate.toLocaleDateString('fr-FR')
+          },
+          section1,
+          section2,
+          section3,
+          section4,
+          section5,
+          section6
+        };
+
+        // Generate PDF
+        const result = await generateTatitraPDF(pdfData, { quarter, year });
+
+        // Generate download URL
+        const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+        const url = `${baseUrl}/download/${result.fileName}`;
+
+        return {
+          success: true,
+          message: `Rapport Tatitra Q${quarter} ${year} généré avec succès`,
+          url,
+          fileName: result.fileName
+        };
+
+      } catch (error) {
+        console.error('Error exporting Tatitra report:', error);
+        throw new Error(`Failed to export Tatitra report: ${error.message}`);
+      }
+    }
   }
 };
 
