@@ -234,9 +234,11 @@
 
   .exportSection {
     margin-bottom: var(--spacing-md);
+    flex-direction: column;
   }
 
-  .tatitraButton {
+  .tatitraButton,
+  .previewButton {
     width: 100%;
   }
 }
@@ -247,6 +249,7 @@
   display: flex;
   justify-content: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .tatitraButton {
@@ -272,6 +275,32 @@
 }
 
 .tatitraButton:active {
+  transform: translateY(0);
+}
+
+.previewButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3);
+}
+
+.previewButton:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3d94 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.previewButton:active {
   transform: translateY(0);
 }
 

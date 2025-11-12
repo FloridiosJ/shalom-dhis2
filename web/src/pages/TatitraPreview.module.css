@@ -1,0 +1,434 @@
+/* Main Container */
+.previewContainer {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+.previewPage {
+  max-width: 210mm; /* A4 width */
+  margin: 0 auto;
+  background: white;
+  padding: 20mm;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #333;
+}
+
+.mainTitle {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 15px 0;
+}
+
+.periodInfo {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.8;
+}
+
+.periodInfo p {
+  margin: 5px 0;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 30px;
+  page-break-inside: avoid;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin: 20px 0 15px 0;
+  padding: 8px 0;
+  border-bottom: 2px solid #666;
+  text-transform: uppercase;
+}
+
+.subsection {
+  margin-top: 20px;
+}
+
+.subsectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 15px 0 10px 0;
+}
+
+.summaryInfo {
+  margin: 15px 0;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.summaryInfo p {
+  margin: 5px 0;
+}
+
+/* Tables */
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 10px;
+  page-break-inside: avoid;
+}
+
+.dataTable th,
+.dataTable td {
+  border: 1px solid #333;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.categoryHeader {
+  background: #e0e0e0;
+  font-weight: bold;
+  text-align: left;
+  padding-left: 8px;
+  min-width: 150px;
+}
+
+.zoneHeader {
+  background: #e8e8e8;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+.genderHeader {
+  background: #f0f0f0;
+  font-weight: 600;
+  font-size: 9px;
+}
+
+.totalHeader {
+  background: #d0d0d0;
+  font-weight: bold;
+  font-size: 9px;
+}
+
+.categoryCell {
+  text-align: left;
+  padding-left: 8px;
+  font-weight: 500;
+}
+
+.dataCell {
+  text-align: center;
+  font-size: 10px;
+}
+
+.totalCell {
+  background: #f5f5f5;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Disease Table */
+.diseaseTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 9px;
+  page-break-inside: avoid;
+}
+
+.diseaseTable th,
+.diseaseTable td {
+  border: 1px solid #333;
+  padding: 5px 4px;
+}
+
+.diseaseHeader {
+  background: #e0e0e0;
+  font-weight: bold;
+  text-align: left;
+  padding-left: 8px;
+  min-width: 200px;
+}
+
+.zoneHeaderSmall {
+  background: #e8e8e8;
+  font-weight: bold;
+  font-size: 8px;
+  text-align: center;
+  max-width: 50px;
+}
+
+.totalHeaderSmall {
+  background: #d0d0d0;
+  font-weight: bold;
+  font-size: 8px;
+  text-align: center;
+}
+
+.diseaseName {
+  text-align: left;
+  padding-left: 8px;
+  font-weight: 600;
+  font-size: 9px;
+}
+
+.subcategoryCell {
+  text-align: left;
+  padding-left: 20px;
+  font-weight: normal;
+  font-size: 9px;
+  font-style: italic;
+}
+
+.diseaseCount {
+  text-align: center;
+  font-size: 9px;
+}
+
+.diseaseTotalCell {
+  background: #f5f5f5;
+  font-weight: bold;
+  text-align: center;
+  font-size: 9px;
+}
+
+/* Simple Tables */
+.simpleTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 11px;
+  page-break-inside: avoid;
+}
+
+.simpleTable th,
+.simpleTable td {
+  border: 1px solid #333;
+  padding: 8px;
+  text-align: left;
+}
+
+.simpleTable th {
+  background: #e0e0e0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.simpleTable td {
+  text-align: center;
+}
+
+.simpleTable td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+.totalRow {
+  background: #f0f0f0;
+  font-weight: bold;
+}
+
+/* News Section */
+.newsList {
+  margin: 15px 0;
+}
+
+.newsItem {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f9f9f9;
+  border-left: 3px solid #666;
+}
+
+.newsZone {
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.newsContent {
+  font-size: 11px;
+  color: #555;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Footer */
+.footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #333;
+}
+
+.signatureBlock {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.signature {
+  text-align: center;
+  font-size: 11px;
+}
+
+.signature p {
+  margin: 10px 0;
+}
+
+/* Print Controls */
+.printControls {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+}
+
+.printButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.printButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.printButton:active {
+  transform: translateY(0);
+}
+
+/* Print Styles */
+@media print {
+  .previewContainer {
+    background: white;
+    padding: 0;
+  }
+
+  .previewPage {
+    max-width: 100%;
+    margin: 0;
+    padding: 15mm;
+    box-shadow: none;
+  }
+
+  .printControls {
+    display: none;
+  }
+
+  .section {
+    page-break-inside: avoid;
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .mainTitle {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 14px;
+    page-break-after: avoid;
+  }
+
+  .dataTable,
+  .diseaseTable,
+  .simpleTable {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure proper table borders in print */
+  .dataTable th,
+  .dataTable td,
+  .diseaseTable th,
+  .diseaseTable td,
+  .simpleTable th,
+  .simpleTable td {
+    border: 1px solid #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Preserve background colors in print */
+  .categoryHeader,
+  .zoneHeader,
+  .genderHeader,
+  .totalHeader,
+  .diseaseHeader,
+  .zoneHeaderSmall,
+  .totalHeaderSmall,
+  .totalCell,
+  .diseaseTotalCell,
+  .totalRow,
+  .simpleTable th {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Footer always at bottom of page */
+  .footer {
+    page-break-before: avoid;
+  }
+}
+
+/* Responsive adjustments for smaller screens */
+@media screen and (max-width: 768px) {
+  .previewContainer {
+    padding: 10px;
+  }
+
+  .previewPage {
+    padding: 10mm;
+  }
+
+  .dataTable,
+  .diseaseTable,
+  .simpleTable {
+    font-size: 8px;
+  }
+
+  .printButton {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .printControls {
+    bottom: 15px;
+    right: 15px;
+  }
+}

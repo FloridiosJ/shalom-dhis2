@@ -6,6 +6,7 @@ import { Organisations } from '../pages/Organisations';
 import { Dispensaires } from '../pages/Dispensaires';
 import { DataEntries } from '../pages/DataEntries';
 import TestUserModal from '../pages/TestUserModal';
+import TatitraPreview from '../pages/TatitraPreview';
 
 export default function AppRoutes() {
   return (
@@ -42,6 +43,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <DataEntries />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tatitra-preview"
+        element={
+          <ProtectedRoute>
+            <TatitraPreview />
           </ProtectedRoute>
         }
       />
