@@ -14,6 +14,7 @@ import Users from "./pages/Users";
 import Patients from "./pages/Patients";
 import Reports from "./pages/Reports";
 import TestUserModal from "./pages/TestUserModal";
+import TatitraPreview from "./pages/TatitraPreview";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -109,6 +110,16 @@ function App() {
                 element={
                   <ProtectedRoute roles={["admin", "manager"]}>
                     <Reports />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Tatitra Preview - accessible to all authenticated users */}
+              <Route
+                path="/tatitra-preview"
+                element={
+                  <ProtectedRoute roles={["admin", "manager", "agent"]}>
+                    <TatitraPreview />
                   </ProtectedRoute>
                 }
               />
