@@ -517,6 +517,194 @@ const reportsResolvers = {
       });
 
       return result;
+    },
+
+    /**
+     * Fitoriana Statistics
+     * Agrégation des consultations par tranche d'âge, genre et dispensaire
+     * pour la section "MAHAKASIKA NY ASA FITORIANA" du rapport Tatitra
+     * 
+     * @param {string} dateFrom - Date de début (format ISO)
+     * @param {string} dateTo - Date de fin (format ISO)
+     * @param {Array<string>} dispensaireIds - IDs des dispensaires (optionnel)
+     * @param {Array<string>} religions - Religions à filtrer (optionnel)
+     * @returns {Object} Statistiques structurées par tranche d'âge et dispensaire
+     */
+    fitorianaStats: async (_, { dateFrom, dateTo, dispensaireIds, religions }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Patient, Dispensaire } = await import('../../models/index.js');
+
+      // Validation des dates
+      const startDate = new Date(dateFrom);
+      const endDate = new Date(dateTo);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide. Utilisez le format ISO (YYYY-MM-DD)');
+      }
+      
+      if (startDate > endDate) {
+        throw new Error('La date de début doit être antérieure à la date de fin');
+      }
+
+      // Construction de la clause WHERE pour les consultations
+      const whereClause = {
+        isActive: true,
+        dateConsultation: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Filtrer par dispensaire si spécifié
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        whereClause.dispensaireId = { [Op.in]: dispensaireIds };
+      }
+
+      // Récupérer toutes les consultations avec les patients et dispensaires
+      const consultations = await DataEntry.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: Patient,
+            as: 'patient',
+            attributes: ['id', 'age', 'sexe', 'religion'],
+            // Filtrer par religion si spécifié
+            where: religions && religions.length > 0 
+              ? { religion: { [Op.in]: religions } }
+              : undefined
+          },
+          {
+            model: Dispensaire,
+            as: 'dispensaire',
+            attributes: ['id', 'name'],
+            where: { isActive: true }
+          }
+        ],
+        attributes: ['id', 'patientId', 'dispensaireId']
+      });
+
+      console.log(`✅ Trouvé ${consultations.length} consultations pour la période`);
+
+      // Récupérer tous les dispensaires actifs (pour structurer la réponse)
+      let dispensaires;
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        dispensaires = await Dispensaire.findAll({
+          where: { 
+            id: { [Op.in]: dispensaireIds },
+            isActive: true 
+          },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      } else {
+        dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      }
+
+      // Définition des tranches d'âge selon les spécifications
+      const ageGroups = [
+        { 
+          label: 'Zaza (12 taona noho midina)', 
+          code: 'ZAZA',
+          minAge: 0, 
+          maxAge: 12 
+        },
+        { 
+          label: 'Tanora (13 taona - 30 taona)', 
+          code: 'TANORA',
+          minAge: 13, 
+          maxAge: 30 
+        },
+        { 
+          label: 'Olon-dehibe maherin\'ny 30 taona', 
+          code: 'OLON_DEHIBE',
+          minAge: 31, 
+          maxAge: 150 
+        }
+      ];
+
+      // Fonction pour déterminer la tranche d'âge
+      const getAgeGroup = (age) => {
+        if (age <= 12) return 'ZAZA';
+        if (age >= 13 && age <= 30) return 'TANORA';
+        return 'OLON_DEHIBE';
+      };
+
+      // Fonction pour convertir le sexe en lahy/vavy
+      const getSexeLabel = (sexe) => {
+        // M = Masculin = lahy, F = Féminin = vavy
+        if (sexe === 'M' || sexe === 'L') return 'lahy';
+        if (sexe === 'F') return 'vavy';
+        return 'lahy'; // Par défaut
+      };
+
+      // Agrégation : structure pour stocker les compteurs
+      // Structure: { ageGroup: { dispensaireId: { lahy: count, vavy: count } } }
+      const aggregation = {};
+
+      // Initialiser la structure
+      ageGroups.forEach(ageGroup => {
+        aggregation[ageGroup.code] = {};
+        dispensaires.forEach(disp => {
+          aggregation[ageGroup.code][disp.id] = { lahy: 0, vavy: 0 };
+        });
+      });
+
+      // Compter les consultations par âge, sexe et dispensaire
+      consultations.forEach(consultation => {
+        const patient = consultation.patient;
+        const dispensaireId = consultation.dispensaireId;
+
+        if (!patient || !dispensaireId) return;
+
+        const ageGroup = getAgeGroup(patient.age);
+        const sexeLabel = getSexeLabel(patient.sexe);
+
+        if (aggregation[ageGroup] && aggregation[ageGroup][dispensaireId]) {
+          aggregation[ageGroup][dispensaireId][sexeLabel]++;
+        }
+      });
+
+      // Construire la réponse structurée
+      const rows = ageGroups.map(ageGroup => {
+        const valuesByDispensaire = dispensaires.map(disp => ({
+          dispensaireName: disp.name,
+          values: {
+            lahy: aggregation[ageGroup.code][disp.id].lahy,
+            vavy: aggregation[ageGroup.code][disp.id].vavy
+          }
+        }));
+
+        // Calculer Fitambarany (totaux)
+        const fitambarany = {
+          lahy: dispensaires.reduce((sum, disp) => 
+            sum + aggregation[ageGroup.code][disp.id].lahy, 0),
+          vavy: dispensaires.reduce((sum, disp) => 
+            sum + aggregation[ageGroup.code][disp.id].vavy, 0)
+        };
+
+        return {
+          label: ageGroup.label,
+          ageGroup: ageGroup.code,
+          valuesByDispensaire,
+          fitambarany
+        };
+      });
+
+      // Calculer le total de consultations
+      const totalConsultations = consultations.length;
+
+      return {
+        rows,
+        dateFrom,
+        dateTo,
+        totalConsultations
+      };
     }
   },
 
