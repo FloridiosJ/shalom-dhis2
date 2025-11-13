@@ -1050,6 +1050,204 @@ const reportsResolvers = {
       console.log(`✅ Résultat: ${results.length} diagnostics agrégés par ${dispensaires.length} dispensaires`);
 
       return results;
+    },
+
+    /**
+     * Query education statistics by zone for Tatitra Section III
+     * Returns education data grouped by category (short-term/long-term), dispensaire, and gender.
+     * 
+     * @param {string} dateFrom - Start date in ISO format (YYYY-MM-DD)
+     * @param {string} dateTo - End date in ISO format (YYYY-MM-DD)
+     * @param {array} dispensaireIds - Optional array of dispensaire IDs to filter
+     * @returns {Array<{category: string, zones: Array, totalMale: number, totalFemale: number}>}
+     */
+    educationByZone: async (_, { dateFrom, dateTo, dispensaireIds }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Dispensaire, Patient } = await import('../../models/index.js');
+
+      // Validation des dates
+      const startDate = new Date(dateFrom);
+      const endDate = new Date(dateTo);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide. Utilisez le format ISO (YYYY-MM-DD)');
+      }
+      
+      if (startDate > endDate) {
+        throw new Error('La date de début doit être antérieure à la date de fin');
+      }
+
+      // Construction de la clause WHERE pour les consultations
+      const whereClause = {
+        isActive: true,
+        dateConsultation: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Filtrer par dispensaire si spécifié
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        whereClause.dispensaireId = { [Op.in]: dispensaireIds };
+      }
+
+      // Récupérer tous les dispensaires actifs (pour structurer la réponse)
+      let dispensaires;
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        dispensaires = await Dispensaire.findAll({
+          where: { 
+            id: { [Op.in]: dispensaireIds },
+            isActive: true 
+          },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      } else {
+        dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      }
+
+      console.log(`✅ Trouvé ${dispensaires.length} dispensaires actifs pour éducation`);
+
+      // Récupérer les consultations avec patients (pour le genre)
+      const consultations = await DataEntry.findAll({
+        where: whereClause,
+        include: [{
+          model: Patient,
+          as: 'patient',
+          attributes: ['sexe'],
+          required: true
+        }],
+        attributes: ['id', 'dispensaireId', 'diagnostic', 'notes', 'typeConsultation']
+      });
+
+      console.log(`✅ Trouvé ${consultations.length} consultations pour la période`);
+
+      if (consultations.length === 0) {
+        // Return empty structure with all dispensaires but zero counts
+        const categories = [
+          'Fanabeazana aiza tsy maharitra',
+          'Fanabeazana aiza maharitra'
+        ];
+
+        return categories.map(category => ({
+          category,
+          zones: dispensaires.map(disp => ({
+            id: disp.id,
+            name: disp.name,
+            male: 0,
+            female: 0
+          })),
+          totalMale: 0,
+          totalFemale: 0
+        }));
+      }
+
+      // Définir les mots-clés pour chaque catégorie d'éducation
+      const educationKeywords = {
+        shortTerm: ['fanabeazana fohy', 'éducation courte', 'formation courte', 'sensibilisation', 'court terme', 'tsy maharitra'],
+        longTerm: ['fanabeazana lava', 'éducation longue', 'formation longue', 'formation continue', 'long terme', 'maharitra']
+      };
+
+      // Structure pour stocker les compteurs: { category: { dispensaireId: { male: 0, female: 0 } } }
+      const educationCounts = {
+        'Fanabeazana aiza tsy maharitra': {},
+        'Fanabeazana aiza maharitra': {}
+      };
+
+      // Initialiser les compteurs pour tous les dispensaires
+      dispensaires.forEach(disp => {
+        educationCounts['Fanabeazana aiza tsy maharitra'][disp.id] = { male: 0, female: 0 };
+        educationCounts['Fanabeazana aiza maharitra'][disp.id] = { male: 0, female: 0 };
+      });
+
+      // Parcourir les consultations et catégoriser
+      consultations.forEach(consultation => {
+        const text = `${consultation.diagnostic || ''} ${consultation.notes || ''} ${consultation.typeConsultation || ''}`.toLowerCase();
+        const gender = consultation.patient.sexe;
+        const dispensaireId = consultation.dispensaireId;
+
+        // Déterminer si c'est une éducation et de quel type
+        let isShortTerm = false;
+        let isLongTerm = false;
+
+        // Vérifier les mots-clés de court terme
+        for (const keyword of educationKeywords.shortTerm) {
+          if (text.includes(keyword.toLowerCase())) {
+            isShortTerm = true;
+            break;
+          }
+        }
+
+        // Vérifier les mots-clés de long terme (si pas déjà court terme)
+        if (!isShortTerm) {
+          for (const keyword of educationKeywords.longTerm) {
+            if (text.includes(keyword.toLowerCase())) {
+              isLongTerm = true;
+              break;
+            }
+          }
+        }
+
+        // Si aucun mot-clé spécifique, vérifier si c'est une activité d'éducation générale
+        if (!isShortTerm && !isLongTerm) {
+          const generalEducationKeywords = ['éducation', 'fanabeazana', 'formation', 'sensibilisation'];
+          for (const keyword of generalEducationKeywords) {
+            if (text.includes(keyword.toLowerCase())) {
+              // Par défaut, considérer comme court terme si non spécifié
+              isShortTerm = true;
+              break;
+            }
+          }
+        }
+
+        // Incrémenter les compteurs appropriés
+        if (isShortTerm && educationCounts['Fanabeazana aiza tsy maharitra'][dispensaireId]) {
+          if (gender === 'M' || gender === 'L') {
+            educationCounts['Fanabeazana aiza tsy maharitra'][dispensaireId].male++;
+          } else if (gender === 'F') {
+            educationCounts['Fanabeazana aiza tsy maharitra'][dispensaireId].female++;
+          }
+        } else if (isLongTerm && educationCounts['Fanabeazana aiza maharitra'][dispensaireId]) {
+          if (gender === 'M' || gender === 'L') {
+            educationCounts['Fanabeazana aiza maharitra'][dispensaireId].male++;
+          } else if (gender === 'F') {
+            educationCounts['Fanabeazana aiza maharitra'][dispensaireId].female++;
+          }
+        }
+      });
+
+      // Formater les résultats pour GraphQL
+      const results = Object.entries(educationCounts).map(([category, dispensaireCounts]) => {
+        const zones = dispensaires.map(disp => ({
+          id: disp.id,
+          name: disp.name,
+          male: dispensaireCounts[disp.id]?.male || 0,
+          female: dispensaireCounts[disp.id]?.female || 0
+        }));
+
+        const totalMale = zones.reduce((sum, z) => sum + z.male, 0);
+        const totalFemale = zones.reduce((sum, z) => sum + z.female, 0);
+
+        return {
+          category,
+          zones,
+          totalMale,
+          totalFemale
+        };
+      });
+
+      console.log(`✅ Résultat éducation: ${results.length} catégories pour ${dispensaires.length} dispensaires`);
+      results.forEach(r => {
+        console.log(`   ${r.category}: ${r.totalMale} hommes, ${r.totalFemale} femmes`);
+      });
+
+      return results;
     }
   },
 

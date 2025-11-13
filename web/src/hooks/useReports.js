@@ -152,6 +152,25 @@ export function useDiagnosticsByZone(dateFrom, dateTo, dispensaireIds = null, li
 }
 
 /**
+ * Hook to fetch education statistics by zone with filters
+ * For Tatitra Section III: Fandriandram-piterahana
+ * @param {string} dateFrom - Start date in ISO format
+ * @param {string} dateTo - End date in ISO format
+ * @param {Array<string>} dispensaireIds - Optional: filter by specific dispensaires
+ * @param {boolean} enabled - Whether the query is enabled (default: true)
+ */
+export function useEducationByZone(dateFrom, dateTo, dispensaireIds = null, enabled = true) {
+  return useQuery({
+    queryKey: ['reports', 'educationByZone', dateFrom, dateTo, dispensaireIds],
+    queryFn: () => reportService.getEducationByZone(dateFrom, dateTo, dispensaireIds),
+    enabled: enabled && !!dateFrom && !!dateTo,
+    staleTime: 2 * 60 * 1000, // 2 minutes - this data changes less frequently
+    retry: 2,
+    keepPreviousData: true,
+  });
+}
+
+/**
  * Composite hook that fetches all report data at once
  * This provides a single loading state for all report queries
  */
