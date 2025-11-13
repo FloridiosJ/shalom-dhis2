@@ -324,6 +324,17 @@ const dataEntryResolvers = {
           };
         }
 
+        // ✅ VALIDATION : Types de consultation réservés aux femmes
+        const femaleOnlyConsultationTypes = ['CPN', 'CPON', 'ACCOUCHEMENT'];
+        if (patient.sexe === 'M' && femaleOnlyConsultationTypes.includes(input.typeConsultation)) {
+          return {
+            dataEntry: null,
+            success: false,
+            message: `Le type de consultation '${typeConsultation.libelle}' est réservé aux patientes de sexe féminin`,
+            errors: ['INVALID_CONSULTATION_TYPE_FOR_GENDER']
+          };
+        }
+
         // ✅ VALIDATION : Catégories de maladies
         if (input.categories && input.categories.length > 0) {
           // Vérifier que toutes les catégories ont un ID
@@ -501,6 +512,18 @@ const dataEntryResolvers = {
               success: false,
               message: 'Type de consultation invalide',
               errors: ['INVALID_TYPE']
+            };
+          }
+
+          // ✅ VALIDATION : Types de consultation réservés aux femmes
+          const patient = await Patient.findByPk(entry.patientId);
+          const femaleOnlyConsultationTypes = ['CPN', 'CPON', 'ACCOUCHEMENT'];
+          if (patient && patient.sexe === 'M' && femaleOnlyConsultationTypes.includes(input.typeConsultation)) {
+            return {
+              dataEntry: null,
+              success: false,
+              message: `Le type de consultation '${typeConsultation.libelle}' est réservé aux patientes de sexe féminin`,
+              errors: ['INVALID_CONSULTATION_TYPE_FOR_GENDER']
             };
           }
         }
