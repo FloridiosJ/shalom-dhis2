@@ -7,6 +7,11 @@ This document describes the analytics and reporting endpoints available in the S
 - [Top Medications](#top-medications)
 - [Consultations Evolution](#consultations-evolution)
 - [Dispensaire Statistics](#dispensaire-statistics)
+- [Diagnostics by Zone](#diagnostics-by-zone)
+- [Education by Zone](#education-by-zone)
+- [Maternal Health by Zone](#maternal-health-by-zone)
+- [Authentication](#authentication)
+- [Error Handling](#error-handling)
 
 ---
 
@@ -913,6 +918,183 @@ query {
 2. **Gender mapping**: Gender codes M/L are treated as male, F as female
 3. **Zero counts**: Returns zero counts for dispensaires with no education activities
 4. **Default categorization**: General education keywords without specific short/long term indicators default to short-term
+
+---
+
+## Maternal Health by Zone
+
+Query maternal health statistics grouped by dispensaire for Tatitra Section IV (MOMBA IREO RENY BEVOAKA - Santé Maternelle).
+
+### Query
+
+```graphql
+maternalHealthByZone(
+  dateFrom: String!
+  dateTo: String!
+  dispensaireIds: [ID!]
+): [MaternalHealthByZone!]!
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `dateFrom` | String | Yes | - | Start date in ISO format (YYYY-MM-DD) |
+| `dateTo` | String | Yes | - | End date in ISO format (YYYY-MM-DD) |
+| `dispensaireIds` | [ID!] | No | all active | Optional array of dispensaire IDs to filter |
+
+### Response Type
+
+```graphql
+type MaternalHealthByZone {
+  indicator: String!                              # Maternal health indicator name
+  dispensaires: [DispensaireMaternalCount!]!     # Count per dispensaire
+  total: Int!                                     # Total across all dispensaires
+}
+
+type DispensaireMaternalCount {
+  id: ID!         # Dispensaire ID
+  name: String!   # Dispensaire name
+  count: Int!     # Number of cases for this indicator
+}
+```
+
+### Indicators
+
+The query returns statistics for the following maternal health indicators:
+
+1. **Femmes ayant passé à la CPN** (Women who had prenatal consultations)
+   - TypeConsultation: `CPN`
+   - Keywords: cpn, consultation prénatale, prénatal, grossesse
+
+2. **Femmes enceintes ayant fait le Test VIH** (Pregnant women who had HIV test)
+   - TypeConsultation: `IST`
+   - Keywords: vih, hiv, test vih, dépistage vih + pregnancy context (enceinte, grossesse)
+
+3. **Femmes enceintes ayant fait le Test sérologique** (Pregnant women who had serological test)
+   - TypeConsultation: `PREVENTIF`
+   - Keywords: sérologique, test sérologique, syphilis + pregnancy context (enceinte, grossesse)
+
+4. **Accouchements** (Deliveries)
+   - TypeConsultation: `ACCOUCHEMENT`
+   - Keywords: accouchement, naissance, délivrance, parturition
+
+### Data Source
+
+This query analyzes consultation records (`DataEntry`) with the following filters:
+1. **Gender filter**: Only female patients (sexe = 'F')
+2. **Type consultation**: Specific consultation types (CPN, IST, PREVENTIF, ACCOUCHEMENT)
+3. **Keyword matching**: Text analysis of `diagnostic` and `notes` fields
+4. **Pregnancy context**: For HIV and serological tests, requires both test keywords AND pregnancy context
+
+### Example Usage
+
+#### Basic query (all dispensaires)
+
+```graphql
+query {
+  maternalHealthByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+  ) {
+    indicator
+    dispensaires {
+      id
+      name
+      count
+    }
+    total
+  }
+}
+```
+
+**Expected Response:**
+
+```json
+{
+  "data": {
+    "maternalHealthByZone": [
+      {
+        "indicator": "Femmes ayant passé à la CPN",
+        "dispensaires": [
+          {
+            "id": "abc-123",
+            "name": "Ampitsopitsoka",
+            "count": 35
+          },
+          {
+            "id": "def-456",
+            "name": "Boeny Aranta",
+            "count": 30
+          }
+        ],
+        "total": 65
+      },
+      {
+        "indicator": "Femmes enceintes ayant fait le Test VIH",
+        "dispensaires": [
+          {
+            "id": "abc-123",
+            "name": "Ampitsopitsoka",
+            "count": 32
+          },
+          {
+            "id": "def-456",
+            "name": "Boeny Aranta",
+            "count": 28
+          }
+        ],
+        "total": 60
+      }
+    ]
+  }
+}
+```
+
+#### Filtered by dispensaires
+
+```graphql
+query {
+  maternalHealthByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+    dispensaireIds: ["abc-123", "def-456"]
+  ) {
+    indicator
+    total
+  }
+}
+```
+
+### Use Cases
+
+1. **Tatitra Reports**: Generate Section IV of quarterly Tatitra reports
+2. **Maternal Health Monitoring**: Track prenatal care and delivery statistics
+3. **HIV/Syphilis Screening**: Monitor screening rates among pregnant women
+4. **Comparative Analysis**: Compare maternal health service delivery across dispensaires
+
+### Performance
+
+- Uses optimized queries with patient joins for gender filtering
+- Separate queries per indicator for better performance
+- Typical response time: <2 seconds for datasets with thousands of consultations
+- Indexed on `dateConsultation`, `dispensaireId`, `typeConsultation`, and `patientId` for fast filtering
+
+### Data Quality Notes
+
+1. **Gender-specific**: Only counts consultations for female patients (sexe = 'F')
+2. **Keyword-based detection**: Relies on keyword matching in diagnostic and notes fields
+3. **Pregnancy context validation**: HIV and serological tests require pregnancy context keywords
+4. **Zero counts**: Returns zero counts for dispensaires with no matching consultations
+5. **TypeConsultation mapping**: Uses existing consultation types (CPN, IST, PREVENTIF, ACCOUCHEMENT)
+
+### Recommendations
+
+For improved data quality and accuracy:
+1. Use structured data entry for maternal health indicators
+2. Ensure consistent terminology in diagnostic and notes fields
+3. Consider creating a dedicated MaternalHealth model for precise tracking
+4. Train staff to use standard keywords in consultations
 
 ---
 

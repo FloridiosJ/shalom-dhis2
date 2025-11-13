@@ -888,6 +888,20 @@ type EducationCategoryByZone {
   totalFemale: Int!
 }
 
+# Type for maternal health count by dispensaire
+type DispensaireMaternalCount {
+  id: ID!
+  name: String!
+  count: Int!
+}
+
+# Type for maternal health statistics by indicator and zone
+type MaternalHealthByZone {
+  indicator: String!
+  dispensaires: [DispensaireMaternalCount!]!
+  total: Int!
+}
+
 type Query {
   # Auth
   me: User
@@ -1183,6 +1197,48 @@ type Query {
     "Optional: filter by specific dispensaires"
     dispensaireIds: [ID!]
   ): [EducationCategoryByZone!]!
+
+  """
+  Query maternal health statistics by zone for Tatitra reports Section IV.
+  Returns maternal health indicators grouped by dispensaire.
+  
+  Indicators:
+  - Femmes ayant passé à la CPN (Consultation Prénatale)
+  - Femmes enceintes ayant fait le Test VIH
+  - Femmes enceintes ayant fait le Test sérologique
+  - Accouchements
+  
+  Uses consultations data with specific typeConsultation codes and keywords to aggregate statistics.
+  
+  Example:
+    maternalHealthByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+    ) {
+      indicator
+      dispensaires {
+        id
+        name
+        count
+      }
+      total
+    }
+  
+  Example with filters:
+    maternalHealthByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+      dispensaireIds: ["abc-123", "def-456"]
+    )
+  """
+  maternalHealthByZone(
+    "Start date in ISO format (YYYY-MM-DD) - required"
+    dateFrom: String!
+    "End date in ISO format (YYYY-MM-DD) - required"
+    dateTo: String!
+    "Optional: filter by specific dispensaires"
+    dispensaireIds: [ID!]
+  ): [MaternalHealthByZone!]!
 }
 
 # Mutations

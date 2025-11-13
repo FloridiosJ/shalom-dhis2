@@ -1248,6 +1248,180 @@ const reportsResolvers = {
       });
 
       return results;
+    },
+
+    /**
+     * Query maternal health statistics by zone for Tatitra Section IV
+     * Returns maternal health indicators grouped by dispensaire.
+     * 
+     * @param {string} dateFrom - Start date in ISO format (YYYY-MM-DD)
+     * @param {string} dateTo - End date in ISO format (YYYY-MM-DD)
+     * @param {array} dispensaireIds - Optional array of dispensaire IDs to filter
+     * @returns {Array<{indicator: string, dispensaires: Array<{id, name, count}>, total: number}>}
+     */
+    maternalHealthByZone: async (_, { dateFrom, dateTo, dispensaireIds }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Dispensaire, Patient } = await import('../../models/index.js');
+
+      // Validation des dates
+      const startDate = new Date(dateFrom);
+      const endDate = new Date(dateTo);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide. Utilisez le format ISO (YYYY-MM-DD)');
+      }
+      
+      if (startDate > endDate) {
+        throw new Error('La date de début doit être antérieure à la date de fin');
+      }
+
+      // Construction de la clause WHERE pour les consultations
+      const whereClause = {
+        isActive: true,
+        dateConsultation: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Filtrer par dispensaire si spécifié
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        whereClause.dispensaireId = { [Op.in]: dispensaireIds };
+      }
+
+      // Récupérer tous les dispensaires actifs (pour structurer la réponse)
+      let dispensaires;
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        dispensaires = await Dispensaire.findAll({
+          where: { 
+            id: { [Op.in]: dispensaireIds },
+            isActive: true 
+          },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      } else {
+        dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      }
+
+      console.log(`✅ Trouvé ${dispensaires.length} dispensaires actifs pour santé maternelle`);
+
+      // Définition des indicateurs de santé maternelle
+      const maternalIndicators = [
+        {
+          name: 'Femmes ayant passé à la CPN',
+          typeConsultation: 'CPN',
+          keywords: ['cpn', 'consultation prénatale', 'consultation prenatale', 'prénatal', 'prenatal', 'grossesse']
+        },
+        {
+          name: 'Femmes enceintes ayant fait le Test VIH',
+          typeConsultation: 'IST', // IST/SIDA includes HIV tests
+          keywords: ['vih', 'hiv', 'test vih', 'dépistage vih', 'depistage vih', 'enceinte', 'grossesse'],
+          requiresPregnancyContext: true
+        },
+        {
+          name: 'Femmes enceintes ayant fait le Test sérologique',
+          typeConsultation: 'PREVENTIF',
+          keywords: ['sérologique', 'serologique', 'test serologique', 'test sérologique', 'syphilis', 'enceinte', 'grossesse'],
+          requiresPregnancyContext: true
+        },
+        {
+          name: 'Accouchements',
+          typeConsultation: 'ACCOUCHEMENT',
+          keywords: ['accouchement', 'naissance', 'delivrance', 'délivrance', 'parturition']
+        }
+      ];
+
+      // Structure pour stocker les compteurs: { indicator: { dispensaireId: count } }
+      const indicatorCounts = {};
+
+      // Initialiser les compteurs pour tous les indicateurs et dispensaires
+      maternalIndicators.forEach(indicator => {
+        indicatorCounts[indicator.name] = {};
+        dispensaires.forEach(disp => {
+          indicatorCounts[indicator.name][disp.id] = 0;
+        });
+      });
+
+      // Pour chaque indicateur, récupérer et compter les consultations
+      for (const indicator of maternalIndicators) {
+        // Construire la clause WHERE spécifique à l'indicateur
+        const indicatorWhereClause = {
+          ...whereClause,
+          typeConsultation: indicator.typeConsultation
+        };
+
+        // Récupérer les consultations avec patients (pour vérifier le genre = féminin)
+        const consultations = await DataEntry.findAll({
+          where: indicatorWhereClause,
+          include: [{
+            model: Patient,
+            as: 'patient',
+            attributes: ['sexe'],
+            where: { sexe: 'F' }, // Seulement les femmes
+            required: true
+          }],
+          attributes: ['id', 'dispensaireId', 'diagnostic', 'notes']
+        });
+
+        console.log(`✅ Trouvé ${consultations.length} consultations ${indicator.typeConsultation} pour femmes`);
+
+        // Compter les consultations qui correspondent aux mots-clés
+        consultations.forEach(consultation => {
+          const text = `${consultation.diagnostic || ''} ${consultation.notes || ''}`.toLowerCase();
+          const dispensaireId = consultation.dispensaireId;
+
+          // Vérifier si le texte contient les mots-clés de l'indicateur
+          let matches = false;
+          
+          // Pour les indicateurs nécessitant un contexte de grossesse
+          if (indicator.requiresPregnancyContext) {
+            // Vérifier qu'il y a à la fois un mot-clé de test ET un contexte de grossesse
+            const hasTestKeyword = indicator.keywords.some(kw => 
+              !['enceinte', 'grossesse'].includes(kw) && text.includes(kw.toLowerCase())
+            );
+            const hasPregnancyContext = ['enceinte', 'grossesse'].some(kw => text.includes(kw));
+            matches = hasTestKeyword && hasPregnancyContext;
+          } else {
+            // Pour les autres indicateurs, vérifier simplement les mots-clés
+            matches = indicator.keywords.some(kw => text.includes(kw.toLowerCase()));
+          }
+
+          if (matches && indicatorCounts[indicator.name][dispensaireId] !== undefined) {
+            indicatorCounts[indicator.name][dispensaireId]++;
+          }
+        });
+      }
+
+      // Formater les résultats pour GraphQL
+      const results = maternalIndicators.map(indicator => {
+        const dispensairesData = dispensaires.map(disp => ({
+          id: disp.id,
+          name: disp.name,
+          count: indicatorCounts[indicator.name][disp.id] || 0
+        }));
+
+        const total = dispensairesData.reduce((sum, d) => sum + d.count, 0);
+
+        return {
+          indicator: indicator.name,
+          dispensaires: dispensairesData,
+          total
+        };
+      });
+
+      console.log(`✅ Résultat santé maternelle: ${results.length} indicateurs pour ${dispensaires.length} dispensaires`);
+      results.forEach(r => {
+        console.log(`   ${r.indicator}: ${r.total} total`);
+      });
+
+      return results;
     }
   },
 
