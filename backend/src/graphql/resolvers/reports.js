@@ -821,6 +821,235 @@ const reportsResolvers = {
       console.log(`✅ Résultat: ${results.length - 1} dispensaires + 1 total (${totalConsultants} consultants, ${totalConsultations} consultations)`);
 
       return results;
+    },
+
+    /**
+     * Diagnostics by Zone
+     * Aggregates diagnostics (categories or text) with counts per dispensaire for a given period.
+     * Returns diagnostic x dispensaire cross-tabulation for Tatitra reporting.
+     * 
+     * @param {string} dateFrom - Start date (format ISO YYYY-MM-DD)
+     * @param {string} dateTo - End date (format ISO YYYY-MM-DD)
+     * @param {Array<string>} dispensaireIds - Optional: filter by specific dispensaires
+     * @param {number} limit - Optional: limit number of diagnostics returned
+     * @returns {Array<{diagnostic: string, dispensaires: Array<{id, name, count}>, total: number}>}
+     */
+    diagnosticsByZone: async (_, { dateFrom, dateTo, dispensaireIds, limit }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Dispensaire, CategorieMaladie, DataEntryCategorieMaladie } = await import('../../models/index.js');
+
+      // Validation des dates
+      const startDate = new Date(dateFrom);
+      const endDate = new Date(dateTo);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide. Utilisez le format ISO (YYYY-MM-DD)');
+      }
+      
+      if (startDate > endDate) {
+        throw new Error('La date de début doit être antérieure à la date de fin');
+      }
+
+      // Construction de la clause WHERE pour les consultations
+      const whereClause = {
+        isActive: true,
+        dateConsultation: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Filtrer par dispensaire si spécifié
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        whereClause.dispensaireId = { [Op.in]: dispensaireIds };
+      }
+
+      // Récupérer tous les dispensaires actifs (pour structurer la réponse)
+      let dispensaires;
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        dispensaires = await Dispensaire.findAll({
+          where: { 
+            id: { [Op.in]: dispensaireIds },
+            isActive: true 
+          },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      } else {
+        dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      }
+
+      console.log(`✅ Trouvé ${dispensaires.length} dispensaires actifs`);
+
+      // Étape 1: Récupérer les IDs des consultations valides
+      const validDataEntryIds = await DataEntry.findAll({
+        where: whereClause,
+        attributes: ['id', 'dispensaireId'],
+        raw: true
+      });
+
+      const validIds = validDataEntryIds.map(entry => entry.id);
+
+      if (validIds.length === 0) {
+        console.log('⚠️  Aucune consultation trouvée pour la période');
+        return [];
+      }
+
+      console.log(`✅ Trouvé ${validIds.length} consultations pour la période`);
+
+      // Étape 2: Obtenir les statistiques basées sur les catégories structurées
+      // Agrégation par catégorie ET dispensaire
+      const categoryStats = await DataEntryCategorieMaladie.findAll({
+        where: {
+          dataEntryId: { [Op.in]: validIds },
+          isPrincipal: true // On compte uniquement les catégories principales
+        },
+        include: [
+          {
+            model: CategorieMaladie,
+            as: 'categorie',
+            attributes: ['nom', 'code', 'niveau'],
+            where: { isActive: true }
+          },
+          {
+            model: DataEntry,
+            as: 'dataEntry',
+            attributes: ['dispensaireId'],
+            where: whereClause
+          }
+        ],
+        attributes: [
+          'categorieMaladieId',
+          [DataEntry.sequelize.col('dataEntry.dispensaireId'), 'dispensaireId'],
+          [DataEntry.sequelize.fn('COUNT', '*'), 'count']
+        ],
+        group: ['categorieMaladieId', 'categorie.id', 'categorie.nom', 'categorie.code', 'categorie.niveau', 'dataEntry.id', 'dataEntry.dispensaireId'],
+        order: [[DataEntry.sequelize.literal('count'), 'DESC']],
+        raw: false
+      });
+
+      console.log(`✅ Trouvé ${categoryStats.length} agrégations catégorie x dispensaire`);
+
+      // Étape 3: Vérifier si certaines consultations n'ont pas de catégorie structurée
+      const consultationsWithCategories = new Set(
+        (await DataEntryCategorieMaladie.findAll({
+          where: {
+            dataEntryId: { [Op.in]: validIds },
+            isPrincipal: true
+          },
+          attributes: ['dataEntryId'],
+          raw: true
+        })).map(row => row.dataEntryId)
+      );
+
+      const totalConsultations = validIds.length;
+      const consultationsWithoutCategories = totalConsultations - consultationsWithCategories.size;
+
+      // Avertir si des données non structurées sont présentes
+      if (consultationsWithoutCategories > 0) {
+        console.warn(`⚠️  ${consultationsWithoutCategories} consultation(s) sur ${totalConsultations} n'ont pas de catégorie structurée assignée`);
+      }
+
+      // Étape 4: Pour les consultations sans catégorie, faire un fallback sur le texte diagnostic
+      let textDiagnosticsByZone = {};
+      if (consultationsWithoutCategories > 0) {
+        const entriesWithoutCategories = await DataEntry.findAll({
+          where: {
+            id: { [Op.in]: validIds }
+          },
+          attributes: ['id', 'diagnostic', 'dispensaireId'],
+          include: [{
+            model: DataEntryCategorieMaladie,
+            as: 'categoriesAssociations',
+            required: false,
+            where: { isPrincipal: true }
+          }]
+        });
+
+        // Filtrer celles qui n'ont vraiment pas de catégorie principale
+        const entriesWithoutCat = entriesWithoutCategories.filter(
+          entry => !entry.categoriesAssociations || entry.categoriesAssociations.length === 0
+        );
+
+        // Grouper par diagnostic texte ET dispensaire
+        entriesWithoutCat.forEach(entry => {
+          const diag = entry.diagnostic.trim();
+          const dispId = entry.dispensaireId;
+          
+          if (!textDiagnosticsByZone[diag]) {
+            textDiagnosticsByZone[diag] = {};
+          }
+          
+          textDiagnosticsByZone[diag][dispId] = (textDiagnosticsByZone[diag][dispId] || 0) + 1;
+        });
+
+        console.log(`✅ Trouvé ${Object.keys(textDiagnosticsByZone).length} diagnostics texte sans catégorie`);
+      }
+
+      // Étape 5: Construire la structure de données finale
+      // Structure: { diagnostic: { dispensaireId: count } }
+      const diagnosticAggregation = {};
+
+      // Ajouter les catégories structurées
+      categoryStats.forEach(stat => {
+        const diagnostic = stat.categorie.nom;
+        const dispensaireId = stat.get('dispensaireId');
+        const count = parseInt(stat.get('count'));
+
+        if (!diagnosticAggregation[diagnostic]) {
+          diagnosticAggregation[diagnostic] = {};
+        }
+
+        diagnosticAggregation[diagnostic][dispensaireId] = count;
+      });
+
+      // Ajouter les diagnostics texte (fallback)
+      Object.entries(textDiagnosticsByZone).forEach(([diagnostic, dispensaireCounts]) => {
+        if (!diagnosticAggregation[diagnostic]) {
+          diagnosticAggregation[diagnostic] = {};
+        }
+
+        // Merger les compteurs (ne devrait pas se chevaucher, mais par sécurité)
+        Object.entries(dispensaireCounts).forEach(([dispId, count]) => {
+          diagnosticAggregation[diagnostic][dispId] = 
+            (diagnosticAggregation[diagnostic][dispId] || 0) + count;
+        });
+      });
+
+      // Étape 6: Formater en tableau pour GraphQL et calculer les totaux
+      let results = Object.entries(diagnosticAggregation).map(([diagnostic, dispensaireCounts]) => {
+        const dispensairesData = dispensaires.map(disp => ({
+          id: disp.id,
+          name: disp.name,
+          count: dispensaireCounts[disp.id] || 0
+        }));
+
+        const total = dispensairesData.reduce((sum, d) => sum + d.count, 0);
+
+        return {
+          diagnostic,
+          dispensaires: dispensairesData,
+          total
+        };
+      });
+
+      // Trier par total décroissant
+      results.sort((a, b) => b.total - a.total);
+
+      // Appliquer la limite si spécifiée
+      if (limit && limit > 0) {
+        results = results.slice(0, limit);
+      }
+
+      console.log(`✅ Résultat: ${results.length} diagnostics agrégés par ${dispensaires.length} dispensaires`);
+
+      return results;
     }
   },
 

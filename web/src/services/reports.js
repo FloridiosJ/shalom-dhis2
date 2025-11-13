@@ -322,6 +322,47 @@ async function getConsultantsByZone(dateFrom, dateTo, dispensaireIds = null) {
   return handleGraphQLErrors(response).consultantsByZone;
 }
 
+/**
+ * Récupère les diagnostics agrégés par dispensaire/zone pour une période donnée.
+ * Retourne une table croisée diagnostic x dispensaire pour les rapports Tatitra.
+ * 
+ * @param {string} dateFrom - Date de début (format ISO YYYY-MM-DD)
+ * @param {string} dateTo - Date de fin (format ISO YYYY-MM-DD)
+ * @param {Array<string>} dispensaireIds - Optionnel: filtrer par dispensaires spécifiques
+ * @param {number} limit - Optionnel: limiter le nombre de diagnostics retournés
+ * @returns {Promise<Array<{diagnostic: string, dispensaires: Array<{id, name, count}>, total: number}>>}
+ */
+async function getDiagnosticsByZone(dateFrom, dateTo, dispensaireIds = null, limit = null) {
+  const query = `
+    query DiagnosticsByZone($dateFrom: String!, $dateTo: String!, $dispensaireIds: [ID!], $limit: Int) {
+      diagnosticsByZone(
+        dateFrom: $dateFrom
+        dateTo: $dateTo
+        dispensaireIds: $dispensaireIds
+        limit: $limit
+      ) {
+        diagnostic
+        dispensaires {
+          id
+          name
+          count
+        }
+        total
+      }
+    }
+  `;
+  
+  const variables = { 
+    dateFrom,
+    dateTo,
+    ...(dispensaireIds && dispensaireIds.length > 0 && { dispensaireIds }),
+    ...(limit && { limit })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).diagnosticsByZone;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -331,5 +372,6 @@ export default {
   getStatsByDispensaire,
   exportTatitraReport,
   getFitorianaStats,
-  getConsultantsByZone
+  getConsultantsByZone,
+  getDiagnosticsByZone
 };

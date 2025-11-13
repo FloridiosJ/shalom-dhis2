@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFitorianaStats, useConsultantsByZone } from '../hooks/useReports';
+import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone } from '../hooks/useReports';
 import Layout from '../components/Layout';
 import styles from './TatitraPreview.module.css';
 
@@ -38,6 +38,13 @@ const TatitraPreview = () => {
     isLoading: consultantsLoading, 
     error: consultantsError 
   } = useConsultantsByZone(dateFrom, dateTo, null);
+
+  // Fetch diagnostics by zone for section 2
+  const { 
+    data: diagnosticsByZone, 
+    isLoading: diagnosticsLoading, 
+    error: diagnosticsError 
+  } = useDiagnosticsByZone(dateFrom, dateTo, null, null);
 
   // Sample data matching the structure from the PDF generator
   const reportData = {
@@ -244,6 +251,36 @@ const TatitraPreview = () => {
     return rows;
   }, [transformedFitorianaData, nonChristianRow]);
 
+  // Transform diagnosticsByZone data to match the expected diseasesByZone structure
+  const transformedDiseasesByZone = useMemo(() => {
+    if (!diagnosticsByZone || diagnosticsByZone.length === 0) {
+      return [];
+    }
+
+    // Get zone names from dispensaires (assuming they match fitorianaStats zones order)
+    const zones = fitorianaStats?.rows[0]?.valuesByDispensaire?.map(d => d.dispensaireName) || [];
+    
+    return diagnosticsByZone.map(diagnostic => {
+      // Create zones array with counts in the same order as zones
+      const zoneCounts = [];
+      
+      zones.forEach(zoneName => {
+        // Find the matching dispensaire count
+        const dispensaireData = diagnostic.dispensaires.find(d => d.name === zoneName);
+        zoneCounts.push(dispensaireData ? dispensaireData.count : 0);
+      });
+      
+      // Add total at the end
+      zoneCounts.push(diagnostic.total);
+      
+      return {
+        disease: diagnostic.diagnostic,
+        zones: zoneCounts,
+        isSubcategory: false // We don't have hierarchy info yet, could be enhanced
+      };
+    });
+  }, [diagnosticsByZone, fitorianaStats]);
+
   // Calculate totals for birth statistics (backward compatibility)
   const calculateBirthTotals = (category) => {
     if (category.fitambarany) {
@@ -256,11 +293,6 @@ const TatitraPreview = () => {
       totalFemale += zone.female;
     });
     return { totalMale, totalFemale };
-  };
-
-  // Calculate totals for disease statistics
-  const calculateDiseaseTotals = (zones) => {
-    return zones.reduce((sum, count) => sum + count, 0);
   };
 
   return (
@@ -289,7 +321,7 @@ const TatitraPreview = () => {
             />
           </div>
         </div>
-        {(fitorianaLoading || nonChristianLoading || consultantsLoading) && (
+        {(fitorianaLoading || nonChristianLoading || consultantsLoading || diagnosticsLoading) && (
           <div className={styles.loadingIndicator}>Chargement des données...</div>
         )}
         {fitorianaError && (
@@ -300,6 +332,11 @@ const TatitraPreview = () => {
         {consultantsError && (
           <div className={styles.errorIndicator}>
             Erreur consultants: {consultantsError.message}
+          </div>
+        )}
+        {diagnosticsError && (
+          <div className={styles.errorIndicator}>
+            Erreur diagnostics: {diagnosticsError.message}
           </div>
         )}
       </div>
@@ -431,30 +468,41 @@ const TatitraPreview = () => {
 
           <div className={styles.subsection}>
             <h3 className={styles.subsectionTitle}>Désignations des maladies / Diagnostics</h3>
-            <table className={styles.diseaseTable}>
-              <thead>
-                <tr>
-                  <th className={styles.diseaseHeader}>Areti-mifindra sy ny Aretina hafa</th>
-                  {reportData.zones.map((zone, idx) => (
-                    <th key={idx} className={styles.zoneHeaderSmall}>{zone}</th>
-                  ))}
-                  <th className={styles.totalHeaderSmall}>Fitambarany</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reportData.section2.diseasesByZone.map((disease, idx) => (
-                  <tr key={idx}>
-                    <td className={disease.isSubcategory ? styles.subcategoryCell : styles.diseaseName}>
-                      {disease.disease}
-                    </td>
-                    {disease.zones.map((count, zoneIdx) => (
-                      <td key={zoneIdx} className={styles.diseaseCount}>{String(count).padStart(2, '0')}</td>
+            
+            {diagnosticsLoading ? (
+              <div className={styles.loadingSection}>Chargement des diagnostics...</div>
+            ) : diagnosticsError ? (
+              <div className={styles.errorSection}>
+                Erreur de chargement des diagnostics: {diagnosticsError.message}
+              </div>
+            ) : transformedDiseasesByZone && transformedDiseasesByZone.length > 0 ? (
+              <table className={styles.diseaseTable}>
+                <thead>
+                  <tr>
+                    <th className={styles.diseaseHeader}>Areti-mifindra sy ny Aretina hafa</th>
+                    {reportData.zones.map((zone, idx) => (
+                      <th key={idx} className={styles.zoneHeaderSmall}>{zone}</th>
                     ))}
-                    <td className={styles.diseaseTotalCell}>{String(calculateDiseaseTotals(disease.zones)).padStart(2, '0')}</td>
+                    <th className={styles.totalHeaderSmall}>Fitambarany</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {transformedDiseasesByZone.map((disease, idx) => (
+                    <tr key={idx}>
+                      <td className={disease.isSubcategory ? styles.subcategoryCell : styles.diseaseName}>
+                        {disease.disease}
+                      </td>
+                      {disease.zones.slice(0, -1).map((count, zoneIdx) => (
+                        <td key={zoneIdx} className={styles.diseaseCount}>{String(count).padStart(2, '0')}</td>
+                      ))}
+                      <td className={styles.diseaseTotalCell}>{String(disease.zones[disease.zones.length - 1]).padStart(2, '0')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className={styles.noDataSection}>Aucune donnée de diagnostics disponible pour cette période</div>
+            )}
           </div>
         </section>
 

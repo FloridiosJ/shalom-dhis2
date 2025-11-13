@@ -131,6 +131,27 @@ export function useConsultantsByZone(dateFrom, dateTo, dispensaireIds = null, en
 }
 
 /**
+ * Hook to fetch diagnostics aggregated by dispensaire/zone
+ * Returns cross-tabulation (diagnostic x dispensaire) for Tatitra reporting
+ * 
+ * @param {string} dateFrom - Start date (ISO format YYYY-MM-DD)
+ * @param {string} dateTo - End date (ISO format YYYY-MM-DD)
+ * @param {Array<string>} dispensaireIds - Optional: filter by specific dispensaires
+ * @param {number} limit - Optional: limit number of diagnostics returned
+ * @param {boolean} enabled - Whether the query is enabled (default: true)
+ */
+export function useDiagnosticsByZone(dateFrom, dateTo, dispensaireIds = null, limit = null, enabled = true) {
+  return useQuery({
+    queryKey: ['reports', 'diagnosticsByZone', dateFrom, dateTo, dispensaireIds, limit],
+    queryFn: () => reportService.getDiagnosticsByZone(dateFrom, dateTo, dispensaireIds, limit),
+    enabled: enabled && !!dateFrom && !!dateTo,
+    staleTime: 2 * 60 * 1000, // 2 minutes - this data changes less frequently
+    retry: 2,
+    keepPreviousData: true,
+  });
+}
+
+/**
  * Composite hook that fetches all report data at once
  * This provides a single loading state for all report queries
  */
