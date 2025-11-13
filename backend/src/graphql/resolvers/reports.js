@@ -929,7 +929,7 @@ const reportsResolvers = {
           [DataEntry.sequelize.col('dataEntry.dispensaireId'), 'dispensaireId'],
           [DataEntry.sequelize.fn('COUNT', '*'), 'count']
         ],
-        group: ['categorieMaladieId', 'categorie.id', 'dataEntry.dispensaireId'],
+        group: ['categorieMaladieId', 'categorie.id', 'categorie.nom', 'categorie.code', 'categorie.niveau', 'dataEntry.id', 'dataEntry.dispensaireId'],
         order: [[DataEntry.sequelize.literal('count'), 'DESC']],
         raw: false
       });
