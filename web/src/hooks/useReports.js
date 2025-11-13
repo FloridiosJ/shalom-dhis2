@@ -171,6 +171,25 @@ export function useEducationByZone(dateFrom, dateTo, dispensaireIds = null, enab
 }
 
 /**
+ * Hook to fetch maternal health statistics by zone with filters
+ * For Tatitra Section IV: MOMBA IREO RENY BEVOAKA (Santé Maternelle)
+ * @param {string} dateFrom - Start date in ISO format
+ * @param {string} dateTo - End date in ISO format
+ * @param {Array<string>} dispensaireIds - Optional: filter by specific dispensaires
+ * @param {boolean} enabled - Whether the query is enabled (default: true)
+ */
+export function useMaternalHealthByZone(dateFrom, dateTo, dispensaireIds = null, enabled = true) {
+  return useQuery({
+    queryKey: ['reports', 'maternalHealthByZone', dateFrom, dateTo, dispensaireIds],
+    queryFn: () => reportService.getMaternalHealthByZone(dateFrom, dateTo, dispensaireIds),
+    enabled: enabled && !!dateFrom && !!dateTo,
+    staleTime: 2 * 60 * 1000, // 2 minutes - this data changes less frequently
+    retry: 2,
+    keepPreviousData: true,
+  });
+}
+
+/**
  * Composite hook that fetches all report data at once
  * This provides a single loading state for all report queries
  */

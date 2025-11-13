@@ -401,6 +401,42 @@ async function getEducationByZone(dateFrom, dateTo, dispensaireIds = null) {
   return handleGraphQLErrors(response).educationByZone;
 }
 
+/**
+ * Récupère les statistiques de santé maternelle par zone pour le Tatitra Section IV
+ * @param {string} dateFrom - Date de début (format ISO YYYY-MM-DD)
+ * @param {string} dateTo - Date de fin (format ISO YYYY-MM-DD)
+ * @param {Array<string>} dispensaireIds - Optionnel: filtrer par dispensaires spécifiques
+ * @returns {Promise<Array<{indicator: string, dispensaires: Array<{id, name, count}>, total: number}>>}
+ */
+async function getMaternalHealthByZone(dateFrom, dateTo, dispensaireIds = null) {
+  const query = `
+    query MaternalHealthByZone($dateFrom: String!, $dateTo: String!, $dispensaireIds: [ID!]) {
+      maternalHealthByZone(
+        dateFrom: $dateFrom
+        dateTo: $dateTo
+        dispensaireIds: $dispensaireIds
+      ) {
+        indicator
+        dispensaires {
+          id
+          name
+          count
+        }
+        total
+      }
+    }
+  `;
+  
+  const variables = { 
+    dateFrom,
+    dateTo,
+    ...(dispensaireIds && dispensaireIds.length > 0 && { dispensaireIds })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).maternalHealthByZone;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -412,5 +448,6 @@ export default {
   getFitorianaStats,
   getConsultantsByZone,
   getDiagnosticsByZone,
-  getEducationByZone
+  getEducationByZone,
+  getMaternalHealthByZone
 };

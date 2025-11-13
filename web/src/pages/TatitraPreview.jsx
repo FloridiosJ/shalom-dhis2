@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone, useEducationByZone } from '../hooks/useReports';
+import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone, useEducationByZone, useMaternalHealthByZone } from '../hooks/useReports';
 import Layout from '../components/Layout';
 import styles from './TatitraPreview.module.css';
 
@@ -52,6 +52,13 @@ const TatitraPreview = () => {
     isLoading: educationLoading, 
     error: educationError 
   } = useEducationByZone(dateFrom, dateTo, null);
+
+  // Fetch maternal health statistics by zone for section 4
+  const { 
+    data: maternalHealthByZone, 
+    isLoading: maternalHealthLoading, 
+    error: maternalHealthError 
+  } = useMaternalHealthByZone(dateFrom, dateTo, null);
 
   // Sample data matching the structure from the PDF generator
   const reportData = {
@@ -288,6 +295,33 @@ const TatitraPreview = () => {
     });
   }, [diagnosticsByZone, fitorianaStats]);
 
+  // Transform maternalHealthByZone data to match the expected structure for Section 4
+  const transformedMaternalHealthData = useMemo(() => {
+    if (!maternalHealthByZone || maternalHealthByZone.length === 0) {
+      return {
+        zones: [],
+        indicators: {}
+      };
+    }
+
+    // Extract zone names from the first indicator's dispensaires
+    const zones = maternalHealthByZone[0]?.dispensaires.map(d => d.name) || [];
+    
+    // Create a map of indicator -> zone counts
+    const indicators = {};
+    maternalHealthByZone.forEach(indicator => {
+      indicators[indicator.indicator] = {
+        dispensaires: indicator.dispensaires,
+        total: indicator.total
+      };
+    });
+    
+    return {
+      zones,
+      indicators
+    };
+  }, [maternalHealthByZone]);
+
   // Calculate totals for birth statistics (backward compatibility)
   const calculateBirthTotals = (category) => {
     if (category.fitambarany) {
@@ -328,7 +362,7 @@ const TatitraPreview = () => {
             />
           </div>
         </div>
-        {(fitorianaLoading || nonChristianLoading || consultantsLoading || diagnosticsLoading || educationLoading) && (
+        {(fitorianaLoading || nonChristianLoading || consultantsLoading || diagnosticsLoading || educationLoading || maternalHealthLoading) && (
           <div className={styles.loadingIndicator}>Chargement des données...</div>
         )}
         {fitorianaError && (
@@ -568,33 +602,47 @@ const TatitraPreview = () => {
 
         {/* Section 4: Momba ireo Reny Bevoaka */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{reportData.section4.title}</h2>
-          <table className={styles.simpleTable}>
-            <thead>
-              <tr>
-                <th>Toerana</th>
-                <th>CPN</th>
-                <th>Tests VIH</th>
-                <th>Accouchements</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.section4.data.map((row, idx) => (
-                <tr key={idx}>
-                  <td>{row.zone}</td>
-                  <td>{row.cpn}</td>
-                  <td>{row.hivTests}</td>
-                  <td>{row.deliveries}</td>
+          <h2 className={styles.sectionTitle}>IV. MOMBA IREO RENY BEVOAKA</h2>
+          {maternalHealthByZone && maternalHealthByZone.length > 0 ? (
+            <table className={styles.simpleTable}>
+              <thead>
+                <tr>
+                  <th>Toerana</th>
+                  <th>CPN</th>
+                  <th>Tests VIH</th>
+                  <th>Tests Sérologiques</th>
+                  <th>Accouchements</th>
                 </tr>
-              ))}
-              <tr className={styles.totalRow}>
-                <td>Total</td>
-                <td>{reportData.section4.data.reduce((sum, r) => sum + r.cpn, 0)}</td>
-                <td>{reportData.section4.data.reduce((sum, r) => sum + r.hivTests, 0)}</td>
-                <td>{reportData.section4.data.reduce((sum, r) => sum + r.deliveries, 0)}</td>
-              </tr>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transformedMaternalHealthData.zones.map((zoneName, idx) => {
+                  const cpnData = transformedMaternalHealthData.indicators['Femmes ayant passé à la CPN']?.dispensaires.find(d => d.name === zoneName);
+                  const hivData = transformedMaternalHealthData.indicators['Femmes enceintes ayant fait le Test VIH']?.dispensaires.find(d => d.name === zoneName);
+                  const seroData = transformedMaternalHealthData.indicators['Femmes enceintes ayant fait le Test sérologique']?.dispensaires.find(d => d.name === zoneName);
+                  const deliveryData = transformedMaternalHealthData.indicators['Accouchements']?.dispensaires.find(d => d.name === zoneName);
+                  
+                  return (
+                    <tr key={idx}>
+                      <td>{zoneName}</td>
+                      <td>{cpnData?.count || 0}</td>
+                      <td>{hivData?.count || 0}</td>
+                      <td>{seroData?.count || 0}</td>
+                      <td>{deliveryData?.count || 0}</td>
+                    </tr>
+                  );
+                })}
+                <tr className={styles.totalRow}>
+                  <td>Fitambarany (Total)</td>
+                  <td>{transformedMaternalHealthData.indicators['Femmes ayant passé à la CPN']?.total || 0}</td>
+                  <td>{transformedMaternalHealthData.indicators['Femmes enceintes ayant fait le Test VIH']?.total || 0}</td>
+                  <td>{transformedMaternalHealthData.indicators['Femmes enceintes ayant fait le Test sérologique']?.total || 0}</td>
+                  <td>{transformedMaternalHealthData.indicators['Accouchements']?.total || 0}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <div className={styles.noDataSection}>Aucune donnée de santé maternelle disponible pour cette période</div>
+          )}
         </section>
 
         {/* Section 5: Fanentanana natao */}
