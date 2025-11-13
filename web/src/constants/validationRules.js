@@ -16,10 +16,9 @@ export const VALIDATION_RULES = {
     pattern: /^(\+261|0)[23][0-9]{8}$/,
     message: "Numéro de téléphone malgache invalide"
   },
-  age: {
-    min: 0,
-    max: 150,
-    message: "L'âge doit être entre 0 et 150 ans"
+  dateNaissance: {
+    maxYearsAgo: 150,
+    message: "La date de naissance doit être dans le passé et ne peut pas dépasser 150 ans"
   },
   required: {
     message: "Ce champ est requis"
@@ -59,19 +58,29 @@ export function validatePassword(password) {
 }
 
 /**
- * Valider un âge
- * @param {number} age - L'âge à valider
+ * Valider une date de naissance
+ * @param {string} dateNaissance - La date de naissance à valider (YYYY-MM-DD)
  * @returns {{ valid: boolean, message: string }} Résultat de la validation
  */
-export function validateAge(age) {
-  const ageNum = parseInt(age, 10);
-  
-  if (isNaN(ageNum)) {
-    return { valid: false, message: "L'âge doit être un nombre" };
+export function validateDateNaissance(dateNaissance) {
+  if (!dateNaissance) {
+    return { valid: false, message: "La date de naissance est requise" };
   }
   
-  if (ageNum < VALIDATION_RULES.age.min || ageNum > VALIDATION_RULES.age.max) {
-    return { valid: false, message: VALIDATION_RULES.age.message };
+  const birthDate = new Date(dateNaissance);
+  const today = new Date();
+  
+  if (isNaN(birthDate.getTime())) {
+    return { valid: false, message: "Date invalide" };
+  }
+  
+  if (birthDate > today) {
+    return { valid: false, message: "La date de naissance ne peut pas être dans le futur" };
+  }
+  
+  const age = today.getFullYear() - birthDate.getFullYear();
+  if (age > VALIDATION_RULES.dateNaissance.maxYearsAgo) {
+    return { valid: false, message: VALIDATION_RULES.dateNaissance.message };
   }
   
   return { valid: true, message: "" };

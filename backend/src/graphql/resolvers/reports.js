@@ -569,7 +569,7 @@ const reportsResolvers = {
           {
             model: Patient,
             as: 'patient',
-            attributes: ['id', 'age', 'sexe', 'religion'],
+            attributes: ['id', 'age', 'dateNaissance', 'sexe', 'religion'],
             // Filtrer par religion si spécifié
             where: religions && religions.length > 0 
               ? { religion: { [Op.in]: religions } }
@@ -628,6 +628,23 @@ const reportsResolvers = {
         }
       ];
 
+      // Fonction pour calculer l'âge à partir de la date de naissance
+      const calculateAge = (dateNaissance, fallbackAge) => {
+        if (dateNaissance) {
+          const birthDate = new Date(dateNaissance);
+          const today = new Date();
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          
+          return Math.max(0, age);
+        }
+        return fallbackAge || 0;
+      };
+
       // Fonction pour déterminer la tranche d'âge
       const getAgeGroup = (age) => {
         if (age <= 12) return 'ZAZA';
@@ -662,7 +679,8 @@ const reportsResolvers = {
 
         if (!patient || !dispensaireId) return;
 
-        const ageGroup = getAgeGroup(patient.age);
+        const age = calculateAge(patient.dateNaissance, patient.age);
+        const ageGroup = getAgeGroup(age);
         const sexeLabel = getSexeLabel(patient.sexe);
 
         if (aggregation[ageGroup] && aggregation[ageGroup][dispensaireId]) {

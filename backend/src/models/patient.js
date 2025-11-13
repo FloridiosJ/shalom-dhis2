@@ -24,11 +24,22 @@ const Patient = sequelize.define('Patient', {
   },
   age: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true, // Made nullable - age will be calculated from dateNaissance
     validate: {
-      notNull: { msg: 'L\'âge est obligatoire' },
       min: { args: [0], msg: 'L\'âge ne peut pas être négatif' },
       max: { args: [150], msg: 'L\'âge ne peut pas dépasser 150 ans' }
+    }
+  },
+  dateNaissance: {
+    type: DataTypes.DATEONLY,
+    allowNull: true, // Will become required after migration period
+    validate: {
+      isDate: { msg: 'La date de naissance doit être une date valide' },
+      isNotFuture(value) {
+        if (value && new Date(value) > new Date()) {
+          throw new Error('La date de naissance ne peut pas être dans le futur');
+        }
+      }
     }
   },
   sexe: {
@@ -141,17 +152,41 @@ Patient.prototype.getDisplayName = function() {
     : this.nom;
 };
 
+/**
+ * Calculate current age from date of birth
+ * @returns {number} Age in years
+ */
+Patient.prototype.calculateAge = function() {
+  if (this.dateNaissance) {
+    const birthDate = new Date(this.dateNaissance);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // Adjust if birthday hasn't occurred yet this year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return Math.max(0, age);
+  }
+  
+  // Fallback to stored age if dateNaissance not available
+  return this.age || 0;
+};
+
 Patient.prototype.getCategorieAge = function() {
-  if (this.age < 1) return 'Nourrisson';
-  if (this.age < 5) return 'Jeune enfant';
-  if (this.age < 12) return 'Enfant';
-  if (this.age < 18) return 'Adolescent';
-  if (this.age < 60) return 'Adulte';
+  const age = this.calculateAge();
+  if (age < 1) return 'Nourrisson';
+  if (age < 5) return 'Jeune enfant';
+  if (age < 12) return 'Enfant';
+  if (age < 18) return 'Adolescent';
+  if (age < 60) return 'Adulte';
   return 'Senior';
 };
 
 Patient.prototype.isMineur = function() {
-  return this.age < 18;
+  return this.calculateAge() < 18;
 };
 
 // Définition des associations

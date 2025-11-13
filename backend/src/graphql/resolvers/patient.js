@@ -203,9 +203,33 @@ const patientResolvers = {
           };
         }
 
+        // Validate that either dateNaissance or age is provided
+        if (!input.dateNaissance && !input.age) {
+          return {
+            success: false,
+            message: 'La date de naissance est obligatoire',
+            errors: ['DATE_NAISSANCE_REQUIRED'],
+            patient: null
+          };
+        }
+
+        // Calculate age from dateNaissance if provided
+        let calculatedAge = input.age;
+        if (input.dateNaissance) {
+          const birthDate = new Date(input.dateNaissance);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            calculatedAge--;
+          }
+          calculatedAge = Math.max(0, calculatedAge);
+        }
+
         // Créer le patient (le hook beforeValidate générera le numeroPatient)
         const patientData = {
           ...input,
+          age: calculatedAge, // Store calculated age for backward compatibility
           userId: user.id
         };
 
@@ -405,17 +429,60 @@ const patientResolvers = {
         : patient.nom;
     },
 
+    // Calculate age dynamically from dateNaissance
+    age: (patient) => {
+      if (patient.dateNaissance) {
+        const birthDate = new Date(patient.dateNaissance);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        
+        return Math.max(0, age);
+      }
+      
+      // Fallback to stored age if dateNaissance not available
+      return patient.age || 0;
+    },
+
     categorieAge: (patient) => {
-      if (patient.age < 1) return 'Nourrisson';
-      if (patient.age < 5) return 'Jeune enfant';
-      if (patient.age < 12) return 'Enfant';
-      if (patient.age < 18) return 'Adolescent';
-      if (patient.age < 60) return 'Adulte';
+      // Use the age field resolver to get calculated age
+      const age = patient.dateNaissance ? (() => {
+        const birthDate = new Date(patient.dateNaissance);
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          calculatedAge--;
+        }
+        return Math.max(0, calculatedAge);
+      })() : (patient.age || 0);
+      
+      if (age < 1) return 'Nourrisson';
+      if (age < 5) return 'Jeune enfant';
+      if (age < 12) return 'Enfant';
+      if (age < 18) return 'Adolescent';
+      if (age < 60) return 'Adulte';
       return 'Senior';
     },
 
     isMineur: (patient) => {
-      return patient.age < 18;
+      // Use the age field resolver to get calculated age
+      const age = patient.dateNaissance ? (() => {
+        const birthDate = new Date(patient.dateNaissance);
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          calculatedAge--;
+        }
+        return Math.max(0, calculatedAge);
+      })() : (patient.age || 0);
+      
+      return age < 18;
     }
   }
 };
