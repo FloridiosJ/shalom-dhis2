@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from '../hooks/useAuth';
-import { TYPES_CONSULTATION } from "../constants";
+import { TYPES_CONSULTATION, getConsultationTypesByGender } from "../constants";
 import PatientAutocomplete from './PatientAutocomplete';
 import CategoriesSelector from './CategoriesSelector';
 import PrescriptionList from './PrescriptionList';
@@ -149,6 +149,10 @@ const CreateDataEntryModal = ({
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
+
+  // Filtrer les types de consultation selon le sexe du patient
+  const selectedPatient = patients.find(p => p.id === form.patientId);
+  const availableConsultationTypes = getConsultationTypesByGender(selectedPatient?.sexe);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -336,7 +340,7 @@ const CreateDataEntryModal = ({
               disabled={loading}
             >
               <option value="">Sélectionner…</option>
-              {TYPES_CONSULTATION.map((t) => (
+              {availableConsultationTypes.map((t) => (
                 <option key={t.code} value={t.code}>
                   {t.icon} {t.label}
                 </option>
