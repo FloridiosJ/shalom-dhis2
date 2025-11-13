@@ -705,6 +705,122 @@ const reportsResolvers = {
         dateTo,
         totalConsultations
       };
+    },
+
+    /**
+     * Consultants and Consultations by Zone
+     * Aggregates unique patients (consultants) and total consultations per dispensaire
+     * for a given period, useful for Tatitra reporting and data visualization
+     * 
+     * @param {string} dateFrom - Start date (format ISO YYYY-MM-DD)
+     * @param {string} dateTo - End date (format ISO YYYY-MM-DD)
+     * @param {Array<string>} dispensaireIds - Optional: filter by specific dispensaires
+     * @returns {Array<{dispensaire: Object, consultants: number, consultations: number}>}
+     */
+    consultantsByZone: async (_, { dateFrom, dateTo, dispensaireIds }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Dispensaire, sequelize } = await import('../../models/index.js');
+
+      // Validation des dates
+      const startDate = new Date(dateFrom);
+      const endDate = new Date(dateTo);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide. Utilisez le format ISO (YYYY-MM-DD)');
+      }
+      
+      if (startDate > endDate) {
+        throw new Error('La date de début doit être antérieure à la date de fin');
+      }
+
+      // Construction de la clause WHERE pour les consultations
+      const whereClause = {
+        isActive: true,
+        dateConsultation: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Filtrer par dispensaire si spécifié
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        whereClause.dispensaireId = { [Op.in]: dispensaireIds };
+      }
+
+      // Récupérer tous les dispensaires actifs (pour structurer la réponse)
+      let dispensaires;
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        dispensaires = await Dispensaire.findAll({
+          where: { 
+            id: { [Op.in]: dispensaireIds },
+            isActive: true 
+          },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      } else {
+        dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      }
+
+      console.log(`✅ Trouvé ${dispensaires.length} dispensaires actifs`);
+
+      // Agrégation efficace avec SQL pour compter consultants (patients uniques) et consultations par dispensaire
+      // Utilise COUNT(DISTINCT patientId) pour les consultants et COUNT(*) pour les consultations
+      const stats = await DataEntry.findAll({
+        where: whereClause,
+        attributes: [
+          'dispensaireId',
+          [sequelize.fn('COUNT', sequelize.fn('DISTINCT', sequelize.col('patientId'))), 'consultants'],
+          [sequelize.fn('COUNT', '*'), 'consultations']
+        ],
+        group: ['dispensaireId'],
+        raw: true
+      });
+
+      console.log(`✅ Agrégation SQL terminée pour ${stats.length} dispensaires avec données`);
+
+      // Créer un mapping dispensaireId -> stats pour un accès rapide
+      const statsMap = {};
+      stats.forEach(stat => {
+        statsMap[stat.dispensaireId] = {
+          consultants: parseInt(stat.consultants),
+          consultations: parseInt(stat.consultations)
+        };
+      });
+
+      // Construire le résultat avec tous les dispensaires (même ceux sans consultation = 0)
+      const results = dispensaires.map(dispensaire => {
+        const stat = statsMap[dispensaire.id] || { consultants: 0, consultations: 0 };
+        return {
+          dispensaire: {
+            id: dispensaire.id,
+            name: dispensaire.name
+          },
+          consultants: stat.consultants,
+          consultations: stat.consultations
+        };
+      });
+
+      // Calculer les totaux globaux (Fitambarany)
+      const totalConsultants = results.reduce((sum, r) => sum + r.consultants, 0);
+      const totalConsultations = results.reduce((sum, r) => sum + r.consultations, 0);
+
+      // Ajouter une ligne de total avec dispensaire = null
+      results.push({
+        dispensaire: null,
+        consultants: totalConsultants,
+        consultations: totalConsultations
+      });
+
+      console.log(`✅ Résultat: ${results.length - 1} dispensaires + 1 total (${totalConsultants} consultants, ${totalConsultations} consultations)`);
+
+      return results;
     }
   },
 
