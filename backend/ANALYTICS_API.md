@@ -10,6 +10,7 @@ This document describes the analytics and reporting endpoints available in the S
 - [Diagnostics by Zone](#diagnostics-by-zone)
 - [Education by Zone](#education-by-zone)
 - [Maternal Health by Zone](#maternal-health-by-zone)
+- [Events by Zone](#events-by-zone)
 - [Authentication](#authentication)
 - [Error Handling](#error-handling)
 
@@ -1095,6 +1096,218 @@ For improved data quality and accuracy:
 2. Ensure consistent terminology in diagnostic and notes fields
 3. Consider creating a dedicated MaternalHealth model for precise tracking
 4. Train staff to use standard keywords in consultations
+
+---
+
+## Events by Zone
+
+Query awareness activities and sensibilization events grouped by dispensaire for Tatitra reports Section V: FANENTANANA NATAO.
+
+### Query
+
+```graphql
+eventsByZone(
+  dateFrom: String!
+  dateTo: String!
+  dispensaireIds: [ID!]
+): [EventsByZone!]!
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `dateFrom` | String | Yes | Start date in ISO format (YYYY-MM-DD) |
+| `dateTo` | String | Yes | End date in ISO format (YYYY-MM-DD) |
+| `dispensaireIds` | [ID!] | No | Filter by specific dispensaires (returns all if not provided) |
+
+### Response Type
+
+```graphql
+type EventsByZone {
+  zone: String!                # Dispensaire name
+  zoneId: ID!                  # Dispensaire ID
+  events: [EventData!]!        # List of events for this zone
+  totalParticipants: Int!      # Sum of all participants across events
+  totalSessions: Int!          # Number of events/sessions
+}
+
+type EventData {
+  theme: String!               # Event theme/type (from type_event)
+  participants: Int!           # Number of participants
+  date: String!                # Event date formatted in French (DD/MM/YYYY)
+  sessions: Int                # Number of sessions (always 1 per event)
+}
+```
+
+### Data Source
+
+This query uses the `Event` model with the following filters:
+- **Status**: Only includes events with status `termine` (completed) or `en_cours` (ongoing)
+- **Date Range**: Filters events between `dateFrom` and `dateTo`
+- **Active Events**: Only includes events where `isActive = true`
+- **Dispensaire Association**: Groups by `dispensaireId`
+
+### Example Usage
+
+#### Basic query (all dispensaires for Q1 2025)
+```graphql
+query {
+  eventsByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+  ) {
+    zone
+    zoneId
+    events {
+      theme
+      participants
+      date
+      sessions
+    }
+    totalParticipants
+    totalSessions
+  }
+}
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "eventsByZone": [
+      {
+        "zone": "Ampitsopitsoka",
+        "zoneId": "abc-123-def-456",
+        "events": [
+          {
+            "theme": "Allaitement exclusif",
+            "participants": 30,
+            "date": "15/01/2025",
+            "sessions": 1
+          },
+          {
+            "theme": "Planification familiale",
+            "participants": 45,
+            "date": "22/01/2025",
+            "sessions": 1
+          }
+        ],
+        "totalParticipants": 75,
+        "totalSessions": 2
+      },
+      {
+        "zone": "Boeny Aranta",
+        "zoneId": "xyz-789-uvw-012",
+        "events": [
+          {
+            "theme": "Prévention paludisme",
+            "participants": 50,
+            "date": "18/01/2025",
+            "sessions": 1
+          }
+        ],
+        "totalParticipants": 50,
+        "totalSessions": 1
+      },
+      {
+        "zone": "Ankelitaly",
+        "zoneId": "ghi-345-jkl-678",
+        "events": [],
+        "totalParticipants": 0,
+        "totalSessions": 0
+      }
+    ]
+  }
+}
+```
+
+#### Filtered by specific dispensaires
+```graphql
+query {
+  eventsByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+    dispensaireIds: ["abc-123-def-456", "xyz-789-uvw-012"]
+  ) {
+    zone
+    totalParticipants
+    totalSessions
+    events {
+      theme
+      participants
+      date
+    }
+  }
+}
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "eventsByZone": [
+      {
+        "zone": "Ampitsopitsoka",
+        "totalParticipants": 75,
+        "totalSessions": 2,
+        "events": [
+          {
+            "theme": "Allaitement exclusif",
+            "participants": 30,
+            "date": "15/01/2025"
+          },
+          {
+            "theme": "Planification familiale",
+            "participants": 45,
+            "date": "22/01/2025"
+          }
+        ]
+      },
+      {
+        "zone": "Boeny Aranta",
+        "totalParticipants": 50,
+        "totalSessions": 1,
+        "events": [
+          {
+            "theme": "Prévention paludisme",
+            "participants": 50,
+            "date": "18/01/2025"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Response Characteristics
+
+- **All Dispensaires Included**: All active dispensaires are returned, even if they have no events (with empty events array and 0 totals)
+- **Event Sorting**: Events are sorted by date in ascending order within each zone
+- **Zone Sorting**: Zones are sorted alphabetically by name
+- **Sessions Count**: Each event counts as 1 session
+- **Date Format**: Dates are formatted in French locale (DD/MM/YYYY)
+
+### Use Cases
+
+1. **Tatitra Section V**: Display awareness/sensitization events for quarterly reports
+2. **Event Analytics**: Analyze participation trends across different zones
+3. **Activity Tracking**: Monitor outreach activities by dispensaire
+4. **Report Generation**: Export event data for PDF reports
+
+### Performance
+
+- **Single Query**: Retrieves all necessary data in one database query per dispensaire
+- **Efficient Grouping**: Uses in-memory aggregation for zone grouping
+- **Response Time**: < 1 second for typical data volumes (100-200 events)
+
+### Notes
+
+- Events with status `planifie` (planned) or `annule` (cancelled) are excluded
+- Events without a `dispensaireId` are not included in the results
+- The `sessions` field is always 1 per event (for future enhancement if sessions tracking is added)
+- Totals are calculated server-side to ensure accuracy
 
 ---
 
