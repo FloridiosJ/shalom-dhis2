@@ -116,7 +116,8 @@ type Patient {
   id: ID!
   nom: String!
   prenom: String
-  age: Int!
+  age: Int # Calculated from dateNaissance
+  dateNaissance: String # Date de naissance (YYYY-MM-DD)
   sexe: String!
   religion: Religion!
   village: String!
@@ -586,7 +587,8 @@ input UpdateDispensaireInput {
 input CreatePatientInput {
   nom: String!
   prenom: String
-  age: Int!
+  age: Int # Optional for backward compatibility
+  dateNaissance: String # Date de naissance (YYYY-MM-DD format)
   sexe: String!
   religion: Religion!
   village: String!
@@ -597,7 +599,8 @@ input CreatePatientInput {
 input UpdatePatientInput {
   nom: String
   prenom: String
-  age: Int
+  age: Int # Optional for backward compatibility
+  dateNaissance: String # Date de naissance (YYYY-MM-DD format)
   sexe: String
   religion: Religion
   village: String

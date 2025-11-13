@@ -18,7 +18,7 @@ const PatientModal = ({
   const [form, setForm] = useState({
     nom: '',
     prenom: '',
-    age: '',
+    dateNaissance: '',
     sexe: '',
     religion: '',
     village: '',
@@ -39,7 +39,7 @@ const PatientModal = ({
       setForm({
         nom: patient?.nom || '',
         prenom: patient?.prenom || '',
-        age: patient?.age?.toString() || '',
+        dateNaissance: patient?.dateNaissance || '',
         sexe: patient?.sexe || '',
         religion: patient?.religion || '',
         village: patient?.village || '',
@@ -56,7 +56,20 @@ const PatientModal = ({
     const e = {};
     if (!form.nom.trim()) e.nom = 'Nom requis';
     if (!form.prenom.trim()) e.prenom = 'Prénom requis';
-    if (!form.age || isNaN(form.age)) e.age = 'Âge requis';
+    if (!form.dateNaissance) {
+      e.dateNaissance = 'Date de naissance requise';
+    } else {
+      const birthDate = new Date(form.dateNaissance);
+      const today = new Date();
+      if (birthDate > today) {
+        e.dateNaissance = 'La date de naissance ne peut pas être dans le futur';
+      }
+      // Check if the person would be older than 150 years
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age > 150) {
+        e.dateNaissance = 'La date de naissance ne peut pas être il y a plus de 150 ans';
+      }
+    }
     if (!form.sexe) e.sexe = 'Sexe requis';
     if (!form.religion) e.religion = 'Religion requise';
     if (!form.village.trim()) e.village = 'Village requis';
@@ -88,7 +101,7 @@ const PatientModal = ({
       const payload = {
         nom: form.nom,
         prenom: form.prenom,
-        age: parseInt(form.age, 10),
+        dateNaissance: form.dateNaissance,
         sexe: form.sexe,
         religion: form.religion,
         village: form.village,
@@ -154,19 +167,19 @@ const PatientModal = ({
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="patient-age" className={styles.label}>Âge <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
+            <label htmlFor="patient-dateNaissance" className={styles.label}>Date de naissance <span aria-hidden="true" style={{color:'#dc2626'}}>*</span></label>
             <input
-              id="patient-age"
-              name="age"
-              type="number"
-              min="0"
+              id="patient-dateNaissance"
+              name="dateNaissance"
+              type="date"
               className={styles.input}
-              value={form.age}
+              value={form.dateNaissance}
               onChange={handleChange}
+              max={new Date().toISOString().split('T')[0]} // Cannot be in the future
               required
               disabled={loading}
             />
-            {errors.age && <div className={styles.errorField}>{errors.age}</div>}
+            {errors.dateNaissance && <div className={styles.errorField}>{errors.dateNaissance}</div>}
           </div>
 
           <div className={styles.formGroup}>

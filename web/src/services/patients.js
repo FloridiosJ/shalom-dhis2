@@ -30,6 +30,7 @@ const patientFields = `
   nom
   prenom
   age
+  dateNaissance
   sexe
   religion
   village
