@@ -295,11 +295,6 @@ const TatitraPreview = () => {
     return { totalMale, totalFemale };
   };
 
-  // Calculate totals for disease statistics
-  const calculateDiseaseTotals = (zones) => {
-    return zones.reduce((sum, count) => sum + count, 0);
-  };
-
   return (
     <Layout title="Aperçu Tatitra">
       {/* Date Filter Controls */}
