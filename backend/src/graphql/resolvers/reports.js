@@ -1422,6 +1422,130 @@ const reportsResolvers = {
       });
 
       return results;
+    },
+
+    /**
+     * Query events/awareness activities by zone for Tatitra Section V
+     * @param {string} dateFrom - Start date in ISO format (YYYY-MM-DD)
+     * @param {string} dateTo - End date in ISO format (YYYY-MM-DD)
+     * @param {Array<string>} dispensaireIds - Optional: filter by specific dispensaires
+     * @returns {Array<{zone: string, zoneId: string, events: Array<{theme, participants, date, sessions}>, totalParticipants: number, totalSessions: number}>}
+     */
+    eventsByZone: async (_, { dateFrom, dateTo, dispensaireIds }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { Event, Dispensaire } = await import('../../models/index.js');
+
+      // Validation des dates
+      const startDate = new Date(dateFrom);
+      const endDate = new Date(dateTo);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Format de date invalide. Utilisez le format ISO (YYYY-MM-DD)');
+      }
+      
+      if (startDate > endDate) {
+        throw new Error('La date de début doit être antérieure à la date de fin');
+      }
+
+      // Construction de la clause WHERE pour les événements
+      const whereClause = {
+        isActive: true,
+        status: { [Op.in]: ['termine', 'en_cours'] }, // Only completed or ongoing events
+        date: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Filtrer par dispensaire si spécifié
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        whereClause.dispensaireId = { [Op.in]: dispensaireIds };
+      }
+
+      // Récupérer tous les dispensaires actifs (pour structurer la réponse)
+      let dispensaires;
+      if (dispensaireIds && dispensaireIds.length > 0) {
+        dispensaires = await Dispensaire.findAll({
+          where: { 
+            id: { [Op.in]: dispensaireIds },
+            isActive: true 
+          },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      } else {
+        dispensaires = await Dispensaire.findAll({
+          where: { isActive: true },
+          attributes: ['id', 'name'],
+          order: [['name', 'ASC']]
+        });
+      }
+
+      console.log(`✅ Trouvé ${dispensaires.length} dispensaires actifs pour événements`);
+
+      // Récupérer les événements avec les dispensaires associés
+      const events = await Event.findAll({
+        where: whereClause,
+        include: [{
+          model: Dispensaire,
+          as: 'dispensaire',
+          attributes: ['id', 'name'],
+          required: false // Allow events without dispensaire
+        }],
+        attributes: ['id', 'type_event', 'nombreParticipants', 'date', 'lieu', 'dispensaireId'],
+        order: [['date', 'ASC']]
+      });
+
+      console.log(`✅ Trouvé ${events.length} événements pour la période`);
+
+      // Grouper les événements par dispensaire
+      const eventsByDispensaire = {};
+      
+      // Initialiser avec tous les dispensaires (même sans événements)
+      dispensaires.forEach(disp => {
+        eventsByDispensaire[disp.id] = {
+          zone: disp.name,
+          zoneId: disp.id,
+          events: [],
+          totalParticipants: 0,
+          totalSessions: 0
+        };
+      });
+
+      // Ajouter les événements à leurs dispensaires respectifs
+      events.forEach(event => {
+        const dispensaireId = event.dispensaireId;
+        
+        // Skip events without a dispensaire or with dispensaire not in our list
+        if (!dispensaireId || !eventsByDispensaire[dispensaireId]) {
+          return;
+        }
+
+        const eventData = {
+          theme: event.type_event,
+          participants: event.nombreParticipants || 0,
+          date: new Date(event.date).toLocaleDateString('fr-FR'),
+          sessions: 1 // Count each event as one session
+        };
+
+        eventsByDispensaire[dispensaireId].events.push(eventData);
+        eventsByDispensaire[dispensaireId].totalParticipants += eventData.participants;
+        eventsByDispensaire[dispensaireId].totalSessions += 1;
+      });
+
+      // Convertir en tableau et trier par nom de zone
+      const results = Object.values(eventsByDispensaire).sort((a, b) => 
+        a.zone.localeCompare(b.zone)
+      );
+
+      console.log(`✅ Événements groupés par zone:`);
+      results.forEach(r => {
+        console.log(`   ${r.zone}: ${r.events.length} événements, ${r.totalParticipants} participants total`);
+      });
+
+      return results;
     }
   },
 

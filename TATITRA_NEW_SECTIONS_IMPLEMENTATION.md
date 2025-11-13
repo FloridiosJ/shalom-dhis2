@@ -385,8 +385,90 @@ The implementation includes automatic page breaks:
 
 The implementation successfully adds three new sections to the Tatitra PDF export, matching the exact format of the reference images. All sections are dynamic, properly paginated, and production-ready. The code passes all tests and security checks with no vulnerabilities found.
 
+**Latest Update (November 13, 2025)**: Added `eventsByZone` GraphQL query for Section V (FANENTANANA NATAO) with full frontend integration and comprehensive unit tests (23 tests passing).
+
 ---
 
-**Document Version:** 1.0  
-**Date:** November 10, 2025  
-**Implementation Status:** ✅ Complete
+**Document Version:** 1.1  
+**Date:** November 13, 2025  
+**Implementation Status:** ✅ Complete + Enhanced
+
+## Recent Enhancements (November 13, 2025)
+
+### EventsByZone Query Implementation
+
+A new GraphQL query `eventsByZone` has been implemented to provide structured events/awareness activities data for Section V of the Tatitra report.
+
+#### Features
+- **Query**: `eventsByZone(dateFrom: String!, dateTo: String!, dispensaireIds: [ID!])`
+- **Data Source**: Event model with completed/ongoing events only
+- **Aggregation**: Groups events by dispensaire with totals per zone
+- **Date Format**: French locale (DD/MM/YYYY)
+- **Sorting**: Events sorted by date ascending within each zone
+
+#### Implementation Details
+
+**Backend (GraphQL Resolver):**
+- Location: `backend/src/graphql/resolvers/reports.js`
+- Filters events by status (`termine`, `en_cours`) and date range
+- Groups by dispensaire and calculates totals
+- Returns structured data with zero counts for zones with no events
+
+**Frontend (React Integration):**
+- Service: `web/src/services/reports.js` - `getEventsByZone()`
+- Hook: `web/src/hooks/useReports.js` - `useEventsByZone()`
+- Component: `web/src/pages/TatitraPreview.jsx` - Section V
+- Displays events grouped by zone with loading/error states
+
+#### Example Query
+```graphql
+query EventsByZone {
+  eventsByZone(dateFrom: "2025-01-01", dateTo: "2025-03-31") {
+    zone
+    zoneId
+    events {
+      theme
+      participants
+      date
+      sessions
+    }
+    totalParticipants
+    totalSessions
+  }
+}
+```
+
+#### Example Response
+```json
+{
+  "data": {
+    "eventsByZone": [
+      {
+        "zone": "Ampitsopitsoka",
+        "zoneId": "...",
+        "events": [
+          {"theme": "Allaitement exclusif", "participants": 30, "date": "15/01/2025", "sessions": 1},
+          {"theme": "Planification familiale", "participants": 45, "date": "22/01/2025", "sessions": 1}
+        ],
+        "totalParticipants": 75,
+        "totalSessions": 2
+      }
+    ]
+  }
+}
+```
+
+#### Testing
+- **Unit Tests**: 23 comprehensive tests covering:
+  - Date validation
+  - Event aggregation logic
+  - Status filtering
+  - Dispensaire filtering
+  - Response structure validation
+  - Edge cases and performance
+- **Test Status**: ✅ All tests passing
+
+#### Documentation
+- Added detailed API documentation in `ANALYTICS_API.md`
+- Includes usage examples, response structure, and use cases
+- Documents data source, filters, and performance characteristics

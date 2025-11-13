@@ -437,6 +437,45 @@ async function getMaternalHealthByZone(dateFrom, dateTo, dispensaireIds = null) 
   return handleGraphQLErrors(response).maternalHealthByZone;
 }
 
+/**
+ * Récupère les événements/animations par zone pour le Tatitra Section V
+ * @param {string} dateFrom - Date de début (format ISO YYYY-MM-DD)
+ * @param {string} dateTo - Date de fin (format ISO YYYY-MM-DD)
+ * @param {Array<string>} dispensaireIds - Optionnel: filtrer par dispensaires spécifiques
+ * @returns {Promise<Array<{zone: string, zoneId: string, events: Array<{theme, participants, date, sessions}>, totalParticipants: number, totalSessions: number}>>}
+ */
+async function getEventsByZone(dateFrom, dateTo, dispensaireIds = null) {
+  const query = `
+    query EventsByZone($dateFrom: String!, $dateTo: String!, $dispensaireIds: [ID!]) {
+      eventsByZone(
+        dateFrom: $dateFrom
+        dateTo: $dateTo
+        dispensaireIds: $dispensaireIds
+      ) {
+        zone
+        zoneId
+        events {
+          theme
+          participants
+          date
+          sessions
+        }
+        totalParticipants
+        totalSessions
+      }
+    }
+  `;
+  
+  const variables = { 
+    dateFrom,
+    dateTo,
+    ...(dispensaireIds && dispensaireIds.length > 0 && { dispensaireIds })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).eventsByZone;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -449,5 +488,6 @@ export default {
   getConsultantsByZone,
   getDiagnosticsByZone,
   getEducationByZone,
-  getMaternalHealthByZone
+  getMaternalHealthByZone,
+  getEventsByZone
 };
