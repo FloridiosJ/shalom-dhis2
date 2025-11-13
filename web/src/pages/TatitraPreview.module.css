@@ -488,6 +488,26 @@
   background: #ffebee;
 }
 
+/* Events by Zone Section */
+.eventsByZone {
+  margin: 15px 0;
+}
+
+.zoneEvents {
+  margin-bottom: 25px;
+  page-break-inside: avoid;
+}
+
+.zoneName {
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  margin: 10px 0;
+  padding: 5px 10px;
+  background: #f0f0f0;
+  border-left: 4px solid #666;
+}
+
 /* Responsive adjustments for smaller screens */
 @media screen and (max-width: 768px) {
   .previewContainer {

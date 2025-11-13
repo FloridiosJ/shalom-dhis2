@@ -902,6 +902,23 @@ type MaternalHealthByZone {
   total: Int!
 }
 
+# Type for single event data
+type EventData {
+  theme: String!
+  participants: Int!
+  date: String!
+  sessions: Int
+}
+
+# Type for events aggregated by zone/dispensaire
+type EventsByZone {
+  zone: String!
+  zoneId: ID!
+  events: [EventData!]!
+  totalParticipants: Int!
+  totalSessions: Int!
+}
+
 type Query {
   # Auth
   me: User
@@ -1239,6 +1256,51 @@ type Query {
     "Optional: filter by specific dispensaires"
     dispensaireIds: [ID!]
   ): [MaternalHealthByZone!]!
+
+  """
+  Query events/awareness activities by zone for Tatitra reports Section V.
+  Returns events grouped by dispensaire (zone) with theme, participants, date, and sessions.
+  
+  Each zone includes:
+  - List of events (theme, participants, date, sessions)
+  - Total participants across all events in that zone
+  - Total sessions across all events in that zone
+  
+  Events are sorted by date in ascending order within each zone.
+  Uses Event model data (type_event as theme, nombreParticipants, date, lieu).
+  
+  Example:
+    eventsByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+    ) {
+      zone
+      zoneId
+      events {
+        theme
+        participants
+        date
+        sessions
+      }
+      totalParticipants
+      totalSessions
+    }
+  
+  Example with filters:
+    eventsByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+      dispensaireIds: ["abc-123", "def-456"]
+    )
+  """
+  eventsByZone(
+    "Start date in ISO format (YYYY-MM-DD) - required"
+    dateFrom: String!
+    "End date in ISO format (YYYY-MM-DD) - required"
+    dateTo: String!
+    "Optional: filter by specific dispensaires"
+    dispensaireIds: [ID!]
+  ): [EventsByZone!]!
 }
 
 # Mutations

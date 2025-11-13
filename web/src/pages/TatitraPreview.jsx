@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone, useEducationByZone, useMaternalHealthByZone } from '../hooks/useReports';
+import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone, useEducationByZone, useMaternalHealthByZone, useEventsByZone } from '../hooks/useReports';
 import Layout from '../components/Layout';
 import styles from './TatitraPreview.module.css';
 
@@ -59,6 +59,13 @@ const TatitraPreview = () => {
     isLoading: maternalHealthLoading, 
     error: maternalHealthError 
   } = useMaternalHealthByZone(dateFrom, dateTo, null);
+
+  // Fetch events by zone for section 5
+  const { 
+    data: eventsByZone, 
+    isLoading: eventsLoading, 
+    error: eventsError 
+  } = useEventsByZone(dateFrom, dateTo, null);
 
   // Sample data matching the structure from the PDF generator
   const reportData = {
@@ -647,27 +654,47 @@ const TatitraPreview = () => {
 
         {/* Section 5: Fanentanana natao */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{reportData.section5.title}</h2>
-          <table className={styles.simpleTable}>
-            <thead>
-              <tr>
-                <th>Thème</th>
-                <th>Lieu</th>
-                <th>Date</th>
-                <th>Participants</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.section5.events.map((event, idx) => (
-                <tr key={idx}>
-                  <td>{event.theme}</td>
-                  <td>{event.location}</td>
-                  <td>{event.date}</td>
-                  <td>{event.participants}</td>
-                </tr>
+          <h2 className={styles.sectionTitle}>V. FANENTANANA NATAO</h2>
+          {eventsLoading ? (
+            <div className={styles.loadingSection}>Chargement des événements...</div>
+          ) : eventsError ? (
+            <div className={styles.errorSection}>Erreur lors du chargement des événements: {eventsError.message}</div>
+          ) : eventsByZone && eventsByZone.length > 0 && eventsByZone.some(zone => zone.events.length > 0) ? (
+            <div className={styles.eventsByZone}>
+              {eventsByZone.filter(zone => zone.events.length > 0).map((zone, zoneIdx) => (
+                <div key={zoneIdx} className={styles.zoneEvents}>
+                  <h3 className={styles.zoneName}>{zone.zone}</h3>
+                  <table className={styles.simpleTable}>
+                    <thead>
+                      <tr>
+                        <th>Thème</th>
+                        <th>Date</th>
+                        <th>Participants</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {zone.events.map((event, eventIdx) => (
+                        <tr key={eventIdx}>
+                          <td>{event.theme}</td>
+                          <td>{event.date}</td>
+                          <td>{event.participants}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className={styles.totalRow}>
+                        <td><strong>Total</strong></td>
+                        <td><strong>{zone.totalSessions} session(s)</strong></td>
+                        <td><strong>{zone.totalParticipants} participants</strong></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          ) : (
+            <div className={styles.noDataSection}>Aucun événement disponible pour cette période</div>
+          )}
         </section>
 
         {/* Section 6: Vaovao ampitaina */}
