@@ -101,6 +101,21 @@ export function useStatsByPeriod(startDate, endDate, dispensaireId) {
 }
 
 /**
+ * Hook to fetch Fitoriana statistics
+ * Aggregates consultations by age group, gender (lahy/vavy), and dispensaire
+ */
+export function useFitorianaStats(dateFrom, dateTo, dispensaireIds = null, religions = null, enabled = true) {
+  return useQuery({
+    queryKey: ['reports', 'fitorianaStats', dateFrom, dateTo, dispensaireIds, religions],
+    queryFn: () => reportService.getFitorianaStats(dateFrom, dateTo, dispensaireIds, religions),
+    enabled: enabled && !!dateFrom && !!dateTo,
+    staleTime: 1 * 60 * 1000, // 1 minute
+    retry: 2,
+    keepPreviousData: true,
+  });
+}
+
+/**
  * Composite hook that fetches all report data at once
  * This provides a single loading state for all report queries
  */

@@ -224,6 +224,14 @@ const Reports = () => {
             <span className={styles.buttonIcon}>👁️</span>
             <span className={styles.buttonText}>Preview Tatitra</span>
           </button>
+          <button
+            className={styles.testButton}
+            onClick={() => navigate('/fitoriana-stats-test')}
+            aria-label="Test Fitoriana Stats"
+          >
+            <span className={styles.buttonIcon}>🧪</span>
+            <span className={styles.buttonText}>Test Fitoriana Stats</span>
+          </button>
         </div>
 
         {/* KPI Cards */}

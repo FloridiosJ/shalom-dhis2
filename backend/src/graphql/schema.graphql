@@ -984,6 +984,40 @@ type Query {
     startDate: String
     endDate: String
   ): DispensaireStats!
+  
+  """
+  Query Fitoriana statistics: aggregates consultations by age group, gender, and dispensaire.
+  
+  Returns structured data for the "MAHAKASIKA NY ASA FITORIANA" section of Tatitra report.
+  Age groups:
+  - Zaza: ≤12 years old
+  - Tanora: 13-30 years old
+  - Olon-dehibe: >30 years old
+  
+  Supports filtering by:
+  - Date range (dateFrom, dateTo) - required
+  - Specific dispensaires (dispensaireIds) - optional, returns all if not specified
+  - Religions (religions) - optional, filters by religion if specified
+  
+  Returns counts split by gender (lahy/vavy) for each dispensaire and total (fitambarany).
+  
+  Example:
+    fitorianaStats(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+      religions: ["Musulman"]
+    )
+  """
+  fitorianaStats(
+    "Start date in ISO format (YYYY-MM-DD) - required"
+    dateFrom: String!
+    "End date in ISO format (YYYY-MM-DD) - required"
+    dateTo: String!
+    "Optional: filter by specific dispensaires"
+    dispensaireIds: [ID!]
+    "Optional: filter by religions (e.g., ['Kristianina'], ['Musulman'])"
+    religions: [Religion!]
+  ): FitorianaStats!
 }
 
 # Mutations
@@ -1078,4 +1112,29 @@ type ConsultationStatsReport {
   topCategories: [CategoryStat!]!
   consultationsByDay: [ConsultationByDay!]!
   consultationsByType: [ConsultationByType!]!
+}
+
+# Types for Fitoriana Statistics
+type GenderCount {
+  lahy: Int!
+  vavy: Int!
+}
+
+type FitorianaRowValues {
+  dispensaireName: String!
+  values: GenderCount!
+}
+
+type FitorianaRow {
+  label: String!
+  ageGroup: String!
+  valuesByDispensaire: [FitorianaRowValues!]!
+  fitambarany: GenderCount!
+}
+
+type FitorianaStats {
+  rows: [FitorianaRow!]!
+  dateFrom: String!
+  dateTo: String!
+  totalConsultations: Int!
 }

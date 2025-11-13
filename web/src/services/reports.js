@@ -244,6 +244,52 @@ async function exportTatitraReport(quarter, year, dispensaireId = null) {
   return handleGraphQLErrors(response).exportTatitraReport;
 }
 
+/**
+ * Récupère les statistiques Fitoriana (section "MAHAKASIKA NY ASA FITORIANA")
+ * Agrégation par tranche d'âge, genre (lahy/vavy) et dispensaire
+ */
+async function getFitorianaStats(dateFrom, dateTo, dispensaireIds = null, religions = null) {
+  const query = `
+    query FitorianaStats($dateFrom: String!, $dateTo: String!, $dispensaireIds: [ID!], $religions: [Religion!]) {
+      fitorianaStats(
+        dateFrom: $dateFrom
+        dateTo: $dateTo
+        dispensaireIds: $dispensaireIds
+        religions: $religions
+      ) {
+        dateFrom
+        dateTo
+        totalConsultations
+        rows {
+          label
+          ageGroup
+          valuesByDispensaire {
+            dispensaireName
+            values {
+              lahy
+              vavy
+            }
+          }
+          fitambarany {
+            lahy
+            vavy
+          }
+        }
+      }
+    }
+  `;
+  
+  const variables = { 
+    dateFrom,
+    dateTo,
+    ...(dispensaireIds && dispensaireIds.length > 0 && { dispensaireIds }),
+    ...(religions && religions.length > 0 && { religions })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).fitorianaStats;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -251,5 +297,6 @@ export default {
   getTopMedications,
   getConsultationsEvolution,
   getStatsByDispensaire,
-  exportTatitraReport
+  exportTatitraReport,
+  getFitorianaStats
 };

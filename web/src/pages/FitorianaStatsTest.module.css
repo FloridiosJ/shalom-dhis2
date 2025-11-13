@@ -1,0 +1,311 @@
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #718096;
+}
+
+.filtersCard,
+.metadataCard,
+.tableCard,
+.loadingCard,
+.errorCard,
+.debugCard {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 1rem;
+}
+
+.filterRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filterGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #2d3748;
+}
+
+.checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.refreshButton {
+  background: #4299e1;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: #3182ce;
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loadingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #e2e8f0;
+  border-top-color: #4299e1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorCard {
+  background: #fed7d7;
+  border: 1px solid #fc8181;
+  padding: 1.5rem;
+}
+
+.errorCard h3 {
+  color: #c53030;
+  margin-bottom: 0.5rem;
+}
+
+.errorCard p {
+  color: #742a2a;
+}
+
+.metadataGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.metadataItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metadataLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metadataValue {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.table thead {
+  background: #f7fafc;
+}
+
+.ageHeader {
+  background: #edf2f7;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: left;
+  min-width: 200px;
+}
+
+.dispensaireHeader {
+  background: #bee3f8;
+  font-weight: 600;
+  color: #2c5282;
+}
+
+.totalHeader {
+  background: #9ae6b4;
+  font-weight: 700;
+  color: #22543d;
+}
+
+.genderHeader {
+  background: #f7fafc;
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.evenRow {
+  background: #f7fafc;
+}
+
+.ageCell {
+  text-align: left;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.valueCell {
+  font-weight: 400;
+  color: #4a5568;
+}
+
+.totalCell {
+  font-weight: 700;
+  color: #22543d;
+  background: #f0fff4;
+}
+
+.debugCard {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.debugSummary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #4a5568;
+  padding: 0.5rem 0;
+  user-select: none;
+}
+
+.debugSummary:hover {
+  color: #2d3748;
+}
+
+.debugPre {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #2d3748;
+  color: #68d391;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .filterRow {
+    flex-direction: column;
+  }
+
+  .checkboxGroup {
+    flex-direction: column;
+  }
+
+  .table {
+    font-size: 0.75rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
