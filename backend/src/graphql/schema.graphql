@@ -858,6 +858,20 @@ type ConsultantsByZone {
   consultations: Int!
 }
 
+# Type for diagnostics count by dispensaire
+type DispensaireDiagnosticCount {
+  id: ID!
+  name: String!
+  count: Int!
+}
+
+# Type for diagnostics aggregated by zone/dispensaire
+type DiagnosticsByZone {
+  diagnostic: String!
+  dispensaires: [DispensaireDiagnosticCount!]!
+  total: Int!
+}
+
 type Query {
   # Auth
   me: User
@@ -1062,6 +1076,55 @@ type Query {
     "Optional: filter by specific dispensaires"
     dispensaireIds: [ID!]
   ): [ConsultantsByZone!]!
+  
+  """
+  Query diagnostics aggregated by zone/dispensaire for a given period.
+  
+  Returns diagnostic categories (or text fallback) with counts per dispensaire,
+  enabling cross-tabulation tables (diagnostics x dispensaires) for Tatitra reports.
+  
+  Uses structured categories (categoriesWithMeta.categorieMaladieId) as primary data source,
+  with fallback to diagnostic text field for consultations without structured categories.
+  
+  Returns results sorted by total count descending.
+  
+  Supports filtering by:
+  - Date range (dateFrom, dateTo) - required
+  - Specific dispensaires (dispensaireIds) - optional, returns all active dispensaires if not specified
+  - Limit (limit) - optional, limits number of diagnostics returned (default: all)
+  
+  Example:
+    diagnosticsByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+    ) {
+      diagnostic
+      dispensaires {
+        id
+        name
+        count
+      }
+      total
+    }
+  
+  Example with filters:
+    diagnosticsByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+      dispensaireIds: ["abc-123", "def-456"]
+      limit: 20
+    )
+  """
+  diagnosticsByZone(
+    "Start date in ISO format (YYYY-MM-DD) - required"
+    dateFrom: String!
+    "End date in ISO format (YYYY-MM-DD) - required"
+    dateTo: String!
+    "Optional: filter by specific dispensaires"
+    dispensaireIds: [ID!]
+    "Optional: limit number of diagnostics returned (default: all)"
+    limit: Int
+  ): [DiagnosticsByZone!]!
 }
 
 # Mutations
