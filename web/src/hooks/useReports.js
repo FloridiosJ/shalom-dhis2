@@ -116,6 +116,21 @@ export function useFitorianaStats(dateFrom, dateTo, dispensaireIds = null, relig
 }
 
 /**
+ * Hook to fetch consultants (unique patients) and consultations by dispensaire/zone
+ * Useful for Tatitra reporting and visualizations
+ */
+export function useConsultantsByZone(dateFrom, dateTo, dispensaireIds = null, enabled = true) {
+  return useQuery({
+    queryKey: ['reports', 'consultantsByZone', dateFrom, dateTo, dispensaireIds],
+    queryFn: () => reportService.getConsultantsByZone(dateFrom, dateTo, dispensaireIds),
+    enabled: enabled && !!dateFrom && !!dateTo,
+    staleTime: 2 * 60 * 1000, // 2 minutes - this data changes less frequently
+    retry: 2,
+    keepPreviousData: true,
+  });
+}
+
+/**
  * Composite hook that fetches all report data at once
  * This provides a single loading state for all report queries
  */

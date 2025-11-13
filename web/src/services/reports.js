@@ -290,6 +290,38 @@ async function getFitorianaStats(dateFrom, dateTo, dispensaireIds = null, religi
   return handleGraphQLErrors(response).fitorianaStats;
 }
 
+/**
+ * Récupère les consultants (patients uniques) et consultations par dispensaire/zone
+ * pour une période donnée, utile pour les rapports Tatitra et visualisations
+ */
+async function getConsultantsByZone(dateFrom, dateTo, dispensaireIds = null) {
+  const query = `
+    query ConsultantsByZone($dateFrom: String!, $dateTo: String!, $dispensaireIds: [ID!]) {
+      consultantsByZone(
+        dateFrom: $dateFrom
+        dateTo: $dateTo
+        dispensaireIds: $dispensaireIds
+      ) {
+        dispensaire {
+          id
+          name
+        }
+        consultants
+        consultations
+      }
+    }
+  `;
+  
+  const variables = { 
+    dateFrom,
+    dateTo,
+    ...(dispensaireIds && dispensaireIds.length > 0 && { dispensaireIds })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).consultantsByZone;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -298,5 +330,6 @@ export default {
   getConsultationsEvolution,
   getStatsByDispensaire,
   exportTatitraReport,
-  getFitorianaStats
+  getFitorianaStats,
+  getConsultantsByZone
 };
