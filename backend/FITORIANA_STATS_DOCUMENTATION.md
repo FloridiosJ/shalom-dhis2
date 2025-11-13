@@ -768,3 +768,34 @@ Le resolver retourne des erreurs explicites pour:
 4. **Dispensaires sans consultation**:
    - Retournent `consultants: 0` et `consultations: 0`
    - Pas de données manquantes dans la réponse
+
+## Requêtes associées
+
+### diagnosticsByZone
+
+Le resolver `diagnosticsByZone` complète `fitorianaStats` et `consultantsByZone` pour la section 2 du rapport Tatitra:
+
+```graphql
+query {
+  diagnosticsByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+  ) {
+    diagnostic
+    dispensaires {
+      id
+      name
+      count
+    }
+    total
+  }
+}
+```
+
+**Utilité**: Retourne une table croisée diagnostics × dispensaires pour la section "Désignations des maladies / Diagnostics" du rapport Tatitra.
+
+**Différences avec topDiagnostics**:
+- `topDiagnostics`: Agrégation globale, retourne uniquement le total par diagnostic
+- `diagnosticsByZone`: Agrégation par dispensaire ET diagnostic, retourne des compteurs détaillés par zone
+
+**Voir**: ANALYTICS_API.md pour la documentation complète de `diagnosticsByZone`

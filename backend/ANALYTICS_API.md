@@ -591,6 +591,163 @@ type DispensaireStats {
 
 ---
 
+## Diagnostics by Zone
+
+Query diagnostics aggregated by dispensaire/zone for a given period. Returns a cross-tabulation table (diagnostics × dispensaires) useful for Tatitra reports and analytics dashboards.
+
+### Query
+
+```graphql
+diagnosticsByZone(
+  dateFrom: String!
+  dateTo: String!
+  dispensaireIds: [ID!]
+  limit: Int
+): [DiagnosticsByZone!]!
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `dateFrom` | String | Yes | - | Start date in ISO format (YYYY-MM-DD) |
+| `dateTo` | String | Yes | - | End date in ISO format (YYYY-MM-DD) |
+| `dispensaireIds` | [ID!] | No | All active | Filter by specific dispensaires |
+| `limit` | Int | No | Unlimited | Maximum number of diagnostics to return |
+
+### Response Type
+
+```graphql
+type DiagnosticsByZone {
+  diagnostic: String!                          # Category name or diagnostic text
+  dispensaires: [DispensaireDiagnosticCount!]! # Count per dispensaire
+  total: Int!                                  # Total across all dispensaires
+}
+
+type DispensaireDiagnosticCount {
+  id: ID!       # Dispensaire ID
+  name: String! # Dispensaire name
+  count: Int!   # Number of consultations for this diagnostic at this dispensaire
+}
+```
+
+### Data Source
+
+This query prioritizes **structured data** from the category associations:
+1. **Primary**: Uses `categorieMaladieId` from `DataEntryCategorieMaladie` (principal categories only)
+2. **Fallback**: Uses text from `diagnostic` field for consultations without structured categories
+3. **Warning**: Logs a warning message if unstructured data is detected
+4. **Aggregation**: Groups by both diagnostic AND dispensaire for cross-tabulation
+5. **Sorting**: Results sorted by total count descending
+
+### Features
+
+- **Cross-tabulation**: Returns counts broken down by both diagnostic and dispensaire
+- **Structured + Unstructured**: Combines structured categories with text fallback
+- **Filtering**: Support for date range and dispensaire filters
+- **Limiting**: Optional limit parameter to return only top N diagnostics
+- **Comprehensive**: Includes all active dispensaires in results (with 0 counts if needed)
+
+### Example Usage
+
+#### Basic query (all diagnostics, all dispensaires, Q1 2025)
+```graphql
+query {
+  diagnosticsByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+  ) {
+    diagnostic
+    dispensaires {
+      id
+      name
+      count
+    }
+    total
+  }
+}
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "diagnosticsByZone": [
+      {
+        "diagnostic": "PALUDISME",
+        "dispensaires": [
+          { "id": "uuid-1", "name": "Ampitsopitsoka", "count": 35 },
+          { "id": "uuid-2", "name": "Boeny Aranta", "count": 30 },
+          { "id": "uuid-3", "name": "Ankelitaly", "count": 28 }
+        ],
+        "total": 93
+      },
+      {
+        "diagnostic": "INFECTION RESPIRATOIRE",
+        "dispensaires": [
+          { "id": "uuid-1", "name": "Ampitsopitsoka", "count": 25 },
+          { "id": "uuid-2", "name": "Boeny Aranta", "count": 22 },
+          { "id": "uuid-3", "name": "Ankelitaly", "count": 20 }
+        ],
+        "total": 67
+      }
+    ]
+  }
+}
+```
+
+#### Filtered by specific dispensaires and limited to top 10
+```graphql
+query {
+  diagnosticsByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+    dispensaireIds: ["uuid-1", "uuid-2"]
+    limit: 10
+  ) {
+    diagnostic
+    dispensaires {
+      name
+      count
+    }
+    total
+  }
+}
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "diagnosticsByZone": [
+      {
+        "diagnostic": "PALUDISME",
+        "dispensaires": [
+          { "name": "Ampitsopitsoka", "count": 35 },
+          { "name": "Boeny Aranta", "count": 30 }
+        ],
+        "total": 65
+      }
+    ]
+  }
+}
+```
+
+### Use Cases
+
+1. **Tatitra Reports**: Generate the "Désignations des maladies" section with diagnostic × dispensaire cross-tabulation
+2. **Analytics Dashboard**: Visualize disease distribution across zones
+3. **Comparative Analysis**: Compare diagnostic patterns between different dispensaires
+4. **Trend Analysis**: Track changes in diagnostic patterns over time by comparing different periods
+
+### Performance
+
+- Uses optimized SQL aggregation with `GROUP BY` for efficient database queries
+- Typical response time: <1 second for datasets with thousands of consultations
+- Indexed on `dateConsultation`, `dispensaireId`, and `categorieMaladieId` for fast filtering
+
+---
+
 ## Authentication
 
 All analytics queries require authentication. Include a valid JWT token in the request headers:
