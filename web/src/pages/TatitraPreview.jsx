@@ -359,9 +359,6 @@ const TatitraPreview = () => {
           ) : (
             <div className={styles.noDataSection}>Aucune donnée disponible pour cette période</div>
           )}
-              })}
-            </tbody>
-          </table>
         </section>
 
         {/* Section 2: MAHAKASIKA NY ASA FITSABOANA */}
