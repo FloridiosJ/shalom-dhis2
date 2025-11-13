@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFitorianaStats } from '../hooks/useReports';
+import { useFitorianaStats, useConsultantsByZone } from '../hooks/useReports';
 import Layout from '../components/Layout';
 import styles from './TatitraPreview.module.css';
 
@@ -31,6 +31,13 @@ const TatitraPreview = () => {
     data: nonChristianStats,
     isLoading: nonChristianLoading
   } = useFitorianaStats(dateFrom, dateTo, null, ['Musulman', 'traditionnelle']);
+
+  // Fetch consultants and consultations by zone
+  const { 
+    data: consultantsByZone, 
+    isLoading: consultantsLoading, 
+    error: consultantsError 
+  } = useConsultantsByZone(dateFrom, dateTo, null);
 
   // Sample data matching the structure from the PDF generator
   const reportData = {
@@ -282,12 +289,17 @@ const TatitraPreview = () => {
             />
           </div>
         </div>
-        {(fitorianaLoading || nonChristianLoading) && (
+        {(fitorianaLoading || nonChristianLoading || consultantsLoading) && (
           <div className={styles.loadingIndicator}>Chargement des données...</div>
         )}
         {fitorianaError && (
           <div className={styles.errorIndicator}>
             Erreur: {fitorianaError.message}
+          </div>
+        )}
+        {consultantsError && (
+          <div className={styles.errorIndicator}>
+            Erreur consultants: {consultantsError.message}
           </div>
         )}
       </div>
@@ -367,49 +379,54 @@ const TatitraPreview = () => {
           
           <div className={styles.subsection}>
             <h3 className={styles.subsectionTitle}>Consultants et Consultations</h3>
-            <table className={styles.dataTable}>
-              <thead>
-                <tr>
-                  <th rowSpan="2" className={styles.categoryHeader}>Toerana :</th>
-                  {reportData.zones.map((zone, idx) => (
-                    <th key={idx} colSpan="2" className={styles.zoneHeader}>{zone}</th>
-                  ))}
-                  <th colSpan="2" className={styles.totalHeader}>Fitambarany</th>
-                </tr>
-                <tr>
-                  {[...Array(reportData.zones.length + 1)].map((_, idx) => (
-                    <React.Fragment key={idx}>
-                      <th className={styles.genderHeader}>Lahy</th>
-                      <th className={styles.genderHeader}>Vavy</th>
-                    </React.Fragment>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className={styles.categoryCell}>Hasila</td>
-                  {reportData.section2.consultantsByZone.map((zone, idx) => (
-                    <React.Fragment key={idx}>
-                      <td className={styles.dataCell}>{zone.consultants}</td>
-                      <td className={styles.dataCell}>-</td>
-                    </React.Fragment>
-                  ))}
-                  <td className={styles.totalCell}>{reportData.section2.consultants}</td>
-                  <td className={styles.totalCell}>-</td>
-                </tr>
-                <tr>
-                  <td className={styles.categoryCell}>Consultation</td>
-                  {reportData.section2.consultantsByZone.map((zone, idx) => (
-                    <React.Fragment key={idx}>
-                      <td className={styles.dataCell}>{zone.consultations}</td>
-                      <td className={styles.dataCell}>-</td>
-                    </React.Fragment>
-                  ))}
-                  <td className={styles.totalCell}>{reportData.section2.consultations}</td>
-                  <td className={styles.totalCell}>-</td>
-                </tr>
-              </tbody>
-            </table>
+            
+            {consultantsLoading ? (
+              <div className={styles.loadingSection}>Chargement des statistiques consultants...</div>
+            ) : consultantsError ? (
+              <div className={styles.errorSection}>
+                Erreur de chargement des consultants: {consultantsError.message}
+              </div>
+            ) : consultantsByZone && consultantsByZone.length > 0 ? (
+              <table className={styles.dataTable}>
+                <thead>
+                  <tr>
+                    <th className={styles.categoryHeader}>Toerana :</th>
+                    {consultantsByZone.slice(0, -1).map((item) => (
+                      <th key={item.dispensaire.id} className={styles.zoneHeader}>
+                        {item.dispensaire.name}
+                      </th>
+                    ))}
+                    <th className={styles.totalHeader}>Fitambarany</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className={styles.categoryCell}>Hasila (Consultants)</td>
+                    {consultantsByZone.slice(0, -1).map((item) => (
+                      <td key={item.dispensaire.id} className={styles.dataCell}>
+                        {item.consultants}
+                      </td>
+                    ))}
+                    <td className={styles.totalCell}>
+                      {consultantsByZone[consultantsByZone.length - 1]?.consultants || 0}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className={styles.categoryCell}>Consultation</td>
+                    {consultantsByZone.slice(0, -1).map((item) => (
+                      <td key={item.dispensaire.id} className={styles.dataCell}>
+                        {item.consultations}
+                      </td>
+                    ))}
+                    <td className={styles.totalCell}>
+                      {consultantsByZone[consultantsByZone.length - 1]?.consultations || 0}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <div className={styles.noDataSection}>Aucune donnée de consultants disponible pour cette période</div>
+            )}
           </div>
 
           <div className={styles.subsection}>
