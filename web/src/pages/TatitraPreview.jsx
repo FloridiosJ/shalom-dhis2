@@ -1,70 +1,52 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useFitorianaStats } from '../hooks/useReports';
+import Layout from '../components/Layout';
 import styles from './TatitraPreview.module.css';
 
 const TatitraPreview = () => {
+  // Date range state - default to last quarter
+  const getDefaultDates = () => {
+    const currentDate = new Date();
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(currentDate.getMonth() - 3);
+    return {
+      startDate: threeMonthsAgo.toISOString().split('T')[0],
+      endDate: currentDate.toISOString().split('T')[0]
+    };
+  };
+
+  const defaultDates = getDefaultDates();
+  const [dateFrom, setDateFrom] = useState(defaultDates.startDate);
+  const [dateTo, setDateTo] = useState(defaultDates.endDate);
+
+  // Fetch Fitoriana statistics
+  const { 
+    data: fitorianaStats, 
+    isLoading: fitorianaLoading, 
+    error: fitorianaError 
+  } = useFitorianaStats(dateFrom, dateTo, null, null);
+
+  // Fetch non-Christian statistics separately for the "Tsy Kristianina" row
+  const { 
+    data: nonChristianStats,
+    isLoading: nonChristianLoading
+  } = useFitorianaStats(dateFrom, dateTo, null, ['Musulman', 'traditionnelle']);
+
   // Sample data matching the structure from the PDF generator
   const reportData = {
     period: {
-      year: 2024,
+      year: new Date(dateTo).getFullYear(),
       quarter: 'EFATRA',
-      startDate: '01/10/2024',
-      endDate: '31/12/2024'
+      startDate: new Date(dateFrom).toLocaleDateString('fr-FR'),
+      endDate: new Date(dateTo).toLocaleDateString('fr-FR')
     },
-    zones: ['Ampitsopitsoka', 'Boeny Aranta', 'Ankelitaly', 'Ampanasina', 'Mananara', 'Onara', 'Andamonty'],
+    zones: fitorianaStats?.rows[0]?.valuesByDispensaire?.map(d => d.dispensaireName) || 
+           ['Ampitsopitsoka', 'Boeny Aranta', 'Ankelitaly', 'Ampanasina', 'Mananara', 'Onara', 'Andamonty'],
     section1: {
       prayerMeetings: 19,
-      visitorsReceived: 470,
-      nonChristians: 85,
-      birthsByZone: [
-        {
-          category: 'Zaza (12 taona noho midina)',
-          zones: [
-            { male: 15, female: 18 },
-            { male: 12, female: 14 },
-            { male: 10, female: 11 },
-            { male: 8, female: 9 },
-            { male: 7, female: 8 },
-            { male: 6, female: 7 },
-            { male: 5, female: 6 }
-          ]
-        },
-        {
-          category: 'Tanora (13 taona - 30 taona)',
-          zones: [
-            { male: 25, female: 30 },
-            { male: 20, female: 25 },
-            { male: 18, female: 22 },
-            { male: 15, female: 18 },
-            { male: 12, female: 15 },
-            { male: 10, female: 12 },
-            { male: 8, female: 10 }
-          ]
-        },
-        {
-          category: "Olon-dehibe maherin'ny 30 taona",
-          zones: [
-            { male: 35, female: 40 },
-            { male: 30, female: 35 },
-            { male: 28, female: 32 },
-            { male: 25, female: 28 },
-            { male: 22, female: 25 },
-            { male: 20, female: 22 },
-            { male: 18, female: 20 }
-          ]
-        },
-        {
-          category: 'Tsy Kristianina (Non-chrétiens)',
-          zones: [
-            { male: 5, female: 8 },
-            { male: 3, female: 7 },
-            { male: 4, female: 6 },
-            { male: 2, female: 5 },
-            { male: 3, female: 4 },
-            { male: 2, female: 3 },
-            { male: 1, female: 2 }
-          ]
-        }
-      ]
+      visitorsReceived: fitorianaStats?.totalConsultations || 470,
+      nonChristians: nonChristianStats?.totalConsultations || 85,
+      birthsByZone: []  // Will be populated from fitorianaStats
     },
     section2: {
       consultants: 158,
@@ -188,8 +170,78 @@ const TatitraPreview = () => {
     }
   };
 
-  // Calculate totals for birth statistics
+  // Transform fitorianaStats data to match the expected structure
+  const transformedFitorianaData = useMemo(() => {
+    if (!fitorianaStats || !fitorianaStats.rows) return [];
+    
+    return fitorianaStats.rows.map(row => {
+      // Transform valuesByDispensaire to match the zones array structure
+      const zones = row.valuesByDispensaire.map(disp => ({
+        male: disp.values.lahy,
+        female: disp.values.vavy
+      }));
+      
+      return {
+        category: row.label,
+        zones: zones,
+        fitambarany: {
+          male: row.fitambarany.lahy,
+          female: row.fitambarany.vavy
+        }
+      };
+    });
+  }, [fitorianaStats]);
+
+  // Transform non-Christian stats to match the expected structure
+  const nonChristianRow = useMemo(() => {
+    if (!nonChristianStats || !nonChristianStats.rows) return null;
+    
+    // Combine all age groups for non-Christians
+    const zones = [];
+    const numDispensaires = nonChristianStats.rows[0]?.valuesByDispensaire?.length || 0;
+    
+    for (let i = 0; i < numDispensaires; i++) {
+      let totalMale = 0;
+      let totalFemale = 0;
+      
+      nonChristianStats.rows.forEach(row => {
+        if (row.valuesByDispensaire[i]) {
+          totalMale += row.valuesByDispensaire[i].values.lahy;
+          totalFemale += row.valuesByDispensaire[i].values.vavy;
+        }
+      });
+      
+      zones.push({ male: totalMale, female: totalFemale });
+    }
+    
+    // Calculate total fitambarany
+    const totalFitambaranyMale = zones.reduce((sum, z) => sum + z.male, 0);
+    const totalFitambaranyFemale = zones.reduce((sum, z) => sum + z.female, 0);
+    
+    return {
+      category: 'Tsy Kristianina (Non-chrétiens)',
+      zones: zones,
+      fitambarany: {
+        male: totalFitambaranyMale,
+        female: totalFitambaranyFemale
+      }
+    };
+  }, [nonChristianStats]);
+
+  // Combine all rows including non-Christians
+  const allFitorianaRows = useMemo(() => {
+    const rows = [...transformedFitorianaData];
+    if (nonChristianRow) {
+      rows.push(nonChristianRow);
+    }
+    return rows;
+  }, [transformedFitorianaData, nonChristianRow]);
+
+  // Calculate totals for birth statistics (backward compatibility)
   const calculateBirthTotals = (category) => {
+    if (category.fitambarany) {
+      return { totalMale: category.fitambarany.male, totalFemale: category.fitambarany.female };
+    }
     let totalMale = 0;
     let totalFemale = 0;
     category.zones.forEach(zone => {
@@ -205,17 +257,52 @@ const TatitraPreview = () => {
   };
 
   return (
-    <div className={styles.previewContainer}>
-      <div className={styles.previewPage}>
-        {/* Header Section */}
-        <header className={styles.header}>
-          <h1 className={styles.mainTitle}>TATITRA FANARAKETANA NY ASA</h1>
-          <h2 className={styles.subtitle}>CSB LOTERANA</h2>
-          <div className={styles.periodInfo}>
-            <p>Taona: {reportData.period.year} - Taonjato: {reportData.period.quarter}</p>
-            <p>Daty: {reportData.period.startDate} - {reportData.period.endDate}</p>
-            <p>Toerana: {reportData.zones.join(', ')}</p>
+    <Layout title="Aperçu Tatitra">
+      {/* Date Filter Controls */}
+      <div className={styles.filterControls}>
+        <div className={styles.dateInputs}>
+          <div className={styles.dateGroup}>
+            <label htmlFor="dateFrom">Date début:</label>
+            <input
+              id="dateFrom"
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className={styles.dateInput}
+            />
           </div>
+          <div className={styles.dateGroup}>
+            <label htmlFor="dateTo">Date fin:</label>
+            <input
+              id="dateTo"
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className={styles.dateInput}
+            />
+          </div>
+        </div>
+        {(fitorianaLoading || nonChristianLoading) && (
+          <div className={styles.loadingIndicator}>Chargement des données...</div>
+        )}
+        {fitorianaError && (
+          <div className={styles.errorIndicator}>
+            Erreur: {fitorianaError.message}
+          </div>
+        )}
+      </div>
+
+      <div className={styles.previewContainer}>
+        <div className={styles.previewPage}>
+          {/* Header Section */}
+          <header className={styles.header}>
+            <h1 className={styles.mainTitle}>TATITRA FANARAKETANA NY ASA</h1>
+            <h2 className={styles.subtitle}>CSB LOTERANA</h2>
+            <div className={styles.periodInfo}>
+              <p>Taona: {reportData.period.year} - Taonjato: {reportData.period.quarter}</p>
+              <p>Daty: {reportData.period.startDate} - {reportData.period.endDate}</p>
+              <p>Toerana: {reportData.zones.join(', ')}</p>
+            </div>
         </header>
 
         {/* Section 1: MAHAKASIKA NY ASA FITORIANA */}
@@ -227,40 +314,51 @@ const TatitraPreview = () => {
             <p>· Isan'ny Hasila nitady fitsaboana tao : {reportData.section1.visitorsReceived}</p>
           </div>
 
-          <table className={styles.dataTable}>
-            <thead>
-              <tr>
-                <th rowSpan="2" className={styles.categoryHeader}>Toerana :</th>
-                {reportData.zones.map((zone, idx) => (
-                  <th key={idx} colSpan="2" className={styles.zoneHeader}>{zone}</th>
-                ))}
-                <th colSpan="2" className={styles.totalHeader}>Fitambarany</th>
-              </tr>
-              <tr>
-                {[...Array(reportData.zones.length + 1)].map((_, idx) => (
-                  <React.Fragment key={idx}>
-                    <th className={styles.genderHeader}>Lahy</th>
-                    <th className={styles.genderHeader}>Vavy</th>
-                  </React.Fragment>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.section1.birthsByZone.map((category, catIdx) => {
-                const totals = calculateBirthTotals(category);
-                return (
-                  <tr key={catIdx}>
-                    <td className={styles.categoryCell}>{category.category}</td>
-                    {category.zones.map((zone, zoneIdx) => (
-                      <React.Fragment key={zoneIdx}>
-                        <td className={styles.dataCell}>{String(zone.male).padStart(2, '0')}</td>
-                        <td className={styles.dataCell}>{String(zone.female).padStart(2, '0')}</td>
-                      </React.Fragment>
-                    ))}
-                    <td className={styles.totalCell}>{String(totals.totalMale).padStart(2, '0')}</td>
-                    <td className={styles.totalCell}>{String(totals.totalFemale).padStart(2, '0')}</td>
-                  </tr>
-                );
+          {fitorianaLoading ? (
+            <div className={styles.loadingSection}>Chargement des statistiques...</div>
+          ) : fitorianaError ? (
+            <div className={styles.errorSection}>Erreur de chargement des statistiques</div>
+          ) : allFitorianaRows.length > 0 ? (
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th rowSpan="2" className={styles.categoryHeader}>Toerana :</th>
+                  {reportData.zones.map((zone, idx) => (
+                    <th key={idx} colSpan="2" className={styles.zoneHeader}>{zone}</th>
+                  ))}
+                  <th colSpan="2" className={styles.totalHeader}>Fitambarany</th>
+                </tr>
+                <tr>
+                  {[...Array(reportData.zones.length + 1)].map((_, idx) => (
+                    <React.Fragment key={idx}>
+                      <th className={styles.genderHeader}>Lahy</th>
+                      <th className={styles.genderHeader}>Vavy</th>
+                    </React.Fragment>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {allFitorianaRows.map((category, catIdx) => {
+                  const totals = calculateBirthTotals(category);
+                  return (
+                    <tr key={catIdx}>
+                      <td className={styles.categoryCell}>{category.category}</td>
+                      {category.zones.map((zone, zoneIdx) => (
+                        <React.Fragment key={zoneIdx}>
+                          <td className={styles.dataCell}>{String(zone.male).padStart(2, '0')}</td>
+                          <td className={styles.dataCell}>{String(zone.female).padStart(2, '0')}</td>
+                        </React.Fragment>
+                      ))}
+                      <td className={styles.totalCell}>{String(totals.totalMale).padStart(2, '0')}</td>
+                      <td className={styles.totalCell}>{String(totals.totalFemale).padStart(2, '0')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div className={styles.noDataSection}>Aucune donnée disponible pour cette période</div>
+          )}
               })}
             </tbody>
           </table>
@@ -465,6 +563,7 @@ const TatitraPreview = () => {
         </button>
       </div>
     </div>
+    </Layout>
   );
 };
 
