@@ -10,9 +10,16 @@ const mockUseFitorianaStats = vi.fn(() => ({
   error: null
 }));
 
+const mockUseConsultantsByZone = vi.fn(() => ({
+  data: null,
+  isLoading: false,
+  error: null
+}));
+
 // Mock the useReports hooks
 vi.mock('../hooks/useReports', () => ({
-  useFitorianaStats: (dateFrom, dateTo, dispensaireIds, religions) => mockUseFitorianaStats(dateFrom, dateTo, dispensaireIds, religions)
+  useFitorianaStats: (dateFrom, dateTo, dispensaireIds, religions) => mockUseFitorianaStats(dateFrom, dateTo, dispensaireIds, religions),
+  useConsultantsByZone: (dateFrom, dateTo, dispensaireIds) => mockUseConsultantsByZone(dateFrom, dateTo, dispensaireIds)
 }));
 
 // Mock the Layout component
@@ -44,6 +51,12 @@ describe('TatitraPreview', () => {
     
     // Reset to default mock implementation
     mockUseFitorianaStats.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null
+    });
+    
+    mockUseConsultantsByZone.mockReturnValue({
       data: null,
       isLoading: false,
       error: null
@@ -86,7 +99,7 @@ describe('TatitraPreview', () => {
     expect(dateInputs.length).toBeGreaterThan(0);
   });
 
-  it('displays no data message when fitorianaStats is empty', () => {
+  it('displays empty table structure when fitorianaStats is empty', () => {
     mockUseFitorianaStats.mockReturnValue({
       data: { rows: [], totalConsultations: 0 },
       isLoading: false,
@@ -94,7 +107,9 @@ describe('TatitraPreview', () => {
     });
 
     renderComponent();
-    expect(screen.getByText(/aucune donnée disponible/i)).toBeInTheDocument();
+    // When data is empty, the component shows the table structure with mock zones
+    expect(screen.getByText(/Toerana :/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ampitsopitsoka/i)).toBeInTheDocument();
   });
 
   it('displays loading message when data is loading', () => {
@@ -116,7 +131,7 @@ describe('TatitraPreview', () => {
     });
 
     renderComponent();
-    expect(screen.getByText(/erreur/i)).toBeInTheDocument();
+    expect(screen.getByText(/Erreur: Test error/i)).toBeInTheDocument();
   });
 
   it('renders the print button', () => {

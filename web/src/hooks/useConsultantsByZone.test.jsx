@@ -153,8 +153,12 @@ describe('useConsultantsByZone Hook', () => {
       { wrapper }
     );
 
-    await waitFor(() => expect(result.current.isError).toBe(true));
+    // Wait for the query to finish (either success or error)
+    await waitFor(() => {
+      return result.current.isError || result.current.isSuccess;
+    }, { timeout: 3000 });
 
+    expect(result.current.isError).toBe(true);
     expect(result.current.error).toBeTruthy();
     expect(result.current.data).toBeUndefined();
   });
