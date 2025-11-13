@@ -1,7 +1,74 @@
 # Tatitra PDF Export - New Sections Implementation
 
 ## Overview
-This document describes the implementation of three new sections added to the Tatitra quarterly report PDF export system, as requested in issue #[issue_number].
+This document describes the implementation of sections added to the Tatitra quarterly report system, including the new education statistics query (Section III).
+
+## Latest Updates
+
+### Education Statistics Query (Section III - Updated Implementation)
+**Date:** November 13, 2025
+
+A new GraphQL query `educationByZone` has been implemented to provide structured education statistics for Section III of the Tatitra report.
+
+#### Features
+- **Query**: `educationByZone(dateFrom: String!, dateTo: String!, dispensaireIds: [ID!])`
+- **Categories**: 
+  - Fanabeazana aiza tsy maharitra (Short-term education)
+  - Fanabeazana aiza maharitra (Long-term education)
+- **Gender split**: Male (Lahy) and Female (Vavy) counts per dispensaire
+- **Automatic totals**: Calculates `totalMale` and `totalFemale` across all zones
+
+#### Implementation Details
+
+**Backend (GraphQL Resolver):**
+- Location: `backend/src/graphql/resolvers/reports.js`
+- Uses keyword matching in consultations (`diagnostic`, `notes`, `typeConsultation`)
+- Groups by category, dispensaire, and patient gender
+- Returns structured data with zero counts for dispensaires with no activity
+
+**Frontend (React Integration):**
+- Service: `web/src/services/reports.js` - `getEducationByZone()`
+- Hook: `web/src/hooks/useReports.js` - `useEducationByZone()`
+- Component: `web/src/pages/TatitraPreview.jsx` - Section III
+- Table structure matches Section I (Fitoriana) with category rows and zone columns
+
+#### Example Query
+```graphql
+query EducationByZone {
+  educationByZone(dateFrom: "2025-01-01", dateTo: "2025-03-31") {
+    category
+    zones {
+      id
+      name
+      male
+      female
+    }
+    totalMale
+    totalFemale
+  }
+}
+```
+
+#### Example Response
+```json
+{
+  "data": {
+    "educationByZone": [
+      {
+        "category": "Fanabeazana aiza tsy maharitra",
+        "zones": [
+          { "id": "...", "name": "Ampitsopitsoka", "male": 8, "female": 10 },
+          { "id": "...", "name": "Boeny Aranta", "male": 6, "female": 9 }
+        ],
+        "totalMale": 14,
+        "totalFemale": 19
+      }
+    ]
+  }
+}
+```
+
+---
 
 ## Requirements Summary
 Based on the reference images provided, the following sections were added to the existing Tatitra PDF export:

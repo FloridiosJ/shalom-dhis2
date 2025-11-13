@@ -363,6 +363,44 @@ async function getDiagnosticsByZone(dateFrom, dateTo, dispensaireIds = null, lim
   return handleGraphQLErrors(response).diagnosticsByZone;
 }
 
+/**
+ * Récupère les statistiques d'éducation par zone pour le Tatitra Section III
+ * @param {string} dateFrom - Date de début (format ISO YYYY-MM-DD)
+ * @param {string} dateTo - Date de fin (format ISO YYYY-MM-DD)
+ * @param {Array<string>} dispensaireIds - Optionnel: filtrer par dispensaires spécifiques
+ * @returns {Promise<Array<{category: string, zones: Array<{id, name, male, female}>, totalMale: number, totalFemale: number}>>}
+ */
+async function getEducationByZone(dateFrom, dateTo, dispensaireIds = null) {
+  const query = `
+    query EducationByZone($dateFrom: String!, $dateTo: String!, $dispensaireIds: [ID!]) {
+      educationByZone(
+        dateFrom: $dateFrom
+        dateTo: $dateTo
+        dispensaireIds: $dispensaireIds
+      ) {
+        category
+        zones {
+          id
+          name
+          male
+          female
+        }
+        totalMale
+        totalFemale
+      }
+    }
+  `;
+  
+  const variables = { 
+    dateFrom,
+    dateTo,
+    ...(dispensaireIds && dispensaireIds.length > 0 && { dispensaireIds })
+  };
+  
+  const response = await client.post('', { query, variables });
+  return handleGraphQLErrors(response).educationByZone;
+}
+
 export default {
   getGlobalStats,
   getStatsByPeriod,
@@ -373,5 +411,6 @@ export default {
   exportTatitraReport,
   getFitorianaStats,
   getConsultantsByZone,
-  getDiagnosticsByZone
+  getDiagnosticsByZone,
+  getEducationByZone
 };

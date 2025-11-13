@@ -872,6 +872,22 @@ type DiagnosticsByZone {
   total: Int!
 }
 
+# Type for education count by zone with gender split
+type ZoneEducationCount {
+  id: ID!
+  name: String!
+  male: Int!
+  female: Int!
+}
+
+# Type for education statistics by category and zone
+type EducationCategoryByZone {
+  category: String!
+  zones: [ZoneEducationCount!]!
+  totalMale: Int!
+  totalFemale: Int!
+}
+
 type Query {
   # Auth
   me: User
@@ -1125,6 +1141,48 @@ type Query {
     "Optional: limit number of diagnostics returned (default: all)"
     limit: Int
   ): [DiagnosticsByZone!]!
+
+  """
+  Query education statistics by zone for Tatitra reports Section III.
+  Returns education data grouped by category (short-term/long-term), dispensaire, and gender.
+  
+  Categories:
+  - Fanabeazana aiza tsy maharitra (Short-term education)
+  - Fanabeazana aiza maharitra (Long-term education)
+  
+  Uses consultations data with education-related keywords to aggregate statistics.
+  
+  Example:
+    educationByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+    ) {
+      category
+      zones {
+        id
+        name
+        male
+        female
+      }
+      totalMale
+      totalFemale
+    }
+  
+  Example with filters:
+    educationByZone(
+      dateFrom: "2025-01-01"
+      dateTo: "2025-03-31"
+      dispensaireIds: ["abc-123", "def-456"]
+    )
+  """
+  educationByZone(
+    "Start date in ISO format (YYYY-MM-DD) - required"
+    dateFrom: String!
+    "End date in ISO format (YYYY-MM-DD) - required"
+    dateTo: String!
+    "Optional: filter by specific dispensaires"
+    dispensaireIds: [ID!]
+  ): [EducationCategoryByZone!]!
 }
 
 # Mutations

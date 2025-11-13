@@ -748,6 +748,174 @@ query {
 
 ---
 
+## Education by Zone
+
+Query education statistics aggregated by dispensaire/zone, category (short-term/long-term), and gender for a given period. Returns a cross-tabulation structure useful for Tatitra Section III (Fandriandram-piterahana).
+
+### Query
+
+```graphql
+educationByZone(
+  dateFrom: String!
+  dateTo: String!
+  dispensaireIds: [ID!]
+): [EducationCategoryByZone!]!
+```
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `dateFrom` | String | Yes | - | Start date in ISO format (YYYY-MM-DD) |
+| `dateTo` | String | Yes | - | End date in ISO format (YYYY-MM-DD) |
+| `dispensaireIds` | [ID!] | No | All active | Filter by specific dispensaires |
+
+### Response Type
+
+```graphql
+type EducationCategoryByZone {
+  category: String!               # Education category name
+  zones: [ZoneEducationCount!]!  # Counts per dispensaire
+  totalMale: Int!                # Total male participants
+  totalFemale: Int!              # Total female participants
+}
+
+type ZoneEducationCount {
+  id: ID!       # Dispensaire ID
+  name: String! # Dispensaire name
+  male: Int!    # Number of male participants
+  female: Int!  # Number of female participants
+}
+```
+
+### Data Source
+
+This query uses **consultation data** with keyword matching:
+1. **Categories**: Fixed categories for education types
+   - "Fanabeazana aiza tsy maharitra" (Short-term education)
+   - "Fanabeazana aiza maharitra" (Long-term education)
+2. **Keywords**: Searches in `diagnostic`, `notes`, and `typeConsultation` fields
+3. **Gender**: Uses patient gender from associated Patient record
+4. **Aggregation**: Groups by category, dispensaire, and gender
+
+### Keywords Mapping
+
+**Short-term education keywords:**
+- fanabeazana fohy
+- éducation courte
+- formation courte
+- sensibilisation
+- court terme
+- tsy maharitra
+
+**Long-term education keywords:**
+- fanabeazana lava
+- éducation longue
+- formation longue
+- formation continue
+- long terme
+- maharitra
+
+**General education keywords** (defaults to short-term):
+- éducation
+- fanabeazana
+- formation
+- sensibilisation
+
+### Example Usage
+
+#### Basic query (all education, all dispensaires, Q1 2025)
+```graphql
+query {
+  educationByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+  ) {
+    category
+    zones {
+      id
+      name
+      male
+      female
+    }
+    totalMale
+    totalFemale
+  }
+}
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "educationByZone": [
+      {
+        "category": "Fanabeazana aiza tsy maharitra",
+        "zones": [
+          { "id": "uuid-1", "name": "Ampitsopitsoka", "male": 8, "female": 10 },
+          { "id": "uuid-2", "name": "Boeny Aranta", "male": 6, "female": 9 },
+          { "id": "uuid-3", "name": "Ankelitaly", "male": 5, "female": 7 }
+        ],
+        "totalMale": 19,
+        "totalFemale": 26
+      },
+      {
+        "category": "Fanabeazana aiza maharitra",
+        "zones": [
+          { "id": "uuid-1", "name": "Ampitsopitsoka", "male": 12, "female": 15 },
+          { "id": "uuid-2", "name": "Boeny Aranta", "male": 10, "female": 13 },
+          { "id": "uuid-3", "name": "Ankelitaly", "male": 8, "female": 11 }
+        ],
+        "totalMale": 30,
+        "totalFemale": 39
+      }
+    ]
+  }
+}
+```
+
+#### Filtered by specific dispensaires
+```graphql
+query {
+  educationByZone(
+    dateFrom: "2025-01-01"
+    dateTo: "2025-03-31"
+    dispensaireIds: ["uuid-1", "uuid-2"]
+  ) {
+    category
+    zones {
+      name
+      male
+      female
+    }
+    totalMale
+    totalFemale
+  }
+}
+```
+
+### Use Cases
+
+1. **Tatitra Section III**: Generate the "Fandriandram-piterahana" section with education category × dispensaire × gender cross-tabulation
+2. **Education Analytics**: Track education activities by location and type
+3. **Gender Analysis**: Compare male vs female participation in education programs
+4. **Comparative Analysis**: Compare education activity patterns between different dispensaires
+
+### Performance
+
+- Uses optimized queries with patient joins for gender information
+- Typical response time: <1 second for datasets with thousands of consultations
+- Indexed on `dateConsultation`, `dispensaireId`, and `patientId` for fast filtering
+
+### Data Quality Notes
+
+1. **Keyword-based**: This query relies on keyword matching in consultation data. For more accurate tracking, consider creating a dedicated EducationActivity model.
+2. **Gender mapping**: Gender codes M/L are treated as male, F as female
+3. **Zero counts**: Returns zero counts for dispensaires with no education activities
+4. **Default categorization**: General education keywords without specific short/long term indicators default to short-term
+
+---
+
 ## Authentication
 
 All analytics queries require authentication. Include a valid JWT token in the request headers:

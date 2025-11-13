@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone } from '../hooks/useReports';
+import { useFitorianaStats, useConsultantsByZone, useDiagnosticsByZone, useEducationByZone } from '../hooks/useReports';
 import Layout from '../components/Layout';
 import styles from './TatitraPreview.module.css';
 
@@ -45,6 +45,13 @@ const TatitraPreview = () => {
     isLoading: diagnosticsLoading, 
     error: diagnosticsError 
   } = useDiagnosticsByZone(dateFrom, dateTo, null, null);
+
+  // Fetch education statistics by zone for section 3
+  const { 
+    data: educationByZone, 
+    isLoading: educationLoading, 
+    error: educationError 
+  } = useEducationByZone(dateFrom, dateTo, null);
 
   // Sample data matching the structure from the PDF generator
   const reportData = {
@@ -321,7 +328,7 @@ const TatitraPreview = () => {
             />
           </div>
         </div>
-        {(fitorianaLoading || nonChristianLoading || consultantsLoading || diagnosticsLoading) && (
+        {(fitorianaLoading || nonChristianLoading || consultantsLoading || diagnosticsLoading || educationLoading) && (
           <div className={styles.loadingIndicator}>Chargement des données...</div>
         )}
         {fitorianaError && (
@@ -337,6 +344,11 @@ const TatitraPreview = () => {
         {diagnosticsError && (
           <div className={styles.errorIndicator}>
             Erreur diagnostics: {diagnosticsError.message}
+          </div>
+        )}
+        {educationError && (
+          <div className={styles.errorIndicator}>
+            Erreur éducation: {educationError.message}
           </div>
         )}
       </div>
@@ -506,32 +518,52 @@ const TatitraPreview = () => {
           </div>
         </section>
 
-        {/* Section 3: Fandriandram-piterahana */}
+        {/* Section 3: Fandriandram-piterahana (Education Statistics) */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{reportData.section3.title}</h2>
-          <table className={styles.simpleTable}>
-            <thead>
-              <tr>
-                <th>Toerana</th>
-                <th>Sessions</th>
-                <th>Participants</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.section3.events.map((event, idx) => (
-                <tr key={idx}>
-                  <td>{event.zone}</td>
-                  <td>{event.sessions}</td>
-                  <td>{event.participants}</td>
+          <h2 className={styles.sectionTitle}>III. FANDRIANDRAM-PITERAHANA</h2>
+          
+          {educationLoading ? (
+            <div className={styles.loadingSection}>Chargement des statistiques d'éducation...</div>
+          ) : educationError ? (
+            <div className={styles.errorSection}>Erreur de chargement des statistiques d'éducation</div>
+          ) : educationByZone && educationByZone.length > 0 ? (
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th rowSpan="2" className={styles.categoryHeader}>Catégorie :</th>
+                  {educationByZone[0].zones.map((zone, idx) => (
+                    <th key={idx} colSpan="2" className={styles.zoneHeader}>{zone.name}</th>
+                  ))}
+                  <th colSpan="2" className={styles.totalHeader}>Fitambarany</th>
                 </tr>
-              ))}
-              <tr className={styles.totalRow}>
-                <td>Total</td>
-                <td>{reportData.section3.events.reduce((sum, e) => sum + e.sessions, 0)}</td>
-                <td>{reportData.section3.events.reduce((sum, e) => sum + e.participants, 0)}</td>
-              </tr>
-            </tbody>
-          </table>
+                <tr>
+                  {[...Array(educationByZone[0].zones.length + 1)].map((_, idx) => (
+                    <React.Fragment key={idx}>
+                      <th className={styles.genderHeader}>Lahy</th>
+                      <th className={styles.genderHeader}>Vavy</th>
+                    </React.Fragment>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {educationByZone.map((category, catIdx) => (
+                  <tr key={catIdx}>
+                    <td className={styles.categoryCell}>{category.category}</td>
+                    {category.zones.map((zone, zoneIdx) => (
+                      <React.Fragment key={zoneIdx}>
+                        <td className={styles.dataCell}>{String(zone.male).padStart(2, '0')}</td>
+                        <td className={styles.dataCell}>{String(zone.female).padStart(2, '0')}</td>
+                      </React.Fragment>
+                    ))}
+                    <td className={styles.dataCell}>{String(category.totalMale).padStart(2, '0')}</td>
+                    <td className={styles.dataCell}>{String(category.totalFemale).padStart(2, '0')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className={styles.noDataSection}>Aucune donnée d'éducation disponible pour cette période</div>
+          )}
         </section>
 
         {/* Section 4: Momba ireo Reny Bevoaka */}
