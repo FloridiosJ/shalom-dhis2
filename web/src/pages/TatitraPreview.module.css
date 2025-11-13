@@ -408,6 +408,86 @@
   }
 }
 
+/* Filter Controls */
+.filterControls {
+  max-width: 210mm;
+  margin: 0 auto 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dateInputs {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.dateGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dateGroup label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.dateInput {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.loadingIndicator {
+  margin-top: 15px;
+  padding: 10px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.errorIndicator {
+  margin-top: 15px;
+  padding: 10px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.loadingSection,
+.errorSection,
+.noDataSection {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+.errorSection {
+  color: #c62828;
+  border-color: #c62828;
+  background: #ffebee;
+}
+
 /* Responsive adjustments for smaller screens */
 @media screen and (max-width: 768px) {
   .previewContainer {
@@ -432,5 +512,14 @@
   .printControls {
     bottom: 15px;
     right: 15px;
+  }
+
+  .dateInputs {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .dateInput {
+    width: 100%;
   }
 }
