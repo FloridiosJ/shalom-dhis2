@@ -4,10 +4,14 @@ import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
 import { Organisations } from '../pages/Organisations';
 import { Dispensaires } from '../pages/Dispensaires';
+import Patients from '../pages/Patients';
 import { DataEntries } from '../pages/DataEntries';
+import { Reports } from '../pages/Reports';
+import Users from '../pages/Users';
 import TestUserModal from '../pages/TestUserModal';
 import TatitraPreview from '../pages/TatitraPreview';
 import FitorianaStatsTest from '../pages/FitorianaStatsTest';
+import Settings from '../pages/Settings';
 
 export default function AppRoutes() {
   return (
@@ -40,10 +44,34 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/patients"
+        element={
+          <ProtectedRoute>
+            <Patients />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/data-entries"
         element={
           <ProtectedRoute>
             <DataEntries />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <Reports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Users />
           </ProtectedRoute>
         }
       />
@@ -60,6 +88,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <FitorianaStatsTest />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />
