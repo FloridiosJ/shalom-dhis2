@@ -141,10 +141,15 @@ const Settings = () => {
       
       // Update password if provided
       if (hasPasswordData) {
-        const passwordResult = await usersService.changePassword(currentUser.id, passwordForm.newPassword);
+        const passwordResult = await usersService.changePassword(
+          currentUser.id, 
+          passwordForm.currentPassword, 
+          passwordForm.newPassword
+        );
         
         if (!passwordResult.success) {
-          showToast(passwordResult.errors?.[0] || 'Erreur lors du changement de mot de passe', 'error');
+          const errorMessage = passwordResult.message || passwordResult.errors?.[0] || 'Erreur lors du changement de mot de passe';
+          showToast(errorMessage, 'error');
           setLoading(false);
           return;
         }

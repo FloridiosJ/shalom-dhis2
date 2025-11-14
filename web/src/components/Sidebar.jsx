@@ -107,7 +107,7 @@ const Sidebar = () => {
   ];
 
   const bottomItems = [
-    { path: '/settings', label: 'Paramètres', icon: <SettingsIcon />, roles: ['admin'] },
+    { path: '/settings', label: 'Paramètres', icon: <SettingsIcon />, roles: ['admin', 'manager', 'agent'] },
     { path: '/support', label: 'Support', icon: <SupportIcon />, roles: ['admin', 'manager', 'agent'] },
   ];
 
