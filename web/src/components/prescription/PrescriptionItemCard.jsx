@@ -1,7 +1,7 @@
 import React from 'react';
-import { COMMON_FREQUENCIES } from '../../constants';
 import MedicationSelector from './MedicationSelector';
 import DurationSelector from './DurationSelector';
+import FrequencySelector from './FrequencySelector';
 import styles from '../CreateDataEntryModal.module.css';
 
 const PrescriptionItemCard = ({ item, index, onRemove, onChange, loading }) => {
@@ -51,23 +51,14 @@ const PrescriptionItemCard = ({ item, index, onRemove, onChange, loading }) => {
         />
       </div>
       
-      {/* Fréquence avec autocomplete */}
+      {/* Fréquence avec dropdown */}
       <div className={styles.prescriptionField}>
         <label className={styles.prescriptionFieldLabel}>Fréquence</label>
-        <input
-          type="text"
-          className={styles.input}
+        <FrequencySelector
           value={item.frequence}
-          onChange={(e) => handleFieldChange('frequence', e.target.value)}
-          placeholder="Ex: 3x/jour, matin et soir..."
-          list={`frequencies-list-${item.id}`}
+          onChange={(value) => handleFieldChange('frequence', value)}
           disabled={loading}
         />
-        <datalist id={`frequencies-list-${item.id}`}>
-          {COMMON_FREQUENCIES.map((freq) => (
-            <option key={freq} value={freq} />
-          ))}
-        </datalist>
       </div>
       
       {/* Durée avec dropdown */}
