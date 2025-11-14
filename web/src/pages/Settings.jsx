@@ -23,6 +23,13 @@ const Settings = () => {
     confirmPassword: ''
   });
   
+  // Password visibility state
+  const [showPasswords, setShowPasswords] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false
+  });
+  
   const [passwordErrors, setPasswordErrors] = useState({});
   const [profileErrors, setProfileErrors] = useState({});
 
@@ -54,6 +61,10 @@ const Settings = () => {
     setPasswordForm(prev => ({ ...prev, [name]: value }));
     // Clear error for this field
     setPasswordErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
   const validateProfileForm = () => {
@@ -98,63 +109,60 @@ const Settings = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSaveProfile = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     
+    // Validate profile form
     if (!validateProfileForm()) {
+      return;
+    }
+    
+    // Check if password fields are filled
+    const hasPasswordData = passwordForm.currentPassword || passwordForm.newPassword || passwordForm.confirmPassword;
+    
+    if (hasPasswordData && !validatePasswordForm()) {
       return;
     }
     
     setLoading(true);
     try {
-      const result = await usersService.update(currentUser.id, {
+      // Update profile
+      const profileResult = await usersService.update(currentUser.id, {
         nom: profileForm.nom,
         prenom: profileForm.prenom,
         email: profileForm.email
       });
       
-      if (result.success) {
-        showToast('Profil mis à jour avec succès', 'success');
-        // Update the auth context with new data
-        window.location.reload(); // Reload to refresh user data in context
-      } else {
-        showToast(result.message || 'Erreur lors de la mise à jour', 'error');
+      if (!profileResult.success) {
+        showToast(profileResult.message || 'Erreur lors de la mise à jour du profil', 'error');
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      showToast('Erreur lors de la mise à jour du profil', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    
-    if (!validatePasswordForm()) {
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      // Note: The backend changePassword mutation doesn't verify current password
-      // In a production app, you'd want to add that validation
-      const result = await usersService.changePassword(currentUser.id, passwordForm.newPassword);
       
-      if (result.success) {
-        showToast('Mot de passe modifié avec succès', 'success');
-        // Clear the form
+      // Update password if provided
+      if (hasPasswordData) {
+        const passwordResult = await usersService.changePassword(currentUser.id, passwordForm.newPassword);
+        
+        if (!passwordResult.success) {
+          showToast(passwordResult.errors?.[0] || 'Erreur lors du changement de mot de passe', 'error');
+          setLoading(false);
+          return;
+        }
+        
+        // Clear password form after successful change
         setPasswordForm({
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
         });
-      } else {
-        showToast(result.errors?.[0] || 'Erreur lors du changement de mot de passe', 'error');
       }
+      
+      showToast('Modifications enregistrées avec succès', 'success');
+      // Update the auth context with new data
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
-      console.error('Error changing password:', error);
-      showToast('Erreur lors du changement de mot de passe', 'error');
+      console.error('Error saving changes:', error);
+      showToast('Erreur lors de l\'enregistrement', 'error');
     } finally {
       setLoading(false);
     }
@@ -176,7 +184,7 @@ const Settings = () => {
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Profil Utilisateur</h2>
           
-          <form onSubmit={handleSaveProfile} className={styles.form}>
+          <form onSubmit={handleSave} className={styles.form}>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label htmlFor="nom" className={styles.label}>Nom</label>
@@ -211,35 +219,43 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className={styles.buttonContainer}>
-              <button 
-                type="submit" 
-                className={styles.saveButton}
-                disabled={loading}
-              >
-                {loading ? 'Enregistrement...' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
+            <div className={styles.divider}></div>
 
-          <div className={styles.divider}></div>
-
-          <form onSubmit={handleChangePassword} className={styles.form}>
             <h3 className={styles.sectionTitle}>Changer le mot de passe</h3>
             
             <div className={styles.passwordSection}>
               <div className={styles.formGroup}>
                 <label htmlFor="currentPassword" className={styles.label}>Current Password</label>
-                <input
-                  type="password"
-                  id="currentPassword"
-                  name="currentPassword"
-                  value={passwordForm.currentPassword}
-                  onChange={handlePasswordChange}
-                  className={`${styles.input} ${passwordErrors.currentPassword ? styles.inputError : ''}`}
-                  disabled={loading}
-                  placeholder="••••••••"
-                />
+                <div className={styles.passwordInputWrapper}>
+                  <input
+                    type={showPasswords.currentPassword ? "text" : "password"}
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={handlePasswordChange}
+                    className={`${styles.input} ${passwordErrors.currentPassword ? styles.inputError : ''}`}
+                    disabled={loading}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => togglePasswordVisibility('currentPassword')}
+                    tabIndex="-1"
+                  >
+                    {showPasswords.currentPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {passwordErrors.currentPassword && (
                   <span className={styles.errorText}>{passwordErrors.currentPassword}</span>
                 )}
@@ -247,16 +263,36 @@ const Settings = () => {
               
               <div className={styles.formGroup}>
                 <label htmlFor="newPassword" className={styles.label}>New Password</label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  name="newPassword"
-                  value={passwordForm.newPassword}
-                  onChange={handlePasswordChange}
-                  className={`${styles.input} ${passwordErrors.newPassword ? styles.inputError : ''}`}
-                  disabled={loading}
-                  placeholder="••••••••"
-                />
+                <div className={styles.passwordInputWrapper}>
+                  <input
+                    type={showPasswords.newPassword ? "text" : "password"}
+                    id="newPassword"
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordChange}
+                    className={`${styles.input} ${passwordErrors.newPassword ? styles.inputError : ''}`}
+                    disabled={loading}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => togglePasswordVisibility('newPassword')}
+                    tabIndex="-1"
+                  >
+                    {showPasswords.newPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {passwordErrors.newPassword && (
                   <span className={styles.errorText}>{passwordErrors.newPassword}</span>
                 )}
@@ -264,16 +300,36 @@ const Settings = () => {
               
               <div className={styles.formGroup}>
                 <label htmlFor="confirmPassword" className={styles.label}>Confirm New Password</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={passwordForm.confirmPassword}
-                  onChange={handlePasswordChange}
-                  className={`${styles.input} ${passwordErrors.confirmPassword ? styles.inputError : ''}`}
-                  disabled={loading}
-                  placeholder="••••••••"
-                />
+                <div className={styles.passwordInputWrapper}>
+                  <input
+                    type={showPasswords.confirmPassword ? "text" : "password"}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordChange}
+                    className={`${styles.input} ${passwordErrors.confirmPassword ? styles.inputError : ''}`}
+                    disabled={loading}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => togglePasswordVisibility('confirmPassword')}
+                    tabIndex="-1"
+                  >
+                    {showPasswords.confirmPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {passwordErrors.confirmPassword && (
                   <span className={styles.errorText}>{passwordErrors.confirmPassword}</span>
                 )}
@@ -286,7 +342,7 @@ const Settings = () => {
                 className={styles.saveButton}
                 disabled={loading}
               >
-                {loading ? 'Changement...' : 'Change Password'}
+                {loading ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             </div>
           </form>
