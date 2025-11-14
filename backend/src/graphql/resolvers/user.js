@@ -342,7 +342,7 @@ const userResolvers = {
       }
     },
 
-    changeUserPassword: async (_, { id, newPassword, generateNew }, { user }) => {
+    changeUserPassword: async (_, { id, currentPassword, newPassword, generateNew }, { user }) => {
       try {
         if (!user) {
           throw new AuthenticationError('Non authentifié');
@@ -363,6 +363,28 @@ const userResolvers = {
         // Vérifier les permissions
         if (user.role !== 'admin' && user.role !== 'manager' && user.id !== id) {
           throw new ForbiddenError('Accès non autorisé');
+        }
+
+        // ✅ Vérifier le mot de passe actuel si l'utilisateur change son propre mot de passe
+        if (user.id === id && !generateNew) {
+          if (!currentPassword) {
+            return {
+              user: null,
+              success: false,
+              message: 'Le mot de passe actuel est requis',
+              errors: ['CURRENT_PASSWORD_REQUIRED']
+            };
+          }
+
+          const isPasswordValid = await targetUser.comparePassword(currentPassword);
+          if (!isPasswordValid) {
+            return {
+              user: null,
+              success: false,
+              message: 'Le mot de passe actuel est incorrect',
+              errors: ['INVALID_CURRENT_PASSWORD']
+            };
+          }
         }
 
         let password = newPassword;

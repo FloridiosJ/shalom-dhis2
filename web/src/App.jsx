@@ -13,6 +13,8 @@ import Dispensaires from "./pages/Dispensaires";
 import Users from "./pages/Users";
 import Patients from "./pages/Patients";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import Support from "./pages/Support";
 import TestUserModal from "./pages/TestUserModal";
 import TatitraPreview from "./pages/TatitraPreview";
 
@@ -127,8 +129,17 @@ function App() {
               <Route
                 path="/settings"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
-                    <Dashboard />
+                  <ProtectedRoute roles={["admin", "manager", "agent"]}>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/support"
+                element={
+                  <ProtectedRoute roles={["admin", "manager", "agent"]}>
+                    <Support />
                   </ProtectedRoute>
                 }
               />

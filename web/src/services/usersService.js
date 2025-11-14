@@ -124,16 +124,17 @@ async function remove(id) {
 }
 
 // 6. Changement de mot de passe
-async function changePassword(id, newPassword) {
+async function changePassword(id, currentPassword, newPassword) {
   const mutation = `
-    mutation ChangeUserPassword($id: ID!, $newPassword: String!) {
-      changeUserPassword(id: $id, newPassword: $newPassword) {
+    mutation ChangeUserPassword($id: ID!, $currentPassword: String, $newPassword: String!) {
+      changeUserPassword(id: $id, currentPassword: $currentPassword, newPassword: $newPassword) {
         success
         errors
+        message
       }
     }
   `;
-  const variables = { id, newPassword };
+  const variables = { id, currentPassword, newPassword };
   const response = await client.post('', { query: mutation, variables });
   return handleGraphQLErrors(response).changeUserPassword;
 }

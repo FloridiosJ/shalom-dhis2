@@ -1316,7 +1316,7 @@ type Mutation {
   createUser(input: CreateUserInput!): UserResponse!
   updateUser(id: ID!, input: UpdateUserInput!): UserResponse!
   deleteUser(id: ID!): UserResponse!
-  changeUserPassword(id: ID!, newPassword: String, generateNew: Boolean): UserResponse!
+  changeUserPassword(id: ID!, currentPassword: String, newPassword: String, generateNew: Boolean): UserResponse!
 
   # Dispensaires
   createDispensaire(input: CreateDispensaireInput!): DispensaireResponse!
