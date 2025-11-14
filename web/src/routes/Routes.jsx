@@ -12,6 +12,7 @@ import TestUserModal from '../pages/TestUserModal';
 import TatitraPreview from '../pages/TatitraPreview';
 import FitorianaStatsTest from '../pages/FitorianaStatsTest';
 import Settings from '../pages/Settings';
+import Support from '../pages/Support';
 
 export default function AppRoutes() {
   return (
@@ -96,6 +97,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <ProtectedRoute>
+            <Support />
           </ProtectedRoute>
         }
       />
