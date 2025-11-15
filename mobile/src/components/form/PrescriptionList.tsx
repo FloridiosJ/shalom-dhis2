@@ -10,12 +10,12 @@ import {
 } from 'react-native';
 import {Text, TextInput, Button, Divider} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {PrescriptionItem} from '../../../shared/types/consultation';
+import {PrescriptionItem} from '@shared/types/consultation';
 import {
   COMMON_MEDICATIONS,
   COMMON_FREQUENCIES,
   COMMON_DURATIONS,
-} from '../../../shared/constants/medications';
+} from '@shared/constants/medications';
 
 interface PrescriptionListProps {
   items: PrescriptionItem[];

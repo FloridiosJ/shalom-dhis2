@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import {Text, TextInput, Button, Chip} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {CategoryWithMeta, CategorieMaladie} from '../../../shared/types/consultation';
+import {CategoryWithMeta, CategorieMaladie} from '@shared/types/consultation';
 
 interface CategorySelectorProps {
   categories: CategorieMaladie[];

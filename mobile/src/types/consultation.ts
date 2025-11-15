@@ -7,7 +7,7 @@ export type {
   ConsultationDraft,
   CategorieMaladie,
   Dispensaire,
-} from '../../../shared/types/consultation';
+} from '@shared/types/consultation';
 
 // Mobile-specific types
 export interface Attachment {

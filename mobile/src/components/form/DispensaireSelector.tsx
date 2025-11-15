@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {Text} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Dispensaire} from '../../../shared/types/consultation';
+import {Dispensaire} from '@shared/types/consultation';
 
 interface DispensaireSelectorProps {
   dispensaires: Dispensaire[];

@@ -14,7 +14,7 @@ import {
   TYPES_CONSULTATION,
   getConsultationTypesByGender,
   ConsultationType,
-} from '../../../shared/constants/typeConsultations';
+} from '@shared/constants/typeConsultations';
 
 interface TypeConsultationPickerProps {
   value: string;
