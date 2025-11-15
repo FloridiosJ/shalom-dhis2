@@ -1,0 +1,14 @@
+{
+  "name": "@shalom-dhis2/shared",
+  "version": "1.0.0",
+  "description": "Shared constants, types, and validation schemas for shalom-dhis2",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {},
+  "keywords": ["shalom", "dhis2", "shared"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "yup": "^1.3.3"
+  }
+}
