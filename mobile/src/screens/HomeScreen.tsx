@@ -1,8 +1,9 @@
-import React from 'react';
-import {View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator} from 'react-native';
-import {Text, Card} from 'react-native-paper';
+import React, {useEffect} from 'react';
+import {View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert} from 'react-native';
+import {Text, Card, Button} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useDashboardStats} from '../hooks/useDashboardStats';
+import {useLocalSync} from '../hooks/useLocalSync';
 import {useNavigation} from '@react-navigation/native';
 
 interface DashboardCardProps {
@@ -83,8 +84,11 @@ function ActionCard({icon, label, onPress}: ActionCardProps) {
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   
-  // Fetch real dashboard statistics from API
-  const {stats, loading, error} = useDashboardStats();
+  // Fetch real dashboard statistics from API (calendar month data)
+  const {stats, loading, error, refetch} = useDashboardStats();
+  
+  // Local sync management
+  const {pendingCount, syncNow, isSyncing} = useLocalSync();
 
   // Use real data or show fallback during loading
   const dashboardData = stats || {
@@ -92,6 +96,15 @@ export default function HomeScreen() {
     patientsRecentsCount: 0,
     syncRequiredCount: 0,
   };
+
+  // Auto-refresh stats when coming back to screen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      refetch();
+    });
+
+    return unsubscribe;
+  }, [navigation, refetch]);
 
   const handleConsultationsPress = () => {
     navigation.navigate('Consultation');
@@ -103,6 +116,23 @@ export default function HomeScreen() {
 
   const handleSyncPress = () => {
     navigation.navigate('Sync');
+  };
+
+  const handleSyncNow = async () => {
+    try {
+      await syncNow();
+      Alert.alert(
+        'Synchronisation réussie',
+        'Toutes les données ont été synchronisées avec le serveur.',
+        [{text: 'OK', onPress: () => refetch()}]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Erreur de synchronisation',
+        'Une erreur est survenue lors de la synchronisation. Veuillez réessayer.',
+        [{text: 'OK'}]
+      );
+    }
   };
 
   const handleNewPatient = () => {
@@ -131,7 +161,10 @@ export default function HomeScreen() {
         {/* Section Title */}
         <View style={styles.sectionTitleContainer}>
           <Text variant="titleLarge" style={styles.sectionTitle}>
-            Statistique Mensuel
+            Statistiques du mois en cours
+          </Text>
+          <Text variant="bodySmall" style={styles.sectionSubtitle}>
+            Du 1er au {new Date().getDate()} {new Date().toLocaleDateString('fr-FR', { month: 'long' })}
           </Text>
         </View>
 
@@ -166,10 +199,10 @@ export default function HomeScreen() {
             <View style={styles.cardWrapper}>
               <DashboardCard
                 icon="sync"
-                label="Synchronisation"
-                count={0}
-                iconColor="#2196F3"
-                iconBackground="#E3F2FD"
+                label="En attente de sync"
+                count={pendingCount}
+                iconColor="#FF9800"
+                iconBackground="#FFF3E0"
                 isLoading={false}
                 onPress={handleSyncPress}
               />
@@ -183,6 +216,21 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+
+        {/* Sync button */}
+        {pendingCount > 0 && (
+          <View style={styles.syncButtonContainer}>
+            <Button
+              mode="contained"
+              icon="cloud-upload"
+              onPress={handleSyncNow}
+              loading={isSyncing}
+              disabled={isSyncing}
+              style={styles.syncButton}>
+              Synchroniser maintenant ({pendingCount})
+            </Button>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -221,6 +269,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: '600',
     color: '#212121',
+  },
+  sectionSubtitle: {
+    color: '#757575',
+    marginTop: 4,
   },
   cardsGrid: {
     padding: 16,
@@ -294,5 +346,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
     height: 32,
+  },
+  syncButtonContainer: {
+    padding: 16,
+    paddingTop: 8,
+  },
+  syncButton: {
+    borderRadius: 8,
   },
 });

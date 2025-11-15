@@ -21,12 +21,25 @@ interface UseDashboardStatsReturn {
   refetch: () => Promise<void>;
 }
 
-// GraphQL query to fetch dashboard statistics
+// GraphQL query to fetch dashboard statistics (calendar month)
 const GET_DASHBOARD_STATS = gql`
   query GetDashboardStats {
     dashboard {
       consultationsThisMonth
       newPatientsThisMonth
+    }
+  }
+`;
+
+// Alternative query using metricsByRange for custom date ranges
+const GET_METRICS_BY_RANGE = gql`
+  query GetMetricsByRange($start: String!, $end: String!) {
+    metricsByRange(start: $start, end: $end) {
+      consultationsCount
+      patientsCount
+      pendingSyncCount
+      startDate
+      endDate
     }
   }
 `;
