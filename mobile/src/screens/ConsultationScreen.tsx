@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {
   View,
   FlatList,
@@ -32,9 +32,6 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  
-  // Store generated fallback keys to maintain consistency across renders
-  const fallbackKeysRef = useRef<Map<Consultation, string>>(new Map());
 
   const loadConsultations = useCallback(
     async (pageNum: number, isRefresh = false) => {
@@ -70,15 +67,24 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
           },
         });
 
+        // Ensure all consultations have a unique id for stable keys
+        const dataWithIds = result.dataEntries.map(item => {
+          if (!item.id && !item.clientTempId) {
+            // Generate a stable ID for items without one
+            return {...item, clientTempId: generateUUID()};
+          }
+          return item;
+        });
+
         setConsultations(prev => {
           const newConsultations = isRefresh || pageNum === 1 
-            ? result.dataEntries 
-            : [...prev, ...result.dataEntries];
+            ? dataWithIds 
+            : [...prev, ...dataWithIds];
           
           // DEV mode: Validate key uniqueness
           if (__DEV__) {
             const keys = newConsultations.map(item => 
-              item.id || item.clientTempId || `temp-${item.dateConsultation}-${item.patient.id}`
+              item.id || item.clientTempId || 'missing-id'
             );
             validateUniqueKeys(keys, 'ConsultationScreen');
           }
@@ -111,8 +117,6 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   }, [selectedFilter, searchQuery]);
 
   const handleRefresh = useCallback(() => {
-    // Clear fallback keys on refresh to avoid memory leaks
-    fallbackKeysRef.current.clear();
     setPage(1);
     setHasMore(true);
     loadConsultations(1, true);
@@ -140,23 +144,9 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
 
   const keyExtractor = useCallback(
     (item: Consultation) => {
-      // Priority 1: Use server ID if present
-      if (item.id) {
-        return item.id;
-      }
-      
-      // Priority 2: Use clientTempId if present (offline/pending_sync items)
-      if (item.clientTempId) {
-        return item.clientTempId;
-      }
-      
-      // Priority 3: Generate a unique UUID as fallback
-      // Store it in a ref to maintain consistency across renders for the same item
-      if (!fallbackKeysRef.current.has(item)) {
-        fallbackKeysRef.current.set(item, generateUUID());
-      }
-      
-      return fallbackKeysRef.current.get(item)!;
+      // All consultations should have either id (server) or clientTempId (local)
+      // They are assigned when data is loaded to ensure uniqueness
+      return item.id || item.clientTempId || 'unknown';
     },
     [],
   );
