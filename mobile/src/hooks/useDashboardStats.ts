@@ -69,15 +69,25 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         dashboard: {
           consultationsThisMonth: number;
           newPatientsThisMonth: number;
-        };
+        } | null;
       }>({
         query: GET_DASHBOARD_STATS,
         fetchPolicy: 'network-only',
       });
 
+      // Handle null dashboard (e.g., when not authenticated)
+      if (!result.data?.dashboard) {
+        setStats({
+          consultationsCount: 0,
+          patientsRecentsCount: 0,
+          syncRequiredCount: 0,
+        });
+        return;
+      }
+
       const dashboardStats: DashboardStats = {
-        consultationsCount: result.data?.dashboard?.consultationsThisMonth || 0,
-        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || 0,
+        consultationsCount: result.data.dashboard.consultationsThisMonth || 0,
+        patientsRecentsCount: result.data.dashboard.newPatientsThisMonth || 0,
         syncRequiredCount: 0, // Always 0 - separate feature
       };
 

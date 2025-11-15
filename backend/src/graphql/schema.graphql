@@ -1045,7 +1045,7 @@ type Query {
   reportsByDispensaire(dispensaireId: ID!): DispensaireReports!
   reportsByPeriod(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): PeriodReports!
   reportsByConsultationType(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): [ConsultationTypeReport!]!
-  dashboard(dispensaireId: ID): Dashboard!
+  dashboard(dispensaireId: ID): Dashboard
   
   """
   Query metrics for a specific date range.
