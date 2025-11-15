@@ -123,7 +123,10 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   }, [handleRefresh]);
 
   const keyExtractor = useCallback(
-    (item: Consultation) => item.id.toString(),
+    (item: Consultation) => 
+      item.id || 
+      item.clientTempId || 
+      `${item.dateConsultation}-${item.patient.id}`,
     [],
   );
 
