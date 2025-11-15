@@ -34,6 +34,7 @@ export interface VitalSigns {
 
 export interface DataEntry {
   id: string;
+  clientTempId?: string; // Temporary ID for offline/pending sync items
   dateConsultation: string;
   diagnostic: string;
   prescription: string;
