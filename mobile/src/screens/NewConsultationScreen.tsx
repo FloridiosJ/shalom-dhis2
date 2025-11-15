@@ -12,8 +12,13 @@ import {useConsultationForm} from '../hooks/useConsultationForm';
 import PatientPicker from '../components/form/PatientPicker';
 import DatePickerBlue from '../components/consultation/form/DatePickerBlue';
 import TimePickerBlue from '../components/consultation/form/TimePickerBlue';
+import TypeConsultationPicker from '../components/form/TypeConsultationPicker';
+import CategorySelector from '../components/form/CategorySelector';
+import PrescriptionList from '../components/form/PrescriptionList';
+import DispensaireSelector from '../components/form/DispensaireSelector';
 import ConsultationInput from '../components/consultation/form/ConsultationInput';
 import {styles} from '../styles/NewConsultationScreen.styles';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface NewConsultationScreenProps {
   navigation: any;
@@ -30,10 +35,21 @@ export default function NewConsultationScreen({
     filteredPatients,
     loadingPatients,
     saving,
+    categories,
+    loadingCategories,
+    dispensaires,
+    loadingDispensaires,
+    isAgent,
+    userDispensaire,
+    patients,
     handleSearchPatients,
     handleCreatePatient,
     handleSave,
   } = useConsultationForm(navigation);
+
+  // Get selected patient for gender-based filtering
+  const patientId = control._formValues.patientId;
+  const selectedPatient = patients.find(p => p.id === patientId);
 
   return (
     <KeyboardAvoidingView
@@ -44,7 +60,8 @@ export default function NewConsultationScreen({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
-        {/* Patient Picker - No label/section title */}
+        
+        {/* Patient Picker */}
         <Controller
           control={control}
           name="patientId"
@@ -61,9 +78,9 @@ export default function NewConsultationScreen({
           )}
         />
 
-        {/* Time and Date Section - Two separate lines, no section title */}
+        {/* Time and Date Section */}
         <View style={styles.dateTimeContainer}>
-          {/* Line 1: Time (Heure) - Blue label */}
+          {/* Time (Heure) */}
           <View style={styles.dateTimeRow}>
             <Controller
               control={control}
@@ -74,13 +91,12 @@ export default function NewConsultationScreen({
                   value={value}
                   onChange={onChange}
                   error={errors.heureConsultation?.message}
-                  required
                 />
               )}
             />
           </View>
 
-          {/* Line 2: Date - Blue label */}
+          {/* Date */}
           <View style={styles.dateTimeRow}>
             <Controller
               control={control}
@@ -99,79 +115,96 @@ export default function NewConsultationScreen({
           </View>
         </View>
 
-        {/* Clinical Information Section */}
-        <View style={styles.clinicalSection}>
-          <Text style={styles.clinicalTitle}>Informations Cliniques</Text>
-
-          {/* Type consultation */}
+        {/* Dispensaire (if not agent) */}
+        {!isAgent && (
           <Controller
             control={control}
-            name="typeConsultation"
+            name="dispensaireId"
             render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Type consultation"
+              <DispensaireSelector
+                dispensaires={dispensaires}
                 value={value}
                 onChange={onChange}
-                placeholder="ex: Consultation générale"
-                error={errors.typeConsultation?.message}
-                required
+                error={errors.dispensaireId?.message}
               />
             )}
           />
+        )}
 
-          {/* Catégories de maladie */}
+        {/* Info message for agents */}
+        {isAgent && userDispensaire && (
+          <View style={styles.infoBox}>
+            <Icon name="information" size={20} color="#0284c7" />
+            <Text style={styles.infoText}>
+              La consultation sera automatiquement assignée à votre dispensaire :{' '}
+              <Text style={styles.infoTextBold}>{userDispensaire.name}</Text>
+            </Text>
+          </View>
+        )}
+
+        {/* Type consultation */}
+        <Controller
+          control={control}
+          name="typeConsultation"
+          render={({field: {onChange, value}}) => (
+            <TypeConsultationPicker
+              value={value}
+              onChange={onChange}
+              error={errors.typeConsultation?.message}
+              patientSexe={selectedPatient?.sexe}
+            />
+          )}
+        />
+
+        {/* Categories Section */}
+        <View style={styles.categoriesSection}>
           <Controller
             control={control}
-            name="categoriesMaladie"
+            name="categories"
             render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Catégories de maladie"
-                value={value}
+              <CategorySelector
+                categories={categories}
+                selectedCategories={value}
                 onChange={onChange}
-                placeholder="ex: Maladies infectieuses"
-                error={errors.categoriesMaladie?.message}
-                required
-              />
-            )}
-          />
-
-          {/* Prescriptions structurées */}
-          <Controller
-            control={control}
-            name="prescriptionsStructurees"
-            render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Prescriptions structurées"
-                value={value}
-                onChange={onChange}
-                placeholder="ex: Paracétamol 500mg, 3 fois par jour..."
-                multiline
-                numberOfLines={4}
-                error={errors.prescriptionsStructurees?.message}
-              />
-            )}
-          />
-
-          {/* Notes */}
-          <Controller
-            control={control}
-            name="notes"
-            render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Notes"
-                value={value}
-                onChange={onChange}
-                placeholder="Ajouter des commentaires..."
-                multiline
-                numberOfLines={4}
-                error={errors.notes?.message}
+                error={errors.categories?.message}
               />
             )}
           />
         </View>
+
+        {/* Prescriptions structurées */}
+        <View style={styles.prescriptionsSection}>
+          <Controller
+            control={control}
+            name="prescriptionItems"
+            render={({field: {onChange, value}}) => (
+              <PrescriptionList
+                items={value}
+                onChange={onChange}
+              />
+            )}
+          />
+        </View>
+
+        {/* Notes */}
+        <Controller
+          control={control}
+          name="notes"
+          render={({field: {onChange, value}}) => (
+            <ConsultationInput
+              label="Notes"
+              value={value}
+              onChange={onChange}
+              placeholder="Ajouter des commentaires..."
+              multiline
+              numberOfLines={4}
+              error={errors.notes?.message}
+            />
+          )}
+        />
       </ScrollView>
 
-      {/* Single Action Button - Blue "Enregistrer" */}
+      {/* Action Button */}
       <View style={styles.actionBar}>
         <Button
           mode="contained"

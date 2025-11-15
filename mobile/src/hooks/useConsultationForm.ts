@@ -4,7 +4,7 @@ import {yupResolver} from '@hookform/resolvers/yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Alert} from 'react-native';
 import {consultationValidationSchema} from '../utils/consultationValidation';
-import {ConsultationFormData, PatientOption} from '../types/consultation';
+import {ConsultationFormData, PatientOption, CategorieMaladie, Dispensaire} from '../types/consultation';
 
 const DRAFT_STORAGE_KEY = '@consultation_draft';
 
@@ -24,6 +24,12 @@ interface UseConsultationFormReturn {
   loadingPatients: boolean;
   saving: boolean;
   isDraft: boolean;
+  categories: CategorieMaladie[];
+  loadingCategories: boolean;
+  dispensaires: Dispensaire[];
+  loadingDispensaires: boolean;
+  isAgent: boolean;
+  userDispensaire?: Dispensaire;
   handleSearchPatients: (query: string) => void;
   handleCreatePatient: () => void;
   handleSave: (data: ConsultationFormData) => Promise<void>;
@@ -41,6 +47,12 @@ export function useConsultationForm(
   const [loadingPatients, setLoadingPatients] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
+  const [categories, setCategories] = useState<CategorieMaladie[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [dispensaires, setDispensaires] = useState<Dispensaire[]>([]);
+  const [loadingDispensaires, setLoadingDispensaires] = useState(false);
+  const [isAgent, setIsAgent] = useState(false);
+  const [userDispensaire, setUserDispensaire] = useState<Dispensaire | undefined>(undefined);
 
   const {
     control,
@@ -55,9 +67,10 @@ export function useConsultationForm(
       patientId: null,
       dateConsultation: new Date(),
       heureConsultation: new Date(),
+      dispensaireId: undefined,
       typeConsultation: '',
-      categoriesMaladie: '',
-      prescriptionsStructurees: '',
+      categories: [],
+      prescriptionItems: [],
       notes: '',
     },
   });
@@ -69,6 +82,9 @@ export function useConsultationForm(
     const init = async () => {
       await loadDraft();
       await loadPatients();
+      await loadCategories();
+      await loadDispensaires();
+      await loadUserInfo();
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,16 +127,19 @@ export function useConsultationForm(
           id: '1',
           displayName: 'Jean Dupont',
           numeroPatient: 'PAT-001',
+          sexe: 'M',
         },
         {
           id: '2',
           displayName: 'Marie Martin',
           numeroPatient: 'PAT-002',
+          sexe: 'F',
         },
         {
           id: '3',
           displayName: 'Pierre Bernard',
           numeroPatient: 'PAT-003',
+          sexe: 'M',
         },
       ];
       setPatients(mockPatients);
@@ -129,6 +148,57 @@ export function useConsultationForm(
       console.error('Error loading patients:', error);
     } finally {
       setLoadingPatients(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      // TODO: Replace with actual API call
+      const mockCategories: CategorieMaladie[] = [
+        {id: '1', nom: 'Maladies infectieuses', code: 'INF'},
+        {id: '2', nom: 'Maladies respiratoires', code: 'RESP'},
+        {id: '3', nom: 'Maladies cardiovasculaires', code: 'CARDIO'},
+        {id: '4', nom: 'Maladies digestives', code: 'DIGES'},
+        {id: '5', nom: 'Paludisme', code: 'PAL'},
+      ];
+      setCategories(mockCategories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  const loadDispensaires = async () => {
+    setLoadingDispensaires(true);
+    try {
+      // TODO: Replace with actual API call
+      const mockDispensaires: Dispensaire[] = [
+        {id: '1', name: 'Dispensaire Centre', code: 'DISP-01'},
+        {id: '2', name: 'Dispensaire Nord', code: 'DISP-02'},
+        {id: '3', name: 'Dispensaire Sud', code: 'DISP-03'},
+      ];
+      setDispensaires(mockDispensaires);
+    } catch (error) {
+      console.error('Error loading dispensaires:', error);
+    } finally {
+      setLoadingDispensaires(false);
+    }
+  };
+
+  const loadUserInfo = async () => {
+    try {
+      // TODO: Replace with actual auth call
+      const mockIsAgent = false; // Change to true to test agent mode
+      const mockUserDispensaire: Dispensaire | undefined = mockIsAgent
+        ? {id: '1', name: 'Dispensaire Centre', code: 'DISP-01'}
+        : undefined;
+      
+      setIsAgent(mockIsAgent);
+      setUserDispensaire(mockUserDispensaire);
+    } catch (error) {
+      console.error('Error loading user info:', error);
     }
   };
 
@@ -157,9 +227,56 @@ export function useConsultationForm(
   const handleSave = async (data: ConsultationFormData) => {
     setSaving(true);
     try {
-      // TODO: Replace with actual API call to save consultation
-      console.log('Saving consultation:', data);
+      // Combine date and time for consultation
+      let dateConsultationISO: string;
+      const date = data.dateConsultation instanceof Date 
+        ? data.dateConsultation 
+        : new Date(data.dateConsultation);
+      
+      if (data.heureConsultation) {
+        const time = data.heureConsultation instanceof Date
+          ? data.heureConsultation
+          : new Date(data.heureConsultation);
+        date.setHours(time.getHours(), time.getMinutes(), 0, 0);
+      }
+      dateConsultationISO = date.toISOString();
 
+      // Generate diagnostic from principal category
+      const principalCategory = data.categories.find(c => c.isPrincipal);
+      let diagnosticText = principalCategory ? principalCategory.nom || '' : '';
+      if (data.diagnosticDetails?.trim()) {
+        diagnosticText += ` (${data.diagnosticDetails.trim()})`;
+      }
+
+      const payload = {
+        dateConsultation: dateConsultationISO,
+        patientId: data.patientId,
+        dispensaireId: isAgent && userDispensaire 
+          ? userDispensaire.id 
+          : data.dispensaireId,
+        typeConsultation: data.typeConsultation,
+        diagnostic: diagnosticText,
+        notes: data.notes || '',
+        categories: data.categories.map(c => ({
+          categorieMaladieId: c.categorieMaladieId,
+          isPrincipal: c.isPrincipal,
+          notes: c.notes || '',
+        })),
+        prescriptionItems: data.prescriptionItems
+          .filter(item => item.medicament.trim())
+          .map((item, index) => ({
+            medicament: item.medicament.trim(),
+            dose: item.dose?.trim() || null,
+            frequence: item.frequence?.trim() || null,
+            duree: item.duree?.trim() || null,
+            notes: item.notes?.trim() || null,
+            ordre: index,
+          })),
+      };
+
+      console.log('📤 Saving consultation:', payload);
+
+      // TODO: Replace with actual API call to save consultation
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -236,6 +353,12 @@ export function useConsultationForm(
     loadingPatients,
     saving,
     isDraft,
+    categories,
+    loadingCategories,
+    dispensaires,
+    loadingDispensaires,
+    isAgent,
+    userDispensaire,
     handleSearchPatients,
     handleCreatePatient,
     handleSave,

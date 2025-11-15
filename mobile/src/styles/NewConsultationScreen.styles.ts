@@ -2,7 +2,7 @@ import {StyleSheet} from 'react-native';
 
 // Theme colors - Blue as primary color matching header
 export const THEME_COLORS = {
-  primary: '#2196F3', // Blue for headers and primary actions
+  primary: '#0284c7', // Blue for headers and primary actions
   background: '#F5F5F5',
   cardBackground: '#FFFFFF',
   textPrimary: '#212121',
@@ -10,6 +10,7 @@ export const THEME_COLORS = {
   border: '#E0E0E0',
   error: '#D32F2F',
   success: '#4CAF50',
+  info: '#0284c7',
 };
 
 export const styles = StyleSheet.create({
@@ -45,7 +46,36 @@ export const styles = StyleSheet.create({
     color: THEME_COLORS.primary, // Blue label
     marginBottom: 8,
   },
-  // Clinical Information section
+  // Info box for agents
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: THEME_COLORS.info,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: THEME_COLORS.textPrimary,
+    marginLeft: 8,
+  },
+  infoTextBold: {
+    fontWeight: '600',
+    color: THEME_COLORS.info,
+  },
+  // Categories section
+  categoriesSection: {
+    marginBottom: 16,
+  },
+  // Prescriptions section
+  prescriptionsSection: {
+    marginBottom: 16,
+  },
+  // Clinical Information section (kept for compatibility)
   clinicalSection: {
     backgroundColor: THEME_COLORS.cardBackground,
     borderRadius: 8,
@@ -81,3 +111,4 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
