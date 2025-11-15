@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {
   View,
   FlatList,
@@ -19,6 +19,7 @@ import ConsultationFilterPills, {
 import ConsultationCard from '../components/ConsultationCard';
 import {Consultation} from '../types';
 import {fetchConsultations} from '../services/consultationService';
+import {generateUUID, validateUniqueKeys} from '../utils/uuid';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -31,6 +32,9 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  
+  // Store generated fallback keys to maintain consistency across renders
+  const fallbackKeysRef = useRef<Map<Consultation, string>>(new Map());
 
   const loadConsultations = useCallback(
     async (pageNum: number, isRefresh = false) => {
@@ -66,11 +70,21 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
           },
         });
 
-        if (isRefresh || pageNum === 1) {
-          setConsultations(result.dataEntries);
-        } else {
-          setConsultations(prev => [...prev, ...result.dataEntries]);
-        }
+        setConsultations(prev => {
+          const newConsultations = isRefresh || pageNum === 1 
+            ? result.dataEntries 
+            : [...prev, ...result.dataEntries];
+          
+          // DEV mode: Validate key uniqueness
+          if (__DEV__) {
+            const keys = newConsultations.map(item => 
+              item.id || item.clientTempId || `temp-${item.dateConsultation}-${item.patient.id}`
+            );
+            validateUniqueKeys(keys, 'ConsultationScreen');
+          }
+          
+          return newConsultations;
+        });
 
         setHasMore(result.hasNextPage);
         setPage(pageNum);
@@ -97,6 +111,8 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   }, [selectedFilter, searchQuery]);
 
   const handleRefresh = useCallback(() => {
+    // Clear fallback keys on refresh to avoid memory leaks
+    fallbackKeysRef.current.clear();
     setPage(1);
     setHasMore(true);
     loadConsultations(1, true);
@@ -123,10 +139,25 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   }, [handleRefresh]);
 
   const keyExtractor = useCallback(
-    (item: Consultation) => 
-      item.id || 
-      item.clientTempId || 
-      `${item.dateConsultation}-${item.patient.id}`,
+    (item: Consultation) => {
+      // Priority 1: Use server ID if present
+      if (item.id) {
+        return item.id;
+      }
+      
+      // Priority 2: Use clientTempId if present (offline/pending_sync items)
+      if (item.clientTempId) {
+        return item.clientTempId;
+      }
+      
+      // Priority 3: Generate a unique UUID as fallback
+      // Store it in a ref to maintain consistency across renders for the same item
+      if (!fallbackKeysRef.current.has(item)) {
+        fallbackKeysRef.current.set(item, generateUUID());
+      }
+      
+      return fallbackKeysRef.current.get(item)!;
+    },
     [],
   );
 
