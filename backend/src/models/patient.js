@@ -92,6 +92,26 @@ const Patient = sequelize.define('Patient', {
       isUUID: { args: 4, msg: 'Format UUID invalide pour l\'utilisateur' }
     }
   },
+  locationLat: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    comment: 'Latitude de la géolocalisation lors de la création/modification'
+  },
+  locationLon: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    comment: 'Longitude de la géolocalisation lors de la création/modification'
+  },
+  locationAccuracy: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    comment: 'Précision de la géolocalisation en mètres'
+  },
+  locationTimestamp: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Horodatage de la capture de géolocalisation (ISO 8601)'
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,

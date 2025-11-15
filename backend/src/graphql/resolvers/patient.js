@@ -233,6 +233,15 @@ const patientResolvers = {
           userId: user.id
         };
 
+        // Handle location data if provided
+        if (input.location) {
+          patientData.locationLat = input.location.lat;
+          patientData.locationLon = input.location.lon;
+          patientData.locationAccuracy = input.location.accuracy;
+          patientData.locationTimestamp = input.location.timestamp;
+          delete patientData.location; // Remove nested object before saving
+        }
+
         console.log('💾 Creating patient with data:', patientData);
 
         const patient = await Patient.create(patientData);
@@ -318,7 +327,17 @@ const patientResolvers = {
           };
         }
 
-        await patient.update(input);
+        // Handle location data if provided
+        const updateData = { ...input };
+        if (input.location) {
+          updateData.locationLat = input.location.lat;
+          updateData.locationLon = input.location.lon;
+          updateData.locationAccuracy = input.location.accuracy;
+          updateData.locationTimestamp = input.location.timestamp;
+          delete updateData.location; // Remove nested object before saving
+        }
+
+        await patient.update(updateData);
 
         const updatedPatient = await Patient.findByPk(id, {
           include: [
@@ -483,6 +502,19 @@ const patientResolvers = {
       })() : (patient.age || 0);
       
       return age < 18;
+    },
+
+    location: (patient) => {
+      // Return location object if coordinates are present
+      if (patient.locationLat && patient.locationLon) {
+        return {
+          lat: patient.locationLat,
+          lon: patient.locationLon,
+          accuracy: patient.locationAccuracy,
+          timestamp: patient.locationTimestamp
+        };
+      }
+      return null;
     }
   }
 };

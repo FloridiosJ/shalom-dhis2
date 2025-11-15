@@ -78,6 +78,14 @@ enum TypeActiviteSpirituelle {
   priere
 }
 
+# Location type for geolocation data
+type Location {
+  lat: Float!
+  lon: Float!
+  accuracy: Float
+  timestamp: String
+}
+
 # User type
 type User {
   id: ID!
@@ -134,6 +142,7 @@ type Patient {
   displayName: String!
   categorieAge: String!
   isMineur: Boolean!
+  location: Location # Optional geolocation capture
 }
 
 # TypeConsultation type
@@ -189,6 +198,7 @@ type DataEntry {
   summary: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+  location: Location # Optional geolocation capture
 }
 
 # Event type
@@ -312,6 +322,15 @@ type Dashboard {
   newPatientsThisMonth: Int!
   upcomingEvents: [Event!]!
   recentConsultations: [DataEntry!]!
+}
+
+# Metrics by date range payload
+type MetricsPayload {
+  consultationsCount: Int!
+  patientsCount: Int!
+  pendingSyncCount: Int!
+  startDate: String!
+  endDate: String!
 }
 
 # ✅ AJOUTER ICI
@@ -493,6 +512,22 @@ type ActiviteSprituelleResponse {
   errors: [String!]
 }
 
+# Sync batch response types
+type SyncItemResult {
+  clientTempId: String!
+  serverId: ID
+  status: String!
+  message: String
+  error: String
+}
+
+type SyncBatchPayload {
+  results: [SyncItemResult!]!
+  successCount: Int!
+  errorCount: Int!
+  message: String!
+}
+
 # Paginated results
 type DataEntryConnection {
   dataEntries: [DataEntry!]!
@@ -594,6 +629,7 @@ input CreatePatientInput {
   village: String!
   dispensaireId: ID!
   numeroPatient: String
+  location: LocationInput # Optional geolocation capture
 }
 
 input UpdatePatientInput {
@@ -606,6 +642,7 @@ input UpdatePatientInput {
   village: String
   dispensaireId: ID
   isActive: Boolean
+  location: LocationInput # Optional geolocation capture
 }
 
 # Input pour associer des catégories avec métadonnées
@@ -636,6 +673,7 @@ input CreateDataEntryInput {
   dispensaireId: ID
   categorieIds: [ID!]
   categories: [CategorieAssociationInput!]
+  location: LocationInput # Optional geolocation capture
 }
 
 input UpdateDataEntryInput {
@@ -826,6 +864,22 @@ input ActiviteSprituelleFilterInput {
   search: String
 }
 
+# Location input for geolocation capture
+input LocationInput {
+  lat: Float!
+  lon: Float!
+  accuracy: Float
+  timestamp: String
+}
+
+# Sync batch input for offline sync
+input SyncItemInput {
+  clientTempId: String!
+  type: String!
+  payload: String!
+  createdAt: String!
+}
+
 # Ajoutez ces types si pas déjà présents
 type TopDiagnostic {
   diagnostic: String!
@@ -992,6 +1046,23 @@ type Query {
   reportsByPeriod(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): PeriodReports!
   reportsByConsultationType(dateFrom: DateTime, dateTo: DateTime, dispensaireId: ID): [ConsultationTypeReport!]!
   dashboard(dispensaireId: ID): Dashboard!
+  
+  """
+  Query metrics for a specific date range.
+  Returns consultations count, new patients count, and pending sync count for the given period.
+  Useful for calculating monthly, weekly, or custom period statistics.
+  
+  Example:
+    metricsByRange(start: "2025-01-01", end: "2025-01-31")
+  """
+  metricsByRange(
+    "Start date in ISO format (YYYY-MM-DD or ISO 8601)"
+    start: String!
+    "End date in ISO format (YYYY-MM-DD or ISO 8601)"
+    end: String!
+    "Optional: filter by specific dispensaire"
+    dispensaireId: ID
+  ): MetricsPayload!
 
   # Rapports avec filtres
   
@@ -1357,6 +1428,19 @@ type Mutation {
   createActiviteSpirituelle(input: CreateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   updateActiviteSpirituelle(id: ID!, input: UpdateActiviteSprituelleInput!): ActiviteSprituelleResponse!
   deleteActiviteSpirituelle(id: ID!):ActiviteSprituelleResponse!
+
+  # Sync mutations
+  """
+  Batch sync mutation for offline data synchronization.
+  Accepts an array of items (patients, consultations) with clientTempId and returns
+  a mapping of clientTempId -> serverId with status for each item.
+  
+  Example:
+    syncBatch(items: [
+      { clientTempId: "temp-123", type: "patient", payload: "{...}", createdAt: "2025-01-15T10:00:00Z" }
+    ])
+  """
+  syncBatch(items: [SyncItemInput!]!): SyncBatchPayload!
 
   # Tatitra Report Export
   exportTatitraReport(quarter: String!, year: Int!, dispensaireId: ID): ExportResult!
