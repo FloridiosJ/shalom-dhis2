@@ -95,6 +95,7 @@ export default function HomeScreen() {
     consultationsCount: 0,
     patientsRecentsCount: 0,
     syncRequiredCount: 0,
+    patientOfMonthCount: 0,
   };
 
   // Auto-refresh stats when coming back to screen
@@ -208,11 +209,28 @@ export default function HomeScreen() {
               />
             </View>
             <View style={styles.cardWrapper}>
+              <DashboardCard
+                icon="account-clock"
+                label="Patients du mois"
+                count={dashboardData.patientOfMonthCount || 0}
+                iconColor="#4CAF50"
+                iconBackground="#E8F5E9"
+                isLoading={loading}
+                onPress={handlePatientsPress}
+              />
+            </View>
+          </View>
+
+          <View style={styles.cardRow}>
+            <View style={styles.cardWrapper}>
               <ActionCard
                 icon="account-plus"
                 label="Nouveau Patient"
                 onPress={handleNewPatient}
               />
+            </View>
+            <View style={styles.cardWrapper}>
+              {/* Empty space for symmetry */}
             </View>
           </View>
         </View>

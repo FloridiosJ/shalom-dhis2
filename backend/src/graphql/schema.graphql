@@ -993,6 +993,13 @@ type Query {
   patientByNumero(numero: String!): Patient
   patients(filter: PatientFilterInput, sort: SortInput, pagination: PaginationInput): PatientConnection!
   searchPatients(query: String!, dispensaireId: ID, limit: Int): [Patient!]!
+  
+  """
+  Count patients created in the current month.
+  Returns the number of patients created from the 1st of the month to today.
+  Filters by dispensaire if provided, or by user's dispensaire if agent role.
+  """
+  countPatientOfMonth(dispensaireId: ID): Int!
 
   # DataEntries (Consultations)
   dataEntry(id: ID!): DataEntry

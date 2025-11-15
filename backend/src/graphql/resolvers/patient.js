@@ -167,6 +167,47 @@ const patientResolvers = {
         order: [['nom', 'ASC']],
         limit
       });
+    },
+
+    /**
+     * Count patients created in the current month
+     * Returns the total count of patients created from the 1st of the month to today
+     */
+    countPatientOfMonth: async (_, { dispensaireId }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { Patient } = await import('../../models/index.js');
+
+      // Get current calendar month range (1st to today)
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const endOfMonth = new Date(now);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      // Build where clause based on user role and dispensaire filter
+      const whereClause = {
+        isActive: true,
+        createdAt: {
+          [Op.between]: [startOfMonth, endOfMonth]
+        }
+      };
+
+      // Apply dispensaire filter based on user role
+      if (user.role === 'agent' && user.dispensaireId) {
+        whereClause.dispensaireId = user.dispensaireId;
+      } else if (dispensaireId) {
+        whereClause.dispensaireId = dispensaireId;
+      }
+
+      // Count patients created this month
+      const count = await Patient.count({
+        where: whereClause
+      });
+
+      return count;
     }
   },
 

@@ -9,6 +9,7 @@ export interface DashboardStats {
   consultationsCount: number; // Consultations count (this month)
   patientsRecentsCount: number; // New patients count (this month)
   syncRequiredCount: number; // Sync count (always 0 for now)
+  patientOfMonthCount: number; // Count of patients created this month (from countPatientOfMonth query)
 }
 
 /**
@@ -28,6 +29,7 @@ const GET_DASHBOARD_STATS = gql`
       consultationsThisMonth
       newPatientsThisMonth
     }
+    countPatientOfMonth
   }
 `;
 
@@ -70,6 +72,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
           consultationsThisMonth: number;
           newPatientsThisMonth: number;
         } | null;
+        countPatientOfMonth: number;
       }>({
         query: GET_DASHBOARD_STATS,
         fetchPolicy: 'network-only',
@@ -81,6 +84,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
           consultationsCount: 0,
           patientsRecentsCount: 0,
           syncRequiredCount: 0,
+          patientOfMonthCount: result.data?.countPatientOfMonth || 0,
         });
         return;
       }
@@ -89,6 +93,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         consultationsCount: result.data.dashboard.consultationsThisMonth || 0,
         patientsRecentsCount: result.data.dashboard.newPatientsThisMonth || 0,
         syncRequiredCount: 0, // Always 0 - separate feature
+        patientOfMonthCount: result.data.countPatientOfMonth || 0,
       };
 
       setStats(dashboardStats);
@@ -101,6 +106,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         consultationsCount: 0,
         patientsRecentsCount: 0,
         syncRequiredCount: 0,
+        patientOfMonthCount: 0,
       });
     } finally {
       setLoading(false);
