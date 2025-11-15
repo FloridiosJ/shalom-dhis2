@@ -9,6 +9,7 @@ export interface DashboardStats {
   consultationsCount: number; // Consultations count (this month)
   patientsRecentsCount: number; // New patients count (this month)
   syncRequiredCount: number; // Sync count (always 0 for now)
+  patientOfMonthCount: number; // Count of patients created this month (from countPatientOfMonth query)
 }
 
 /**
@@ -21,12 +22,26 @@ interface UseDashboardStatsReturn {
   refetch: () => Promise<void>;
 }
 
-// GraphQL query to fetch dashboard statistics
+// GraphQL query to fetch dashboard statistics (calendar month)
 const GET_DASHBOARD_STATS = gql`
   query GetDashboardStats {
     dashboard {
       consultationsThisMonth
       newPatientsThisMonth
+    }
+    countPatientOfMonth
+  }
+`;
+
+// Alternative query using metricsByRange for custom date ranges
+const GET_METRICS_BY_RANGE = gql`
+  query GetMetricsByRange($start: String!, $end: String!) {
+    metricsByRange(start: $start, end: $end) {
+      consultationsCount
+      patientsCount
+      pendingSyncCount
+      startDate
+      endDate
     }
   }
 `;
@@ -56,16 +71,29 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         dashboard: {
           consultationsThisMonth: number;
           newPatientsThisMonth: number;
-        };
+        } | null;
+        countPatientOfMonth: number;
       }>({
         query: GET_DASHBOARD_STATS,
         fetchPolicy: 'network-only',
       });
 
+      // Handle null dashboard (e.g., when not authenticated)
+      if (!result.data?.dashboard) {
+        setStats({
+          consultationsCount: 0,
+          patientsRecentsCount: 0,
+          syncRequiredCount: 0,
+          patientOfMonthCount: result.data?.countPatientOfMonth || 0,
+        });
+        return;
+      }
+
       const dashboardStats: DashboardStats = {
-        consultationsCount: result.data?.dashboard?.consultationsThisMonth || 0,
-        patientsRecentsCount: result.data?.dashboard?.newPatientsThisMonth || 0,
+        consultationsCount: result.data.dashboard.consultationsThisMonth || 0,
+        patientsRecentsCount: result.data.dashboard.newPatientsThisMonth || 0,
         syncRequiredCount: 0, // Always 0 - separate feature
+        patientOfMonthCount: result.data.countPatientOfMonth || 0,
       };
 
       setStats(dashboardStats);
@@ -78,6 +106,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         consultationsCount: 0,
         patientsRecentsCount: 0,
         syncRequiredCount: 0,
+        patientOfMonthCount: 0,
       });
     } finally {
       setLoading(false);

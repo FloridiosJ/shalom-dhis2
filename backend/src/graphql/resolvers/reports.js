@@ -1564,6 +1564,233 @@ const reportsResolvers = {
       });
 
       return results;
+    },
+
+    /**
+     * Dashboard query - provides summary statistics for the home screen
+     * Returns consultations and patients for the current calendar month
+     */
+    dashboard: async (_, { dispensaireId }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      try {
+        const { DataEntry, Patient, Event, User } = await import('../../models/index.js');
+
+        // Determine the dispensaire filter based on user role
+        let whereClause = { isActive: true };
+        if (user.role === 'agent' && user.dispensaireId) {
+          whereClause.dispensaireId = user.dispensaireId;
+        } else if (dispensaireId) {
+          whereClause.dispensaireId = dispensaireId;
+        }
+
+        // Get current calendar month range (1st to today)
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const endOfMonth = new Date(now);
+        endOfMonth.setHours(23, 59, 59, 999);
+
+        // Count consultations this month
+        const consultationsThisMonth = await DataEntry.count({
+          where: {
+            ...whereClause,
+            dateConsultation: {
+              [Op.between]: [startOfMonth, endOfMonth]
+            }
+          }
+        });
+
+        // Count new patients this month
+        const patientWhereClause = { isActive: true };
+        if (user.role === 'agent' && user.dispensaireId) {
+          patientWhereClause.dispensaireId = user.dispensaireId;
+        } else if (dispensaireId) {
+          patientWhereClause.dispensaireId = dispensaireId;
+        }
+
+        const newPatientsThisMonth = await Patient.count({
+          where: {
+            ...patientWhereClause,
+            createdAt: {
+              [Op.between]: [startOfMonth, endOfMonth]
+            }
+          }
+        });
+
+        // Count consultations today
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const consultationsToday = await DataEntry.count({
+          where: {
+            ...whereClause,
+            dateConsultation: {
+              [Op.gte]: startOfToday
+            }
+          }
+        });
+
+        // Get total counts
+        const totalPatients = await Patient.count({
+          where: patientWhereClause
+        });
+
+        const totalConsultations = await DataEntry.count({
+          where: whereClause
+        });
+
+        // Get upcoming events with error handling
+        let upcomingEvents = [];
+        try {
+          const eventWhereClause = {
+            isActive: true,
+            date: {
+              [Op.gte]: now
+            }
+          };
+          if (user.role === 'agent' && user.dispensaireId) {
+            eventWhereClause.dispensaireId = user.dispensaireId;
+          } else if (dispensaireId) {
+            eventWhereClause.dispensaireId = dispensaireId;
+          }
+
+          upcomingEvents = await Event.findAll({
+            where: eventWhereClause,
+            order: [['date', 'ASC']],
+            limit: 5,
+            include: [
+              {
+                model: User,
+                as: 'organisateur',
+                attributes: ['id', 'nom', 'prenom']
+              }
+            ]
+          });
+        } catch (eventError) {
+          console.error('Error fetching upcoming events:', eventError);
+          upcomingEvents = [];
+        }
+
+        // Get recent consultations with error handling
+        let recentConsultations = [];
+        try {
+          recentConsultations = await DataEntry.findAll({
+            where: whereClause,
+            order: [['dateConsultation', 'DESC']],
+            limit: 10,
+            include: [
+              {
+                model: Patient,
+                as: 'patient',
+                attributes: ['id', 'nom', 'prenom', 'numeroPatient']
+              },
+              {
+                model: User,
+                as: 'createdBy',
+                attributes: ['id', 'nom', 'prenom']
+              }
+            ]
+          });
+        } catch (consultationError) {
+          console.error('Error fetching recent consultations:', consultationError);
+          recentConsultations = [];
+        }
+
+        return {
+          totalPatients: totalPatients || 0,
+          totalConsultations: totalConsultations || 0,
+          consultationsToday: consultationsToday || 0,
+          consultationsThisMonth: consultationsThisMonth || 0,
+          newPatientsThisMonth: newPatientsThisMonth || 0,
+          upcomingEvents: upcomingEvents || [],
+          recentConsultations: recentConsultations || []
+        };
+      } catch (error) {
+        console.error('Error in dashboard resolver:', error);
+        // Return a valid empty dashboard instead of null
+        return {
+          totalPatients: 0,
+          totalConsultations: 0,
+          consultationsToday: 0,
+          consultationsThisMonth: 0,
+          newPatientsThisMonth: 0,
+          upcomingEvents: [],
+          recentConsultations: []
+        };
+      }
+    },
+
+    /**
+     * Metrics by date range query
+     * Returns consultations and patients count for a specific date range
+     */
+    metricsByRange: async (_, { start, end, dispensaireId }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { DataEntry, Patient } = await import('../../models/index.js');
+
+      // Parse dates
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Invalid date format. Use ISO 8601 format (YYYY-MM-DD)');
+      }
+
+      if (startDate > endDate) {
+        throw new Error('Start date must be before or equal to end date');
+      }
+
+      // Build where clause based on user role
+      let consultationWhere = {
+        isActive: true,
+        dateConsultation: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      let patientWhere = {
+        isActive: true,
+        createdAt: {
+          [Op.between]: [startDate, endDate]
+        }
+      };
+
+      // Apply dispensaire filter
+      if (user.role === 'agent' && user.dispensaireId) {
+        consultationWhere.dispensaireId = user.dispensaireId;
+        patientWhere.dispensaireId = user.dispensaireId;
+      } else if (dispensaireId) {
+        consultationWhere.dispensaireId = dispensaireId;
+        patientWhere.dispensaireId = dispensaireId;
+      }
+
+      // Count consultations in range
+      const consultationsCount = await DataEntry.count({
+        where: consultationWhere
+      });
+
+      // Count new patients in range
+      const patientsCount = await Patient.count({
+        where: patientWhere
+      });
+
+      // For pendingSyncCount, we'll return 0 as this is managed client-side
+      // This field is here for future server-side sync queue tracking
+      const pendingSyncCount = 0;
+
+      return {
+        consultationsCount,
+        patientsCount,
+        pendingSyncCount,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      };
     }
   },
 

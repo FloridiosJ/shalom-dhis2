@@ -10,6 +10,7 @@ import vaccinationResolvers from './vaccination.js';
 import activiteSpirituelleResolvers from './activiteSpirituelle.js';
 import reportsResolvers from './reports.js'; // ✅ NOUVEAU
 import prescriptionItemResolvers from './prescriptionItem.js';
+import syncResolvers from './sync.js'; // ✅ NOUVEAU
 import { GraphQLScalarType, Kind } from 'graphql';
 
 // Custom DateTime scalar
@@ -107,6 +108,9 @@ export const resolvers = {
 
     // Reports mutations
     ...reportsResolvers.Mutation, // ✅ NOUVEAU
+
+    // Sync mutations
+    ...syncResolvers.Mutation, // ✅ NOUVEAU
   },
   
   // Field resolvers

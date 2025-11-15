@@ -68,6 +68,28 @@ Le projet est composé de trois parties principales :
 - Analyses par période
 - Tableaux de bord
 
+### Synchronisation offline (Mobile)
+- Stockage local des données avec AsyncStorage
+- Synchronisation automatique en arrière-plan
+- Queue de synchronisation avec retry automatique
+- Support du mode offline complet
+- Mapping clientTempId → serverId pour idempotence
+
+### Géolocalisation (Mobile)
+- Capture GPS lors de la création/modification
+- Gestion des permissions Android/iOS
+- Stockage des coordonnées (lat, lon, accuracy, timestamp)
+- Affichage de la précision de la position
+- Support des consultations terrain
+
+### Métriques en temps réel
+- Dashboard avec statistiques du mois calendaire
+- Compteurs de consultations et patients
+- Items en attente de synchronisation
+- Indicateurs visuels de statut
+
+📖 **Guide complet:** Voir [OFFLINE_SYNC_GUIDE.md](./OFFLINE_SYNC_GUIDE.md) pour plus de détails sur l'utilisation.
+
 ## 🛠️ Technologies
 
 ### Backend

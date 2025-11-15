@@ -390,7 +390,7 @@ const dataEntryResolvers = {
         // Extraire l'heure (HH:MM:SS) si disponible
         const timeConsultation = consultationDate.toISOString().split('T')[1]?.split('.')[0] || null;
 
-        const entry = await DataEntry.create({
+        const entryData = {
           patientId: input.patientId,
           typeConsultation: input.typeConsultation,
           diagnostic: input.diagnostic,
@@ -402,7 +402,17 @@ const dataEntryResolvers = {
           dispensaireId: input.dispensaireId || user.dispensaireId,
           userId: user.id,
           status: 'active'
-        });
+        };
+
+        // Handle location data if provided
+        if (input.location) {
+          entryData.locationLat = input.location.lat;
+          entryData.locationLon = input.location.lon;
+          entryData.locationAccuracy = input.location.accuracy;
+          entryData.locationTimestamp = input.location.timestamp;
+        }
+
+        const entry = await DataEntry.create(entryData);
 
         // Gérer les catégories avec métadonnées
         if (input.categories && input.categories.length > 0) {
@@ -869,6 +879,19 @@ const dataEntryResolvers = {
     summary: (dataEntry) => {
       const dateStr = new Date(dataEntry.dateConsultation).toLocaleDateString('fr-FR');
       return `${dataEntry.typeConsultation} - ${dateStr} - ${dataEntry.diagnostic.substring(0, 50)}${dataEntry.diagnostic.length > 50 ? '...' : ''}`;
+    },
+
+    location: (dataEntry) => {
+      // Return location object if coordinates are present
+      if (dataEntry.locationLat && dataEntry.locationLon) {
+        return {
+          lat: dataEntry.locationLat,
+          lon: dataEntry.locationLon,
+          accuracy: dataEntry.locationAccuracy,
+          timestamp: dataEntry.locationTimestamp
+        };
+      }
+      return null;
     }
   }
 };

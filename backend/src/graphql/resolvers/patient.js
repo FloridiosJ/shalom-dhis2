@@ -167,6 +167,47 @@ const patientResolvers = {
         order: [['nom', 'ASC']],
         limit
       });
+    },
+
+    /**
+     * Count patients created in the current month
+     * Returns the total count of patients created from the 1st of the month to today
+     */
+    countPatientOfMonth: async (_, { dispensaireId }, { user }) => {
+      if (!user) {
+        throw new AuthenticationError('Non authentifié');
+      }
+
+      const { Patient } = await import('../../models/index.js');
+
+      // Get current calendar month range (1st to today)
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const endOfMonth = new Date(now);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      // Build where clause based on user role and dispensaire filter
+      const whereClause = {
+        isActive: true,
+        createdAt: {
+          [Op.between]: [startOfMonth, endOfMonth]
+        }
+      };
+
+      // Apply dispensaire filter based on user role
+      if (user.role === 'agent' && user.dispensaireId) {
+        whereClause.dispensaireId = user.dispensaireId;
+      } else if (dispensaireId) {
+        whereClause.dispensaireId = dispensaireId;
+      }
+
+      // Count patients created this month
+      const count = await Patient.count({
+        where: whereClause
+      });
+
+      return count;
     }
   },
 
@@ -232,6 +273,15 @@ const patientResolvers = {
           age: calculatedAge, // Store calculated age for backward compatibility
           userId: user.id
         };
+
+        // Handle location data if provided
+        if (input.location) {
+          patientData.locationLat = input.location.lat;
+          patientData.locationLon = input.location.lon;
+          patientData.locationAccuracy = input.location.accuracy;
+          patientData.locationTimestamp = input.location.timestamp;
+          delete patientData.location; // Remove nested object before saving
+        }
 
         console.log('💾 Creating patient with data:', patientData);
 
@@ -318,7 +368,17 @@ const patientResolvers = {
           };
         }
 
-        await patient.update(input);
+        // Handle location data if provided
+        const updateData = { ...input };
+        if (input.location) {
+          updateData.locationLat = input.location.lat;
+          updateData.locationLon = input.location.lon;
+          updateData.locationAccuracy = input.location.accuracy;
+          updateData.locationTimestamp = input.location.timestamp;
+          delete updateData.location; // Remove nested object before saving
+        }
+
+        await patient.update(updateData);
 
         const updatedPatient = await Patient.findByPk(id, {
           include: [
@@ -483,6 +543,19 @@ const patientResolvers = {
       })() : (patient.age || 0);
       
       return age < 18;
+    },
+
+    location: (patient) => {
+      // Return location object if coordinates are present
+      if (patient.locationLat && patient.locationLon) {
+        return {
+          lat: patient.locationLat,
+          lon: patient.locationLon,
+          accuracy: patient.locationAccuracy,
+          timestamp: patient.locationTimestamp
+        };
+      }
+      return null;
     }
   }
 };
