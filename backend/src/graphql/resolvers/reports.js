@@ -1575,125 +1575,151 @@ const reportsResolvers = {
         throw new AuthenticationError('Non authentifié');
       }
 
-      const { DataEntry, Patient, Event } = await import('../../models/index.js');
+      try {
+        const { DataEntry, Patient, Event, User } = await import('../../models/index.js');
 
-      // Determine the dispensaire filter based on user role
-      let whereClause = { isActive: true };
-      if (user.role === 'agent' && user.dispensaireId) {
-        whereClause.dispensaireId = user.dispensaireId;
-      } else if (dispensaireId) {
-        whereClause.dispensaireId = dispensaireId;
+        // Determine the dispensaire filter based on user role
+        let whereClause = { isActive: true };
+        if (user.role === 'agent' && user.dispensaireId) {
+          whereClause.dispensaireId = user.dispensaireId;
+        } else if (dispensaireId) {
+          whereClause.dispensaireId = dispensaireId;
+        }
+
+        // Get current calendar month range (1st to today)
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const endOfMonth = new Date(now);
+        endOfMonth.setHours(23, 59, 59, 999);
+
+        // Count consultations this month
+        const consultationsThisMonth = await DataEntry.count({
+          where: {
+            ...whereClause,
+            dateConsultation: {
+              [Op.between]: [startOfMonth, endOfMonth]
+            }
+          }
+        });
+
+        // Count new patients this month
+        const patientWhereClause = { isActive: true };
+        if (user.role === 'agent' && user.dispensaireId) {
+          patientWhereClause.dispensaireId = user.dispensaireId;
+        } else if (dispensaireId) {
+          patientWhereClause.dispensaireId = dispensaireId;
+        }
+
+        const newPatientsThisMonth = await Patient.count({
+          where: {
+            ...patientWhereClause,
+            createdAt: {
+              [Op.between]: [startOfMonth, endOfMonth]
+            }
+          }
+        });
+
+        // Count consultations today
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const consultationsToday = await DataEntry.count({
+          where: {
+            ...whereClause,
+            dateConsultation: {
+              [Op.gte]: startOfToday
+            }
+          }
+        });
+
+        // Get total counts
+        const totalPatients = await Patient.count({
+          where: patientWhereClause
+        });
+
+        const totalConsultations = await DataEntry.count({
+          where: whereClause
+        });
+
+        // Get upcoming events with error handling
+        let upcomingEvents = [];
+        try {
+          const eventWhereClause = {
+            isActive: true,
+            date: {
+              [Op.gte]: now
+            }
+          };
+          if (user.role === 'agent' && user.dispensaireId) {
+            eventWhereClause.dispensaireId = user.dispensaireId;
+          } else if (dispensaireId) {
+            eventWhereClause.dispensaireId = dispensaireId;
+          }
+
+          upcomingEvents = await Event.findAll({
+            where: eventWhereClause,
+            order: [['date', 'ASC']],
+            limit: 5,
+            include: [
+              {
+                model: User,
+                as: 'organisateur',
+                attributes: ['id', 'nom', 'prenom']
+              }
+            ]
+          });
+        } catch (eventError) {
+          console.error('Error fetching upcoming events:', eventError);
+          upcomingEvents = [];
+        }
+
+        // Get recent consultations with error handling
+        let recentConsultations = [];
+        try {
+          recentConsultations = await DataEntry.findAll({
+            where: whereClause,
+            order: [['dateConsultation', 'DESC']],
+            limit: 10,
+            include: [
+              {
+                model: Patient,
+                as: 'patient',
+                attributes: ['id', 'nom', 'prenom', 'numeroPatient']
+              },
+              {
+                model: User,
+                as: 'createdBy',
+                attributes: ['id', 'nom', 'prenom']
+              }
+            ]
+          });
+        } catch (consultationError) {
+          console.error('Error fetching recent consultations:', consultationError);
+          recentConsultations = [];
+        }
+
+        return {
+          totalPatients: totalPatients || 0,
+          totalConsultations: totalConsultations || 0,
+          consultationsToday: consultationsToday || 0,
+          consultationsThisMonth: consultationsThisMonth || 0,
+          newPatientsThisMonth: newPatientsThisMonth || 0,
+          upcomingEvents: upcomingEvents || [],
+          recentConsultations: recentConsultations || []
+        };
+      } catch (error) {
+        console.error('Error in dashboard resolver:', error);
+        // Return a valid empty dashboard instead of null
+        return {
+          totalPatients: 0,
+          totalConsultations: 0,
+          consultationsToday: 0,
+          consultationsThisMonth: 0,
+          newPatientsThisMonth: 0,
+          upcomingEvents: [],
+          recentConsultations: []
+        };
       }
-
-      // Get current calendar month range (1st to today)
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      const endOfMonth = new Date(now);
-      endOfMonth.setHours(23, 59, 59, 999);
-
-      // Count consultations this month
-      const consultationsThisMonth = await DataEntry.count({
-        where: {
-          ...whereClause,
-          dateConsultation: {
-            [Op.between]: [startOfMonth, endOfMonth]
-          }
-        }
-      });
-
-      // Count new patients this month
-      const patientWhereClause = { isActive: true };
-      if (user.role === 'agent' && user.dispensaireId) {
-        patientWhereClause.dispensaireId = user.dispensaireId;
-      } else if (dispensaireId) {
-        patientWhereClause.dispensaireId = dispensaireId;
-      }
-
-      const newPatientsThisMonth = await Patient.count({
-        where: {
-          ...patientWhereClause,
-          createdAt: {
-            [Op.between]: [startOfMonth, endOfMonth]
-          }
-        }
-      });
-
-      // Count consultations today
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      const consultationsToday = await DataEntry.count({
-        where: {
-          ...whereClause,
-          dateConsultation: {
-            [Op.gte]: startOfToday
-          }
-        }
-      });
-
-      // Get total counts
-      const totalPatients = await Patient.count({
-        where: patientWhereClause
-      });
-
-      const totalConsultations = await DataEntry.count({
-        where: whereClause
-      });
-
-      // Get upcoming events
-      const eventWhereClause = {
-        isActive: true,
-        date: {
-          [Op.gte]: now
-        }
-      };
-      if (user.role === 'agent' && user.dispensaireId) {
-        eventWhereClause.dispensaireId = user.dispensaireId;
-      } else if (dispensaireId) {
-        eventWhereClause.dispensaireId = dispensaireId;
-      }
-
-      const upcomingEvents = await Event.findAll({
-        where: eventWhereClause,
-        order: [['date', 'ASC']],
-        limit: 5,
-        include: [
-          {
-            model: (await import('../../models/index.js')).User,
-            as: 'organisateur',
-            attributes: ['id', 'nom', 'prenom']
-          }
-        ]
-      });
-
-      // Get recent consultations
-      const recentConsultations = await DataEntry.findAll({
-        where: whereClause,
-        order: [['dateConsultation', 'DESC']],
-        limit: 10,
-        include: [
-          {
-            model: Patient,
-            as: 'patient',
-            attributes: ['id', 'nom', 'prenom', 'numeroPatient']
-          },
-          {
-            model: (await import('../../models/index.js')).User,
-            as: 'createdBy',
-            attributes: ['id', 'nom', 'prenom']
-          }
-        ]
-      });
-
-      return {
-        totalPatients,
-        totalConsultations,
-        consultationsToday,
-        consultationsThisMonth,
-        newPatientsThisMonth,
-        upcomingEvents: upcomingEvents || [],
-        recentConsultations: recentConsultations || []
-      };
     },
 
     /**
