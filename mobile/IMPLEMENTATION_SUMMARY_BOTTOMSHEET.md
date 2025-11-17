@@ -34,7 +34,7 @@ Successfully replaced the React Native Modal with @gorhom/bottom-sheet, a battle
 
 **Installed (Security Verified):**
 - `@gorhom/bottom-sheet@4.6.4` - 0 vulnerabilities
-- `react-native-reanimated@3.16.1` - 0 vulnerabilities
+- `react-native-reanimated@3.3.0` - 0 vulnerabilities (compatible with React Native 0.82)
 
 **Configuration:**
 - Updated `babel.config.js` with reanimated plugin

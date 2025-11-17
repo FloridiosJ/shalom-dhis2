@@ -31,8 +31,8 @@ A performant, feature-rich bottom sheet component for React Native.
 - Accessibility features
 - Smooth animations via react-native-reanimated
 
-### react-native-reanimated (v3.16.1)
-Required peer dependency for @gorhom/bottom-sheet animations.
+### react-native-reanimated (v3.3.0)
+Required peer dependency for @gorhom/bottom-sheet animations. This version is compatible with React Native 0.82.
 
 ## Architecture
 
