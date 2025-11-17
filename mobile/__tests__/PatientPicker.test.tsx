@@ -22,43 +22,6 @@ jest.mock('react-native-paper', () => {
   };
 });
 
-// Mock @gorhom/bottom-sheet
-jest.mock('@gorhom/bottom-sheet', () => {
-  const ReactMock = require('react');
-  return {
-    __esModule: true,
-    default: ReactMock.forwardRef(({children}: any, ref: any) =>
-      ReactMock.createElement('BottomSheet', {ref}, children),
-    ),
-    BottomSheetBackdrop: ({children}: any) =>
-      ReactMock.createElement('BottomSheetBackdrop', {}, children),
-    BottomSheetView: ({children}: any) =>
-      ReactMock.createElement('BottomSheetView', {}, children),
-    BottomSheetFlatList: ({children}: any) =>
-      ReactMock.createElement('BottomSheetFlatList', {}, children),
-  };
-});
-
-// Mock react-native-gesture-handler
-jest.mock('react-native-gesture-handler', () => {
-  const ReactMock = require('react');
-  return {
-    GestureHandlerRootView: ({children}: any) =>
-      ReactMock.createElement('GestureHandlerRootView', {}, children),
-  };
-});
-
-// Mock BottomSheetWrapper
-jest.mock('../src/components/common/BottomSheetWrapper', () => {
-  const ReactMock = require('react');
-  return {
-    __esModule: true,
-    default: ReactMock.forwardRef(({children}: any, ref: any) =>
-      ReactMock.createElement('BottomSheetWrapper', {ref}, children),
-    ),
-  };
-});
-
 const mockPatients: PatientOption[] = [
   {
     id: '1',
