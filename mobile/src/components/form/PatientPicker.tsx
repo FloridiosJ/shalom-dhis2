@@ -1,16 +1,17 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import {
   View,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  Modal,
-  Platform,
   AccessibilityRole,
 } from 'react-native';
 import {Text, TextInput, Button} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {PatientOption} from '../../types/consultation';
+import BottomSheetWrapper, {
+  BottomSheetWrapperRef,
+} from '../common/BottomSheetWrapper';
+import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 
 interface PatientPickerProps {
   value: string | null;
@@ -31,8 +32,8 @@ export default function PatientPicker({
   onSearchPatients,
   loading,
 }: PatientPickerProps) {
-  const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const bottomSheetRef = useRef<BottomSheetWrapperRef>(null);
   const selectedPatient = patients.find(p => p.id === value);
 
   const handleSearch = useCallback(
@@ -46,7 +47,7 @@ export default function PatientPicker({
   const handleSelectPatient = useCallback(
     (patient: PatientOption) => {
       onChange(patient.id);
-      setModalVisible(false);
+      bottomSheetRef.current?.close();
       setSearchQuery('');
     },
     [onChange],
@@ -55,6 +56,14 @@ export default function PatientPicker({
   const handleClear = useCallback(() => {
     onChange(null);
   }, [onChange]);
+
+  const handleOpenBottomSheet = useCallback(() => {
+    bottomSheetRef.current?.open();
+  }, []);
+
+  const handleCloseBottomSheet = useCallback(() => {
+    setSearchQuery('');
+  }, []);
 
   const renderPatientItem = useCallback(
     ({item}: {item: PatientOption}) => (
@@ -79,7 +88,7 @@ export default function PatientPicker({
 
       <TouchableOpacity
         style={[styles.pickerButton, error && styles.pickerButtonError]}
-        onPress={() => setModalVisible(true)}
+        onPress={handleOpenBottomSheet}
         accessibilityRole={'button' as AccessibilityRole}
         accessibilityLabel="Sélectionner un patient"
         accessibilityHint="Ouvre un écran de recherche de patient">
@@ -126,16 +135,17 @@ export default function PatientPicker({
         Créer un nouveau patient
       </Button>
 
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-        presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Sélectionner un patient</Text>
+      <BottomSheetWrapper
+        ref={bottomSheetRef}
+        snapPoints={['75%', '90%']}
+        enableDynamicSizing={false}
+        onClose={handleCloseBottomSheet}
+        keyboardBehavior="interactive">
+        <View style={styles.bottomSheetContent}>
+          <View style={styles.bottomSheetHeader}>
+            <Text style={styles.bottomSheetTitle}>Sélectionner un patient</Text>
             <TouchableOpacity
-              onPress={() => setModalVisible(false)}
+              onPress={() => bottomSheetRef.current?.close()}
               style={styles.closeButton}
               accessibilityRole={'button' as AccessibilityRole}
               accessibilityLabel="Fermer">
@@ -155,11 +165,12 @@ export default function PatientPicker({
             />
           </View>
 
-          <FlatList
+          <BottomSheetFlatList
             data={patients}
             renderItem={renderPatientItem}
             keyExtractor={item => item.id}
             contentContainerStyle={styles.listContainer}
+            keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Icon
@@ -178,7 +189,7 @@ export default function PatientPicker({
             }
           />
         </View>
-      </Modal>
+      </BottomSheetWrapper>
     </View>
   );
 }
@@ -240,19 +251,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textTransform: 'none',
   },
-  modalContainer: {
+  bottomSheetContent: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  modalHeader: {
+  bottomSheetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  modalTitle: {
+  bottomSheetTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#212121',
@@ -266,12 +278,14 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     padding: 16,
+    paddingBottom: 8,
   },
   searchInput: {
     backgroundColor: '#FFFFFF',
   },
   listContainer: {
     flexGrow: 1,
+    paddingBottom: 16,
   },
   patientItem: {
     flexDirection: 'row',
@@ -299,6 +313,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+    minHeight: 200,
   },
   emptyText: {
     fontSize: 16,

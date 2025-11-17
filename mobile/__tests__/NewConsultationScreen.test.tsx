@@ -25,6 +25,34 @@ jest.mock('react-native-image-picker', () => ({
 // Mock @react-native-community/datetimepicker
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
 
+// Mock @gorhom/bottom-sheet
+jest.mock('@gorhom/bottom-sheet', () => {
+  const ReactMock = require('react');
+  return {
+    __esModule: true,
+    default: ReactMock.forwardRef(({children}: any, ref: any) =>
+      ReactMock.createElement('BottomSheet', {ref}, children),
+    ),
+    BottomSheetBackdrop: ({children}: any) =>
+      ReactMock.createElement('BottomSheetBackdrop', {}, children),
+    BottomSheetView: ({children}: any) =>
+      ReactMock.createElement('BottomSheetView', {}, children),
+    BottomSheetFlatList: ({children}: any) =>
+      ReactMock.createElement('BottomSheetFlatList', {}, children),
+  };
+});
+
+// Mock BottomSheetWrapper
+jest.mock('../src/components/common/BottomSheetWrapper', () => {
+  const ReactMock = require('react');
+  return {
+    __esModule: true,
+    default: ReactMock.forwardRef(({children}: any, ref: any) =>
+      ReactMock.createElement('BottomSheetWrapper', {ref}, children),
+    ),
+  };
+});
+
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
   const ReactMock = require('react');
