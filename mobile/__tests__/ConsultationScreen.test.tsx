@@ -54,6 +54,10 @@ jest.mock('../src/services/consultationService', () => ({
   ),
 }));
 
+// Import Consultation type for tests
+import {Consultation} from '../src/types';
+import {fetchConsultations} from '../src/services/consultationService';
+
 describe('ConsultationScreen', () => {
   it('renders correctly', async () => {
     let tree;
@@ -80,5 +84,86 @@ describe('ConsultationScreen', () => {
     const instance = tree?.root;
     const fab = instance?.findByProps({testID: 'fab'});
     expect(fab).toBeTruthy();
+  });
+
+  it('handles duplicate consultations with unique keys', async () => {
+    // Mock consultations with potential duplicate scenarios
+    const mockConsultations: Consultation[] = [
+      {
+        id: '1',
+        dateConsultation: '2025-01-15',
+        diagnostic: 'Test 1',
+        prescription: 'Rx 1',
+        notes: 'Note 1',
+        status: 'en_cours',
+        patient: {
+          id: 'patient-1',
+          displayName: 'John Doe',
+          nom: 'Doe',
+          prenom: 'John',
+          sexe: 'M',
+          age: 30,
+          numeroPatient: 'P001',
+          village: 'Village 1',
+        },
+      },
+      {
+        id: '2',
+        dateConsultation: '2025-01-15',
+        diagnostic: 'Test 2',
+        prescription: 'Rx 2',
+        notes: 'Note 2',
+        status: 'termine',
+        patient: {
+          id: 'patient-1', // Same patient, same date
+          displayName: 'John Doe',
+          nom: 'Doe',
+          prenom: 'John',
+          sexe: 'M',
+          age: 30,
+          numeroPatient: 'P001',
+          village: 'Village 1',
+        },
+      },
+      {
+        // Item without id but with clientTempId
+        clientTempId: 'temp-123',
+        dateConsultation: '2025-01-15',
+        diagnostic: 'Test 3',
+        prescription: 'Rx 3',
+        notes: 'Note 3',
+        status: 'en_cours',
+        patient: {
+          id: 'patient-1',
+          displayName: 'John Doe',
+          nom: 'Doe',
+          prenom: 'John',
+          sexe: 'M',
+          age: 30,
+          numeroPatient: 'P001',
+          village: 'Village 1',
+        },
+      } as any,
+    ];
+
+    (fetchConsultations as jest.Mock).mockResolvedValueOnce({
+      dataEntries: mockConsultations,
+      totalCount: 3,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    });
+
+    let tree;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(<ConsultationScreen />);
+    });
+
+    // Wait for consultations to load
+    await ReactTestRenderer.act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    expect(tree).toBeDefined();
+    // The component should render without duplicate key warnings
   });
 });

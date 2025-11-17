@@ -19,6 +19,7 @@ import ConsultationFilterPills, {
 import ConsultationCard from '../components/ConsultationCard';
 import {Consultation} from '../types';
 import {fetchConsultations} from '../services/consultationService';
+import {generateUUID, validateUniqueKeys} from '../utils/uuid';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -66,11 +67,30 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
           },
         });
 
-        if (isRefresh || pageNum === 1) {
-          setConsultations(result.dataEntries);
-        } else {
-          setConsultations(prev => [...prev, ...result.dataEntries]);
-        }
+        // Ensure all consultations have a unique id for stable keys
+        const dataWithIds = result.dataEntries.map(item => {
+          if (!item.id && !item.clientTempId) {
+            // Generate a stable ID for items without one
+            return {...item, clientTempId: generateUUID()};
+          }
+          return item;
+        });
+
+        setConsultations(prev => {
+          const newConsultations = isRefresh || pageNum === 1 
+            ? dataWithIds 
+            : [...prev, ...dataWithIds];
+          
+          // DEV mode: Validate key uniqueness
+          if (__DEV__) {
+            const keys = newConsultations.map(item => 
+              item.id || item.clientTempId || 'missing-id'
+            );
+            validateUniqueKeys(keys, 'ConsultationScreen');
+          }
+          
+          return newConsultations;
+        });
 
         setHasMore(result.hasNextPage);
         setPage(pageNum);
@@ -123,10 +143,11 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   }, [handleRefresh]);
 
   const keyExtractor = useCallback(
-    (item: Consultation) => 
-      item.id || 
-      item.clientTempId || 
-      `${item.dateConsultation}-${item.patient.id}`,
+    (item: Consultation) => {
+      // All consultations should have either id (server) or clientTempId (local)
+      // They are assigned when data is loaded to ensure uniqueness
+      return item.id || item.clientTempId || 'unknown';
+    },
     [],
   );
 
