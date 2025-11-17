@@ -21,7 +21,7 @@ The PatientPicker component has been refactored to use a BottomSheet instead of 
 
 ## New Dependencies
 
-### @gorhom/bottom-sheet (v4.6.4)
+### @gorhom/bottom-sheet (v4.5.1)
 A performant, feature-rich bottom sheet component for React Native.
 
 **Why this library?**
@@ -32,7 +32,7 @@ A performant, feature-rich bottom sheet component for React Native.
 - Smooth animations via react-native-reanimated
 
 ### react-native-reanimated (v3.0.2)
-Required peer dependency for @gorhom/bottom-sheet animations. This version is fully compatible with React Native 0.82 and resolves Metro bundler interpolateColor issues.
+Required peer dependency for @gorhom/bottom-sheet animations. This version is fully compatible with React Native 0.82 and resolves Metro bundler interpolateColor issues. Note: Version 4.5.1 of bottom-sheet is used to ensure compatibility with reanimated 3.0.2.
 
 ## Architecture
 

@@ -33,7 +33,7 @@ Successfully replaced the React Native Modal with @gorhom/bottom-sheet, a battle
 ### 2. Dependencies ✅
 
 **Installed (Security Verified):**
-- `@gorhom/bottom-sheet@4.6.4` - 0 vulnerabilities
+- `@gorhom/bottom-sheet@4.5.1` - 0 vulnerabilities (compatible with reanimated 3.0.2)
 - `react-native-reanimated@3.0.2` - 0 vulnerabilities (fully compatible with React Native 0.82, resolves Metro bundler issues)
 
 **Configuration:**
