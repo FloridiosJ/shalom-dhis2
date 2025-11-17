@@ -81,12 +81,18 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
             ? dataWithIds 
             : [...prev, ...dataWithIds];
           
-          // DEV mode: Validate key uniqueness
+          // DEV mode: Validate key uniqueness with comprehensive logging
           if (__DEV__) {
-            const keys = newConsultations.map(item => 
-              item.id || item.clientTempId || 'missing-id'
+            const keys = newConsultations.map((item, index) => 
+              item.id || item.clientTempId || `fallback-${index}`
             );
-            validateUniqueKeys(keys, 'ConsultationScreen');
+            const isUnique = validateUniqueKeys(keys, 'ConsultationScreen');
+            
+            if (!isUnique) {
+              console.warn('[ConsultationScreen] Items with missing IDs:', 
+                newConsultations.filter(item => !item.id && !item.clientTempId)
+              );
+            }
           }
           
           return newConsultations;
@@ -143,10 +149,10 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
   }, [handleRefresh]);
 
   const keyExtractor = useCallback(
-    (item: Consultation) => {
-      // All consultations should have either id (server) or clientTempId (local)
-      // They are assigned when data is loaded to ensure uniqueness
-      return item.id || item.clientTempId || 'unknown';
+    (item: Consultation, index: number) => {
+      // Prefer id (from server), then clientTempId (local), then index as last resort
+      // Using index as fallback ensures uniqueness even for edge cases
+      return item.id || item.clientTempId || `fallback-${index}`;
     },
     [],
   );

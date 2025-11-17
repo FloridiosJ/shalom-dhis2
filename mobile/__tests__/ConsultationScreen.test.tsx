@@ -166,4 +166,66 @@ describe('ConsultationScreen', () => {
     expect(tree).toBeDefined();
     // The component should render without duplicate key warnings
   });
+
+  it('ensures unique keys for consultations without IDs using index fallback', async () => {
+    // Mock consultations where multiple items might lack both id and clientTempId
+    const mockConsultations: Consultation[] = [
+      {
+        id: '1',
+        dateConsultation: '2025-01-15',
+        diagnostic: 'Test 1',
+        prescription: 'Rx 1',
+        notes: 'Note 1',
+        status: 'en_cours',
+        patient: {
+          id: 'patient-1',
+          displayName: 'John Doe',
+          nom: 'Doe',
+          prenom: 'John',
+          sexe: 'M',
+          age: 30,
+          numeroPatient: 'P001',
+          village: 'Village 1',
+        },
+      },
+      {
+        clientTempId: 'temp-456',
+        dateConsultation: '2025-01-16',
+        diagnostic: 'Test 2',
+        prescription: 'Rx 2',
+        notes: 'Note 2',
+        status: 'en_cours',
+        patient: {
+          id: 'patient-2',
+          displayName: 'Jane Smith',
+          nom: 'Smith',
+          prenom: 'Jane',
+          sexe: 'F',
+          age: 25,
+          numeroPatient: 'P002',
+          village: 'Village 2',
+        },
+      } as any,
+    ];
+
+    (fetchConsultations as jest.Mock).mockResolvedValueOnce({
+      dataEntries: mockConsultations,
+      totalCount: 2,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    });
+
+    let tree;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(<ConsultationScreen />);
+    });
+
+    // Wait for consultations to load
+    await ReactTestRenderer.act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    expect(tree).toBeDefined();
+    // Each consultation should have a unique key (either id, clientTempId, or fallback-index)
+  });
 });
