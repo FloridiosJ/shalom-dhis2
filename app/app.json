@@ -49,11 +49,6 @@
           "cameraPermission": "Cette application nécessite l'accès à votre caméra."
         }
       ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
-    }
+    ]
   }
 }

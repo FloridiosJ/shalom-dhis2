@@ -198,13 +198,30 @@ Si vous n'avez pas de compte, créez-en un sur [expo.dev](https://expo.dev).
 
 ### 3. Configurer le projet
 
-```bash
-# Initialiser EAS dans le projet (déjà fait)
-eas build:configure
+**Important**: Le projet fonctionne sans configuration EAS pour le développement local. Vous n'avez besoin de configurer EAS que si vous voulez créer des builds APK.
 
-# Mettre à jour le projectId dans app.json
-# Récupérer votre project ID depuis https://expo.dev
+```bash
+# 1. Créer un projet sur expo.dev
+# Aller sur https://expo.dev et créer un nouveau projet
+
+# 2. Récupérer le project ID
+# Le project ID est visible dans les paramètres du projet sur expo.dev
+
+# 3. Ajouter le project ID dans app.json
+# Ajouter cette section dans app.json:
+{
+  "expo": {
+    ...
+    "extra": {
+      "eas": {
+        "projectId": "votre-project-id-ici"
+      }
+    }
+  }
+}
 ```
+
+**Note**: Pour le développement local avec `npm start` ou `npm run android`, cette configuration n'est pas nécessaire.
 
 ### 4. Créer un build APK
 
@@ -452,6 +469,23 @@ eas build --platform android --profile preview --clear-cache
 - Vérifier que les permissions sont dans `app.json`
 - Demander les permissions au runtime dans le code
 - Vérifier les paramètres de l'appareil
+
+#### 7. Erreur "Failed to download remote update"
+
+Cette erreur se produit si un `projectId` EAS est configuré dans `app.json` mais le projet n'existe pas sur expo.dev.
+
+**Solution**:
+- Pour le développement local, retirez la section `extra.eas.projectId` de `app.json`
+- Ou configurez un vrai projet EAS sur expo.dev et ajoutez son ID
+
+```json
+// Pour développement local, app.json ne doit PAS avoir:
+"extra": {
+  "eas": {
+    "projectId": "..."
+  }
+}
+```
 
 ### Logs et debugging
 

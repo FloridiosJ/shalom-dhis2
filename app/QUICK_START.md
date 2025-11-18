@@ -152,6 +152,13 @@ app/
 
 ## 🐛 Problèmes Courants
 
+### "Failed to download remote update"
+```bash
+# Cette erreur signifie qu'un projectId EAS invalide est dans app.json
+# Solution: Retirer la section extra.eas de app.json pour développement local
+# Le projet fonctionne sans configuration EAS
+```
+
 ### "Unable to resolve module"
 ```bash
 rm -rf node_modules package-lock.json
