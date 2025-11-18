@@ -24,6 +24,7 @@ Application mobile Expo TypeScript pour le projet Shalom DHIS2.
 - **npm**: Version 9.x ou supérieure
 - **Expo Go**: Application mobile (télécharger sur Google Play Store)
 - **Android Debug Bridge (adb)**: Pour connexion USB
+- **JDK (Java Development Kit)**: Version 17 ou 11 recommandée pour Android builds
 - **Appareil de test**: Xiaomi Redmi 10A, Android 11, MIUI 12.5.16
 
 ### Installation des outils
@@ -32,6 +33,7 @@ Application mobile Expo TypeScript pour le projet Shalom DHIS2.
 # Vérifier les versions installées
 node --version
 npm --version
+java -version  # Devrait être JDK 11 ou 17
 
 # Installer Expo CLI globalement (optionnel)
 npm install -g expo-cli
@@ -501,6 +503,23 @@ Cette erreur se produit avec certaines propriétés Expo SDK 54 qui ne sont pas 
 "edgeToEdgeEnabled": true,  // ❌ Retirer
 "predictiveBackGestureEnabled": false  // ❌ Retirer
 ```
+
+#### 9. Configuration Java/JDK
+
+Pour le développement et les builds Android, Java est nécessaire:
+
+**Versions compatibles**:
+- ✅ **JDK 17** (Recommandé) - Compatible avec Expo SDK 54 et Android 11
+- ✅ **JDK 11** - Alternative compatible
+
+**Vérifier votre version**:
+```bash
+java -version
+# Exemple de sortie correcte:
+# openjdk version "17.0.16" 2025-07-15
+```
+
+**Note**: JDK 17 est parfaitement compatible avec l'application et Android 11. Si vous avez des problèmes, vérifiez que la variable d'environnement `JAVA_HOME` est correctement configurée.
 
 ### Logs et debugging
 

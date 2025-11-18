@@ -51,6 +51,13 @@ adb devices
 # Devrait afficher: XXXXXXX    device
 ```
 
+### Vérifier Java (Important pour builds)
+```bash
+java -version
+# Devrait afficher: openjdk version "17.x.x" ou "11.x.x"
+# JDK 17 est recommandé et pleinement compatible
+```
+
 ---
 
 ## 🔧 Commandes Utiles
