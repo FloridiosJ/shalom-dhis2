@@ -164,6 +164,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             disabled={isLoading}
             style={styles.submitButton}
             contentStyle={styles.submitButtonContent}
+            buttonColor="#2196F3"
           >
             {isLoading ? 'Connexion...' : 'Se connecter'}
           </Button>
@@ -177,6 +178,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             }}
             style={styles.forgotButton}
             disabled={isLoading}
+            textColor="#2196F3"
           >
             Mot de passe oublié ?
           </Button>
