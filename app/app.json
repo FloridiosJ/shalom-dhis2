@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Shalom DHIS2 App",
+    "slug": "shalom-dhis2-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6200ee"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.shalom.dhis2app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6200ee"
+      },
+      "package": "com.shalom.dhis2app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Cette application nécessite l'accès à votre position."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cette application nécessite l'accès à vos photos.",
+          "cameraPermission": "Cette application nécessite l'accès à votre caméra."
+        }
+      ]
+    ]
+  }
+}

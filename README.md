@@ -1,6 +1,8 @@
 # Shalom DHIS2
 
-Système de gestion de données de santé inspiré de DHIS2, conçu pour la collecte et l'analyse de données médicales dans les dispensaires. Le projet comprend un backend GraphQL, une interface web React et une application mobile React Native.
+Système de gestion de données de santé inspiré de DHIS2, conçu pour la collecte et l'analyse de données médicales dans les dispensaires. Le projet comprend un backend GraphQL, une interface web React et des applications mobiles React Native.
+
+> **📱 Nouvelle application mobile Expo**: Un nouveau projet mobile indépendant basé sur Expo est disponible dans le dossier `/app`. Voir [app/README.md](app/README.md) pour plus de détails.
 
 ## 📋 Table des matières
 
@@ -39,6 +41,16 @@ Le projet est composé de trois parties principales :
 - Client Apollo GraphQL
 - Navigation avec React Navigation
 - UI avec React Native Paper
+
+### Nouvelle Application Mobile Expo (TypeScript)
+- **Dossier**: `/app`
+- Application Expo managed workflow
+- TypeScript strict
+- Navigation avec React Navigation Stack
+- UI avec React Native Paper
+- Fonctionnalités natives: géolocalisation, notifications, images
+- Indépendante du dossier `/mobile`
+- Documentation complète dans [app/README.md](app/README.md)
 
 ## ✨ Fonctionnalités
 
@@ -290,6 +302,16 @@ shalom-dhis2/
 │   │   ├── services/        # Services API
 │   │   └── types/           # Types TypeScript
 │   ├── App.tsx              # Point d'entrée
+│   └── package.json
+├── app/                     # Nouvelle Application Mobile Expo (TypeScript)
+│   ├── src/
+│   │   ├── navigation/      # Configuration React Navigation
+│   │   └── screens/         # Écrans de l'application
+│   ├── assets/              # Images et ressources
+│   ├── App.tsx              # Point d'entrée
+│   ├── app.json            # Configuration Expo
+│   ├── eas.json            # Configuration EAS Build
+│   ├── README.md           # Documentation complète
 │   └── package.json
 ├── docker-compose.yml       # Configuration Docker Compose
 └── README.md               # Documentation
