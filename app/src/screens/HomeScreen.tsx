@@ -4,12 +4,14 @@ import { Text, Button, Card, ActivityIndicator } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import { NavigationProp } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
 
 interface HomeScreenProps {
   navigation: NavigationProp<any>;
 }
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
+  const { user, logout } = useAuth();
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +47,31 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }
   };
 
+  const handleLogout = async () => {
+    Alert.alert(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de se déconnecter');
+              console.error(error);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <StatusBar style="auto" />
@@ -53,11 +80,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="headlineMedium" style={styles.title}>
-              Bonjour! 👋
+              Bonjour {user?.fullName || user?.prenom || 'Utilisateur'}! 👋
             </Text>
             <Text variant="bodyLarge" style={styles.subtitle}>
               Bienvenue dans l'application Expo
             </Text>
+            {user?.dispensaire && (
+              <Text variant="bodyMedium" style={styles.dispensaireText}>
+                📍 {user.dispensaire.name}
+              </Text>
+            )}
           </Card.Content>
         </Card>
 
@@ -116,6 +148,28 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             </Button>
           </Card.Content>
         </Card>
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.cardTitle}>
+              Compte
+            </Text>
+            <Text variant="bodyMedium" style={styles.description}>
+              Gérez votre session
+            </Text>
+            
+            <Button
+              mode="outlined"
+              onPress={handleLogout}
+              style={styles.button}
+              icon="logout"
+              buttonColor="#fff"
+              textColor="#c62828"
+            >
+              Se déconnecter
+            </Button>
+          </Card.Content>
+        </Card>
       </View>
     </ScrollView>
   );
@@ -139,6 +193,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: '#666',
+  },
+  dispensaireText: {
+    color: '#6200ee',
+    marginTop: 8,
+    fontWeight: '600',
   },
   cardTitle: {
     fontWeight: 'bold',
