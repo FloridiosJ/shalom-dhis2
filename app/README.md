@@ -259,17 +259,325 @@ adb install chemin/vers/votre-app.apk
 app/
 ├── assets/                 # Images, icônes, splash screen
 ├── src/
+│   ├── components/        # Composants réutilisables
+│   │   └── LoginForm.tsx  # Formulaire de connexion (presentational)
+│   ├── context/           # Contexts React
+│   │   └── AuthContext.tsx # Gestion de l'état d'authentification
 │   ├── navigation/        # Configuration React Navigation
-│   │   └── Navigation.tsx
-│   └── screens/           # Écrans de l'application
-│       ├── HomeScreen.tsx
-│       └── DetailsScreen.tsx
+│   │   └── Navigation.tsx # Navigation avec routes Auth/Main
+│   ├── screens/           # Écrans de l'application
+│   │   ├── LoginScreen.tsx    # Écran de connexion (container)
+│   │   ├── HomeScreen.tsx     # Écran d'accueil
+│   │   └── DetailsScreen.tsx  # Écran de détails
+│   ├── services/          # Services et APIs
+│   │   └── authService.ts # Service d'authentification GraphQL
+│   └── utils/             # Utilitaires
+│       ├── apolloClient.ts    # Configuration Apollo Client
+│       └── secureStore.ts     # Abstraction Secure Storage
 ├── App.tsx                # Point d'entrée principal
 ├── app.json              # Configuration Expo
 ├── eas.json              # Configuration EAS Build
 ├── package.json          # Dépendances et scripts
 ├── tsconfig.json         # Configuration TypeScript
 └── README.md             # Ce fichier
+```
+
+## 🔐 Authentification et Login
+
+L'application implémente un système d'authentification complet avec:
+- **Container/Presentational pattern** pour une séparation claire des responsabilités
+- **AuthContext** pour la gestion centralisée de l'état d'authentification
+- **Secure Storage** pour le stockage sécurisé des tokens
+- **Apollo Client** avec authentification automatique des requêtes
+
+### Architecture d'authentification
+
+#### 1. Composants principaux
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         App.tsx                             │
+│  ┌──────────────┐  ┌────────────────┐  ┌────────────────┐ │
+│  │ApolloProvider│  │ PaperProvider  │  │ AuthProvider   │ │
+│  └──────────────┘  └────────────────┘  └────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Navigation.tsx                         │
+│  ┌─────────────────────┐       ┌─────────────────────┐    │
+│  │   Auth Stack        │       │    Main Stack       │    │
+│  │  - LoginScreen      │  ◄──► │  - HomeScreen       │    │
+│  │                     │       │  - DetailsScreen    │    │
+│  └─────────────────────┘       └─────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2. Flux de connexion
+
+1. **Affichage du formulaire** (LoginScreen + LoginForm)
+   ```
+   User ──► LoginScreen ──► LoginForm
+                               │
+                               │ (onSubmit)
+                               ▼
+                         AuthContext.login()
+   ```
+
+2. **Authentification** (AuthContext)
+   ```
+   AuthContext.login()
+        │
+        ├─► Apollo Mutation (LOGIN_MUTATION)
+        │        │
+        │        ▼
+        │   GraphQL Backend
+        │        │
+        │        ▼
+        ├─► Receive { token, user }
+        │
+        ├─► Save token (SecureStore)
+        ├─► Save user data (SecureStore)
+        │
+        └─► Update state (token, user)
+   ```
+
+3. **Navigation automatique**
+   ```
+   AuthContext state changes
+        │
+        ├─► isAuthenticated = true
+        │
+        └─► Navigation re-renders
+                 │
+                 └─► Main Stack (Home)
+   ```
+
+#### 3. Restauration de session
+
+Au démarrage de l'app:
+
+```typescript
+// AuthContext.restoreSession()
+1. Lecture du token depuis SecureStore
+2. Lecture des données utilisateur depuis SecureStore
+3. Validation du token avec query ME_QUERY
+4. Si valide → Connexion automatique
+5. Si invalide → Clear data + afficher Login
+```
+
+#### 4. Déconnexion
+
+```typescript
+// AuthContext.logout()
+1. Clear SecureStore (token + user data)
+2. Clear Apollo Cache
+3. Reset state (token = null, user = null)
+4. Navigation → LoginScreen
+```
+
+### Sécurité
+
+#### 1. Stockage sécurisé
+
+L'application utilise **expo-secure-store** pour stocker les données sensibles:
+
+```typescript
+// src/utils/secureStore.ts
+- saveAuthToken(token)    // Token JWT chiffré
+- getAuthToken()          // Lecture sécurisée
+- deleteAuthToken()       // Suppression sécurisée
+- saveUserData(user)      // Données utilisateur chiffrées
+- clearAuthData()         // Nettoyage complet
+```
+
+**Important**:
+- ✅ Les tokens sont **toujours** stockés dans SecureStore (chiffré)
+- ❌ **Jamais** dans AsyncStorage (non chiffré)
+- ❌ **Jamais** en clair dans le code
+
+#### 2. Configuration Apollo Client
+
+Apollo Client est configuré pour ajouter automatiquement le token d'authentification:
+
+```typescript
+// src/utils/apolloClient.ts
+authLink = setContext(async (_, { headers }) => {
+  const token = await getAuthToken();
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
+    },
+  };
+});
+```
+
+Toutes les requêtes GraphQL incluent automatiquement le header `Authorization`.
+
+#### 3. Variables d'environnement
+
+Configurer l'endpoint GraphQL:
+
+```bash
+# .env (créer ce fichier à la racine)
+EXPO_PUBLIC_GRAPHQL_ENDPOINT=http://your-backend-url:4000/graphql
+```
+
+```typescript
+// Utilisation dans apolloClient.ts
+const endpoint = process.env.EXPO_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+```
+
+**Important**: Ne jamais commit le fichier `.env` avec des URLs de production!
+
+### Pattern Container/Presentational
+
+#### LoginScreen (Container)
+
+Le container gère la **logique**:
+- État local (loading, error)
+- Appels à AuthContext
+- Gestion des erreurs
+- Navigation
+
+```typescript
+// src/screens/LoginScreen.tsx
+export default function LoginScreen() {
+  const { login, isLoading } = useAuth();
+  
+  const handleLogin = async (data) => {
+    try {
+      await login(data);
+    } catch (error) {
+      // Handle error
+    }
+  };
+
+  return <LoginForm onSubmit={handleLogin} />;
+}
+```
+
+#### LoginForm (Presentational)
+
+Le composant présente l'**UI**:
+- Formulaire avec react-hook-form
+- Validation des champs
+- Affichage des erreurs
+- Pas de logique métier
+
+```typescript
+// src/components/LoginForm.tsx
+export const LoginForm: React.FC<LoginFormProps> = ({ 
+  onSubmit, 
+  isLoading, 
+  error 
+}) => {
+  const { control, handleSubmit } = useForm();
+  
+  return (
+    <View>
+      <TextInput ... />
+      <Button onPress={handleSubmit(onSubmit)} />
+    </View>
+  );
+};
+```
+
+### Validation des formulaires
+
+Le formulaire utilise **react-hook-form** pour la validation:
+
+```typescript
+<Controller
+  control={control}
+  name="login"
+  rules={{
+    required: 'L\'identifiant est requis',
+    minLength: {
+      value: 3,
+      message: 'Minimum 3 caractères',
+    },
+  }}
+  render={({ field }) => (
+    <TextInput
+      value={field.value}
+      onChangeText={field.onChange}
+      error={!!errors.login}
+    />
+  )}
+/>
+```
+
+### Gestion des erreurs
+
+Les erreurs sont gérées à plusieurs niveaux:
+
+1. **Validation du formulaire** (champ vide, format incorrect)
+2. **Erreurs réseau** (pas de connexion)
+3. **Erreurs GraphQL** (identifiants invalides, utilisateur inactif)
+4. **Erreurs système** (SecureStore, Apollo)
+
+Chaque type d'erreur affiche un message adapté à l'utilisateur.
+
+### Tests manuels
+
+Pour tester le flux de connexion:
+
+1. **Lancer l'app**:
+   ```bash
+   npm start
+   ```
+
+2. **Tester les cas suivants**:
+   - ✅ Connexion avec identifiants valides
+   - ✅ Connexion avec identifiants invalides (erreur)
+   - ✅ Connexion sans connexion internet (erreur réseau)
+   - ✅ Validation des champs (minimum 3 caractères)
+   - ✅ Déconnexion depuis HomeScreen
+   - ✅ Fermer et rouvrir l'app (session restaurée)
+
+3. **Identifiants de test** (selon votre backend):
+   ```
+   Login: admin / test / agent1
+   Password: (selon configuration backend)
+   ```
+
+### Évolutions futures
+
+Fonctionnalités prévues:
+
+1. **Refresh token**
+   - Renouvellement automatique du token
+   - Gestion de l'expiration
+
+2. **Mot de passe oublié**
+   - Reset via email
+   - Code de vérification
+
+3. **Connexion biométrique**
+   - Empreinte digitale
+   - Face ID (iOS)
+
+4. **Multi-rôle**
+   - Permissions selon le rôle
+   - Routes protégées par rôle
+
+5. **Mode offline**
+   - Connexion automatique au retour en ligne
+   - Queue de synchronisation
+
+### Dépendances d'authentification
+
+```json
+{
+  "dependencies": {
+    "@apollo/client": "^4.0.9",           // Client GraphQL
+    "expo-secure-store": "^15.0.7",       // Stockage sécurisé
+    "react-hook-form": "^7.x",            // Gestion formulaires
+    "graphql": "^16.12.0"                 // GraphQL
+  }
+}
 ```
 
 ## 🛠️ Technologies utilisées
