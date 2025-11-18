@@ -487,6 +487,21 @@ Cette erreur se produit si un `projectId` EAS est configuré dans `app.json` mai
 }
 ```
 
+#### 8. Erreur "java.lang.String cannot be cast to java.lang.Boolean"
+
+Cette erreur se produit avec certaines propriétés Expo SDK 54 qui ne sont pas compatibles avec Android 11 ou versions antérieures.
+
+**Solution**:
+- Retirer `newArchEnabled`, `edgeToEdgeEnabled`, et `predictiveBackGestureEnabled` de `app.json`
+- Ces propriétés sont pour des versions plus récentes d'Android
+
+```json
+// Pour Android 11, retirer ces propriétés:
+"newArchEnabled": true,  // ❌ Retirer
+"edgeToEdgeEnabled": true,  // ❌ Retirer
+"predictiveBackGestureEnabled": false  // ❌ Retirer
+```
+
 ### Logs et debugging
 
 ```bash

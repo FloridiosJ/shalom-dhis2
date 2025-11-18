@@ -152,6 +152,13 @@ app/
 
 ## 🐛 Problèmes Courants
 
+### "java.lang.String cannot be cast to java.lang.Boolean"
+```bash
+# Cette erreur vient de propriétés Expo incompatibles avec Android 11
+# Solution: Déjà corrigé dans app.json (propriétés newArchEnabled, 
+# edgeToEdgeEnabled et predictiveBackGestureEnabled retirées)
+```
+
 ### "Failed to download remote update"
 ```bash
 # Cette erreur signifie qu'un projectId EAS invalide est dans app.json
