@@ -13,7 +13,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.shalom.dhis2app"
+      "bundleIdentifier": "com.shalom.dhis2app",
+      "jsEngine": "hermes"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +28,8 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
-      ]
+      ],
+      "jsEngine": "hermes"
     },
     "web": {
       "favicon": "./assets/favicon.png"
