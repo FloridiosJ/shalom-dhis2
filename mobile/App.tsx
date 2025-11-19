@@ -9,6 +9,7 @@ import React, {useEffect, useState} from 'react';
 import {View, ActivityIndicator, StyleSheet} from 'react-native';
 import {PaperProvider} from 'react-native-paper';
 import {ApolloProvider} from '@apollo/client/react';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {apolloClient} from './src/services/apollo';
 import {isAuthenticated, logout} from './src/services/auth';
 import LoginScreen from './src/screens/LoginScreen';
@@ -56,19 +57,24 @@ export default function App() {
   }
 
   return (
-    <ApolloProvider client={apolloClient}>
-      <PaperProvider>
-        {authenticated ? (
-          <MainNavigator onLogout={handleLogout} />
-        ) : (
-          <LoginScreen onLoginSuccess={handleLoginSuccess} />
-        )}
-      </PaperProvider>
-    </ApolloProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <ApolloProvider client={apolloClient}>
+        <PaperProvider>
+          {authenticated ? (
+            <MainNavigator onLogout={handleLogout} />
+          ) : (
+            <LoginScreen onLoginSuccess={handleLoginSuccess} />
+          )}
+        </PaperProvider>
+      </ApolloProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

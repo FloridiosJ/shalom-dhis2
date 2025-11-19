@@ -3,8 +3,10 @@ import {useForm, Control, FieldErrors, UseFormHandleSubmit, UseFormWatch, UseFor
 import {yupResolver} from '@hookform/resolvers/yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Alert} from 'react-native';
+import {useQuery} from '@apollo/client';
 import {consultationValidationSchema} from '../utils/consultationValidation';
 import {ConsultationFormData, PatientOption} from '../types/consultation';
+import {GET_PATIENTS} from '../services/patientService';
 
 const DRAFT_STORAGE_KEY = '@consultation_draft';
 
@@ -38,9 +40,15 @@ export function useConsultationForm(
 ): UseConsultationFormReturn {
   const [patients, setPatients] = useState<PatientOption[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<PatientOption[]>([]);
-  const [loadingPatients, setLoadingPatients] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
+
+  // Fetch patients from API using Apollo
+  const {data: patientsData, loading: loadingPatients} = useQuery(GET_PATIENTS, {
+    onError: error => {
+      console.error('Error fetching patients:', error);
+    },
+  });
 
   const {
     control,
@@ -64,13 +72,24 @@ export function useConsultationForm(
 
   const timeoutRef = useRef<NodeJS.Timeout>();
 
-  // Load draft and patients on mount
+  // Update patients when data is fetched
   useEffect(() => {
-    const init = async () => {
-      await loadDraft();
-      await loadPatients();
-    };
-    init();
+    if (patientsData?.patients?.patients) {
+      const patientOptions: PatientOption[] = patientsData.patients.patients.map(
+        (p: any) => ({
+          id: p.id,
+          displayName: p.displayName,
+          numeroPatient: p.numeroPatient,
+        }),
+      );
+      setPatients(patientOptions);
+      setFilteredPatients(patientOptions);
+    }
+  }, [patientsData]);
+
+  // Load draft on mount
+  useEffect(() => {
+    loadDraft();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -99,36 +118,6 @@ export function useConsultationForm(
       }
     } catch (error) {
       console.error('Error loading draft:', error);
-    }
-  };
-
-  const loadPatients = async () => {
-    setLoadingPatients(true);
-    try {
-      // TODO: Replace with actual API call
-      const mockPatients: PatientOption[] = [
-        {
-          id: '1',
-          displayName: 'Jean Dupont',
-          numeroPatient: 'PAT-001',
-        },
-        {
-          id: '2',
-          displayName: 'Marie Martin',
-          numeroPatient: 'PAT-002',
-        },
-        {
-          id: '3',
-          displayName: 'Pierre Bernard',
-          numeroPatient: 'PAT-003',
-        },
-      ];
-      setPatients(mockPatients);
-      setFilteredPatients(mockPatients);
-    } catch (error) {
-      console.error('Error loading patients:', error);
-    } finally {
-      setLoadingPatients(false);
     }
   };
 
