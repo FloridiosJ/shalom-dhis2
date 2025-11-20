@@ -11,8 +11,8 @@ vi.mock('./CategoriesSelector', () => ({
   default: () => <div data-testid="categories-selector">Categories Selector</div>
 }));
 
-vi.mock('./PrescriptionList', () => ({
-  default: () => <div data-testid="prescription-list">Prescription List</div>
+vi.mock('./prescription/PrescriptionInputWithModal', () => ({
+  default: () => <div data-testid="prescription-input-modal">Prescription Input Modal</div>
 }));
 
 vi.mock('../hooks/useAuth', () => ({
