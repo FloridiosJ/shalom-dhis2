@@ -24,8 +24,8 @@ interface DatePickerBlueProps {
 }
 
 /**
- * Blue-styled DatePicker component for consultation form
- * Uses primary blue color for label and icon to match header styling
+ * DatePicker component for consultation form
+ * Uses blue icons and black labels for consistency
  */
 export default function DatePickerBlue({
   label,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: THEME_COLORS.primary, // Blue label
+    color: '#111111', // Black label
     marginBottom: 8,
   },
   fieldButton: {

@@ -90,9 +90,6 @@ export default function PatientPicker({
                 <Text style={styles.selectedPatientName}>
                   {selectedPatient.displayName}
                 </Text>
-                <Text style={styles.selectedPatientNumber}>
-                  {selectedPatient.numeroPatient}
-                </Text>
               </View>
               <TouchableOpacity
                 onPress={handleClear}
@@ -116,7 +113,7 @@ export default function PatientPicker({
       {error && <Text style={styles.errorText}>{error}</Text>}
 
       <Button
-        mode="text"
+        mode="contained"
         onPress={onCreatePatient}
         style={styles.createButton}
         labelStyle={styles.createButtonLabel}
@@ -132,15 +129,17 @@ export default function PatientPicker({
         onRequestClose={() => setModalVisible(false)}
         presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Sélectionner un patient</Text>
-            <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              style={styles.closeButton}
-              accessibilityRole={'button' as AccessibilityRole}
-              accessibilityLabel="Fermer">
-              <Icon name="close" size={24} color="#000" />
-            </TouchableOpacity>
+          <View style={styles.modalBanner}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Sélectionner un patient</Text>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+                accessibilityRole={'button' as AccessibilityRole}
+                accessibilityLabel="Fermer">
+                <Icon name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.searchContainer}>
@@ -235,27 +234,30 @@ const styles = StyleSheet.create({
   createButton: {
     marginTop: 8,
     alignSelf: 'flex-start',
+    backgroundColor: '#2196F3', // Blue button matching header
   },
   createButtonLabel: {
     fontSize: 14,
     textTransform: 'none',
+    color: '#FFFFFF', // White text on blue button
   },
   modalContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  modalBanner: {
+    backgroundColor: '#2196F3', // Blue banner matching header
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#212121',
+    color: '#FFFFFF', // White text on blue banner
   },
   closeButton: {
     padding: 8,
