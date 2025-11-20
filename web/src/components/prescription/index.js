@@ -8,6 +8,7 @@
 // Composants principaux
 export { default as PrescriptionSubForm } from './PrescriptionSubForm';
 export { default as PrescriptionItemCard } from './PrescriptionItemCard';
+export { default as PrescriptionInputWithModal } from './PrescriptionInputWithModal';
 
 // Pickers individuels (noms anglais)
 export { default as MedicationSelector } from './MedicationSelector';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PrescriptionSubForm from '../components/prescription/PrescriptionSubForm';
+import PrescriptionInputWithModal from '../components/prescription/PrescriptionInputWithModal';
 import styles from '../components/CreateDataEntryModal.module.css';
 
 /**
@@ -18,6 +19,7 @@ const PrescriptionSubFormExample = () => {
   });
 
   const [multiplePrescriptions, setMultiplePrescriptions] = useState([]);
+  const [modalPrescriptions, setModalPrescriptions] = useState([]);
 
   const handleAddPrescription = () => {
     const newPrescription = {
@@ -76,6 +78,37 @@ const PrescriptionSubFormExample = () => {
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <h1 style={{ marginBottom: '2rem' }}>PrescriptionSubForm - Exemples d'utilisation</h1>
       
+      {/* NEW Section 0: Input with Modal */}
+      <section style={{ 
+        marginBottom: '3rem', 
+        padding: '1.5rem', 
+        border: '2px solid #0284c7',
+        borderRadius: '0.5rem',
+        backgroundColor: '#f0f9ff'
+      }}>
+        <h2 style={{ marginBottom: '1rem', color: '#0284c7' }}>
+          ⭐ Exemple 1 : Input avec Modal (Nouveau!)
+        </h2>
+        <p style={{ marginBottom: '1.5rem', color: '#64748b' }}>
+          Cliquez sur l'input pour ouvrir un modal et ajouter des médicaments. 
+          Les médicaments ajoutés s'affichent en liste en dessous.
+        </p>
+        
+        <PrescriptionInputWithModal
+          prescriptions={modalPrescriptions}
+          onChange={setModalPrescriptions}
+          disabled={false}
+        />
+        
+        {modalPrescriptions.length > 0 && (
+          <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#fff', borderRadius: '0.375rem', border: '1px solid #e2e8f0' }}>
+            <strong style={{ fontSize: '0.875rem', color: '#64748b' }}>
+              Total: {modalPrescriptions.length} médicament(s) prescrit(s)
+            </strong>
+          </div>
+        )}
+      </section>
+
       {/* Section 1: Single Prescription */}
       <section style={{ 
         marginBottom: '3rem', 
@@ -85,7 +118,7 @@ const PrescriptionSubFormExample = () => {
         backgroundColor: '#fff'
       }}>
         <h2 style={{ marginBottom: '1rem', color: '#0284c7' }}>
-          Exemple 1 : Prescription unique
+          Exemple 2 : Prescription unique (Formulaire inline)
         </h2>
         <p style={{ marginBottom: '1.5rem', color: '#64748b' }}>
           Formulaire simple avec un seul médicament à prescrire
@@ -146,7 +179,7 @@ const PrescriptionSubFormExample = () => {
         backgroundColor: '#fff'
       }}>
         <h2 style={{ marginBottom: '1rem', color: '#0284c7' }}>
-          Exemple 2 : Prescriptions multiples
+          Exemple 3 : Prescriptions multiples
         </h2>
         <p style={{ marginBottom: '1.5rem', color: '#64748b' }}>
           Liste de médicaments avec possibilité d'en ajouter ou retirer
@@ -217,7 +250,7 @@ const PrescriptionSubFormExample = () => {
         backgroundColor: '#fff'
       }}>
         <h2 style={{ marginBottom: '1rem', color: '#0284c7' }}>
-          Exemple 3 : Mode lecture seule
+          Exemple 4 : Mode lecture seule
         </h2>
         <p style={{ marginBottom: '1.5rem', color: '#64748b' }}>
           Affichage d'une prescription existante (non modifiable)
@@ -239,7 +272,7 @@ const PrescriptionSubFormExample = () => {
         backgroundColor: '#fff'
       }}>
         <h2 style={{ marginBottom: '1rem', color: '#0284c7' }}>
-          Exemple 4 : Sans labels (compact)
+          Exemple 5 : Sans labels (compact)
         </h2>
         <p style={{ marginBottom: '1.5rem', color: '#64748b' }}>
           Affichage compact sans les labels de champs
