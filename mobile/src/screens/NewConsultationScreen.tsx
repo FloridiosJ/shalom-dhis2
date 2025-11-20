@@ -9,7 +9,7 @@ import {
 import {Text, Button, ActivityIndicator} from 'react-native-paper';
 import {Controller} from 'react-hook-form';
 import {useConsultationForm} from '../hooks/useConsultationForm';
-import PatientPickerBottomSheet from '../components/form/PatientPickerBottomSheet';
+import PatientPicker from '../components/form/PatientPicker';
 import DatePickerBlue from '../components/consultation/form/DatePickerBlue';
 import TimePickerBlue from '../components/consultation/form/TimePickerBlue';
 import ConsultationInput from '../components/consultation/form/ConsultationInput';
@@ -49,7 +49,7 @@ export default function NewConsultationScreen({
           control={control}
           name="patientId"
           render={({field: {onChange, value}}) => (
-            <PatientPickerBottomSheet
+            <PatientPicker
               value={value}
               onChange={onChange}
               onCreatePatient={handleCreatePatient}
