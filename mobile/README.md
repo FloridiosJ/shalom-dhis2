@@ -176,6 +176,8 @@ runAfterInteractions(() => {
 
 **Note:** The app provides a `requestIdleCallback` polyfill as a replacement for the deprecated `InteractionManager.runAfterInteractions()`. Use `runAfterInteractions()` from `utils/requestIdleCallback.ts` for all deferred work.
 
+**Library Deprecation Warning:** You may see deprecation warnings about `InteractionManager` from the `@react-navigation/stack` library (v7.4.10). This is a known issue in the navigation library itself and will be resolved when the library updates. The warnings are cosmetic and don't affect functionality. Our application code doesn't use `InteractionManager` directly.
+
 ### Preventing Duplicate Data
 
 When loading paginated data or merging data from multiple sources:
