@@ -77,9 +77,18 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
         });
 
         setConsultations(prev => {
-          const newConsultations = isRefresh || pageNum === 1 
-            ? dataWithIds 
-            : [...prev, ...dataWithIds];
+          let newConsultations: Consultation[];
+          
+          if (isRefresh || pageNum === 1) {
+            newConsultations = dataWithIds;
+          } else {
+            // Merge with previous data, removing duplicates based on ID
+            const existingIds = new Set(prev.map(item => item.id));
+            const uniqueNewItems = dataWithIds.filter(
+              item => !existingIds.has(item.id)
+            );
+            newConsultations = [...prev, ...uniqueNewItems];
+          }
           
           // DEV mode: Validate key uniqueness with comprehensive logging
           if (__DEV__) {
@@ -91,6 +100,26 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
             if (!isUnique) {
               console.warn('[ConsultationScreen] Items with missing IDs:', 
                 newConsultations.filter(item => !item.id && !item.clientTempId)
+              );
+            }
+            
+            // Check for duplicate IDs in the data itself
+            const idCounts = new Map<string, number>();
+            newConsultations.forEach(item => {
+              const id = item.id || item.clientTempId;
+              if (id) {
+                idCounts.set(id, (idCounts.get(id) || 0) + 1);
+              }
+            });
+            
+            const duplicateIds = Array.from(idCounts.entries())
+              .filter(([_, count]) => count > 1)
+              .map(([id, _]) => id);
+            
+            if (duplicateIds.length > 0) {
+              console.warn(
+                '[ConsultationScreen] Duplicate consultation IDs detected:',
+                duplicateIds
               );
             }
           }
