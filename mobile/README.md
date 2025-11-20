@@ -130,6 +130,73 @@ You've successfully run and modified your React Native App. :partying_face:
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
+## Debugging Best Practices
+
+### React List Keys
+
+When rendering lists with FlatList or similar components, always ensure each item has a unique and stable key:
+
+```typescript
+// ✅ Good: Use unique IDs from the backend
+<FlatList
+  data={items}
+  keyExtractor={(item) => item.id}
+  renderItem={({item}) => <ItemCard item={item} />}
+/>
+
+// ✅ Good: Use clientTempId for offline items
+keyExtractor={(item) => item.id || item.clientTempId}
+
+// ⚠️ Caution: Only use index as last resort fallback
+keyExtractor={(item, index) => item.id || `fallback-${index}`}
+
+// ❌ Bad: Never use only index as key
+keyExtractor={(item, index) => `${index}`}
+```
+
+**Key principles:**
+- Keys must be **unique** across all items in the list
+- Keys should be **stable** (not change when list is re-rendered)
+- Never use array index alone as key if items can be reordered, added, or removed
+- Log warnings in DEV mode if duplicate keys are detected
+
+### Handling Async Operations
+
+For deferred or background work that shouldn't block the UI:
+
+```typescript
+import {runAfterInteractions} from '../utils/requestIdleCallback';
+
+// Defer heavy computation until UI is idle
+runAfterInteractions(() => {
+  // Heavy processing, calculations, or non-urgent updates
+  processLargeDataset();
+});
+```
+
+**Note:** The app provides a `requestIdleCallback` polyfill as a replacement for the deprecated `InteractionManager.runAfterInteractions()`. Use `runAfterInteractions()` from `utils/requestIdleCallback.ts` for all deferred work.
+
+### Preventing Duplicate Data
+
+When loading paginated data or merging data from multiple sources:
+
+```typescript
+// Deduplicate based on unique ID
+const existingIds = new Set(previousItems.map(item => item.id));
+const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
+const mergedItems = [...previousItems, ...uniqueNewItems];
+```
+
+### Development Mode Validations
+
+The app includes DEV-only validations to catch common issues:
+
+- **Duplicate key detection**: Warns when list items have duplicate keys
+- **Missing ID detection**: Warns when consultations lack both `id` and `clientTempId`
+- **Duplicate data detection**: Warns when the same consultation ID appears multiple times
+
+Check the console in DEV mode for these warnings to identify data integrity issues early.
+
 # Learn More
 
 To learn more about React Native, take a look at the following resources:
