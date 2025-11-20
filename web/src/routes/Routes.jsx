@@ -11,6 +11,7 @@ import Users from '../pages/Users';
 import TestUserModal from '../pages/TestUserModal';
 import TatitraPreview from '../pages/TatitraPreview';
 import FitorianaStatsTest from '../pages/FitorianaStatsTest';
+import PrescriptionSubFormExample from '../pages/PrescriptionSubFormExample';
 import Settings from '../pages/Settings';
 import Support from '../pages/Support';
 
@@ -89,6 +90,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <FitorianaStatsTest />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/prescription-example"
+        element={
+          <ProtectedRoute>
+            <PrescriptionSubFormExample />
           </ProtectedRoute>
         }
       />
