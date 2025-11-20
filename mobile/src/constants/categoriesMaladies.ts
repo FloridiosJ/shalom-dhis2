@@ -1,19 +1,37 @@
 /**
  * Catégories de maladies avec structure hiérarchique (2 niveaux)
  * Ces données sont embarquées côté front (pas d'appel réseau requis initialement)
+ * 
+ * @description
+ * Ce fichier définit une structure hiérarchique de catégories de maladies à 2 niveaux:
+ * - Niveau 1: Catégories principales (ex: Maladies Infectieuses)
+ * - Niveau 2: Sous-catégories (ex: Infections Respiratoires)
+ * 
+ * @usage
+ * ```tsx
+ * import { CATEGORIES_MALADIES, getCategorieByCode } from '../constants/categoriesMaladies';
+ * 
+ * // Récupérer une catégorie principale
+ * const categorie = getCategorieByCode('INFECTIEUSES');
+ * 
+ * // Récupérer une sous-catégorie
+ * const sousCategorie = getSubCategorieByCode('INFECTIEUSES', 'RESPIRATOIRES');
+ * ```
+ * 
+ * @see CategoriePicker component for UI implementation
  */
 
 export interface CategorieSubMaladie {
-  code: string;
-  nom: string;
-  description: string;
+  code: string;          // Code unique de la sous-catégorie
+  nom: string;           // Nom affiché à l'utilisateur
+  description: string;   // Description détaillée
 }
 
 export interface CategorieMaladie {
-  code: string;
-  nom: string;
-  description: string;
-  sousCategories: CategorieSubMaladie[];
+  code: string;                              // Code unique de la catégorie principale
+  nom: string;                               // Nom affiché à l'utilisateur
+  description: string;                       // Description détaillée
+  sousCategories: CategorieSubMaladie[];    // Liste des sous-catégories
 }
 
 export const CATEGORIES_MALADIES: CategorieMaladie[] = [

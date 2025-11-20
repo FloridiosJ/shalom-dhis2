@@ -1,13 +1,30 @@
 /**
  * Types de consultation disponibles dans le système
  * Ces données sont embarquées côté front (pas d'appel réseau requis initialement)
+ * 
+ * @description
+ * Ce fichier définit les types de consultation disponibles pour l'écran de nouvelle consultation.
+ * Chaque type inclut un code unique, un libellé, une description et un état d'activité.
+ * 
+ * @usage
+ * ```tsx
+ * import { TYPES_CONSULTATION, getActiveConsultationTypes } from '../constants/consultationTypes';
+ * 
+ * // Récupérer tous les types actifs
+ * const activeTypes = getActiveConsultationTypes();
+ * 
+ * // Trouver un type spécifique
+ * const type = getConsultationTypeByCode('CURATIF');
+ * ```
+ * 
+ * @see ConsultationPicker component for UI implementation
  */
 
 export interface ConsultationType {
-  code: string;
-  libelle: string;
-  description: string;
-  isActive: boolean;
+  code: string;          // Code unique du type (ex: 'CURATIF')
+  libelle: string;       // Libellé affiché à l'utilisateur
+  description: string;   // Description détaillée du type
+  isActive: boolean;     // Indique si le type est actif et sélectionnable
 }
 
 export const TYPES_CONSULTATION: ConsultationType[] = [
