@@ -121,7 +121,7 @@ const PrescriptionInputWithModal = ({ prescriptions = [], onChange, disabled = f
       {/* Liste des médicaments ajoutés */}
       {prescriptions.length > 0 && (
         <div style={{ marginTop: '0.75rem' }}>
-          {prescriptions.map((prescription, index) => (
+          {prescriptions.map((prescription) => (
             <div
               key={prescription.id}
               style={{
