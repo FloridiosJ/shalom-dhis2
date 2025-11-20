@@ -112,7 +112,6 @@ export default function CategoriePicker({
         accessibilityLabel={`Sélectionner ${item.nom}`}>
         <View style={styles.categoryInfo}>
           <Text style={styles.categoryName}>{item.nom}</Text>
-          <Text style={styles.categoryDescription}>{item.description}</Text>
           <Text style={styles.categoryCount}>
             {item.sousCategories.length} sous-catégories
           </Text>
@@ -132,7 +131,6 @@ export default function CategoriePicker({
         accessibilityLabel={`Sélectionner ${item.nom}`}>
         <View style={styles.categoryInfo}>
           <Text style={styles.categoryName}>{item.nom}</Text>
-          <Text style={styles.categoryDescription}>{item.description}</Text>
         </View>
         <Icon name="check-circle-outline" size={24} color="#1976D2" />
       </TouchableOpacity>
@@ -162,7 +160,7 @@ export default function CategoriePicker({
               </Text>
             </View>
           ) : (
-            <Text style={styles.placeholder}>
+            <Text style={styles.placeholder} numberOfLines={1} ellipsizeMode="tail">
               Sélectionner une catégorie de maladie
             </Text>
           )}
@@ -270,7 +268,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#1976D2',
+    color: '#333',
     fontWeight: '500',
     marginBottom: 8,
   },

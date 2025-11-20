@@ -67,7 +67,6 @@ export default function ConsultationPicker({
         accessibilityLabel={`Sélectionner ${item.libelle}`}>
         <View style={styles.typeInfo}>
           <Text style={styles.typeName}>{item.libelle}</Text>
-          <Text style={styles.typeDescription}>{item.description}</Text>
         </View>
         <Icon name="chevron-right" size={24} color="#9E9E9E" />
       </TouchableOpacity>
@@ -95,7 +94,7 @@ export default function ConsultationPicker({
               </Text>
             </View>
           ) : (
-            <Text style={styles.placeholder}>
+            <Text style={styles.placeholder} numberOfLines={1} ellipsizeMode="tail">
               Sélectionner un type de consultation
             </Text>
           )}
@@ -169,7 +168,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#1976D2',
+    color: '#333',
     fontWeight: '500',
     marginBottom: 8,
   },
