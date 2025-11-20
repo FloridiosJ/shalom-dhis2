@@ -13,6 +13,8 @@ import PatientPicker from '../components/form/PatientPicker';
 import DatePickerBlue from '../components/consultation/form/DatePickerBlue';
 import TimePickerBlue from '../components/consultation/form/TimePickerBlue';
 import ConsultationInput from '../components/consultation/form/ConsultationInput';
+import ConsultationPicker from '../components/form/ConsultationPicker';
+import CategoriePicker from '../components/form/CategoriePicker';
 import {styles} from '../styles/NewConsultationScreen.styles';
 
 interface NewConsultationScreenProps {
@@ -108,11 +110,9 @@ export default function NewConsultationScreen({
             control={control}
             name="typeConsultation"
             render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Type consultation"
+              <ConsultationPicker
                 value={value}
                 onChange={onChange}
-                placeholder="ex: Consultation générale"
                 error={errors.typeConsultation?.message}
                 required
               />
@@ -124,11 +124,9 @@ export default function NewConsultationScreen({
             control={control}
             name="categoriesMaladie"
             render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Catégories de maladie"
+              <CategoriePicker
                 value={value}
                 onChange={onChange}
-                placeholder="ex: Maladies infectieuses"
                 error={errors.categoriesMaladie?.message}
                 required
               />
