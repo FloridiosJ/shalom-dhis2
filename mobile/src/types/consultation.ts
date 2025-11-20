@@ -1,3 +1,5 @@
+import {PrescriptionItem} from '../constants/medications';
+
 export interface Attachment {
   id: string;
   uri: string;
@@ -12,7 +14,7 @@ export interface ConsultationFormData {
   heureConsultation: Date;
   typeConsultation: string;
   categoriesMaladie: string;
-  prescriptionsStructurees: string;
+  prescriptionsStructurees: PrescriptionItem[];
   notes: string;
 }
 
