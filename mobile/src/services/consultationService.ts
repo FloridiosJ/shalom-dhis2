@@ -131,7 +131,7 @@ export interface CreateConsultationInput {
   dateConsultation: Date;
   heureConsultation: Date;
   categoriesMaladie: string; // Format: "mainCode:subCode" or "mainCode"
-  prescriptionsStructurees: PrescriptionItem[];
+  prescriptionsStructurees?: PrescriptionItem[];
   notes?: string;
   dispensaireId?: string;
 }
@@ -171,7 +171,7 @@ export async function createConsultation(
     );
 
     // Prepare prescription items for GraphQL
-    const prescriptionItems = input.prescriptionsStructurees.map((item, index) => ({
+    const prescriptionItems = (input.prescriptionsStructurees || []).map((item, index) => ({
       medicament: item.medicament,
       dose: item.dose || '',
       frequence: item.frequence || '',
