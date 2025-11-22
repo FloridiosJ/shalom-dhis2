@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Alert} from 'react-native';
 import {consultationValidationSchema} from '../utils/consultationValidation';
 import {ConsultationFormData, PatientOption} from '../types/consultation';
+import {createConsultation} from '../services/consultationService';
 
 const DRAFT_STORAGE_KEY = '@consultation_draft';
 
@@ -157,12 +158,21 @@ export function useConsultationForm(
   const handleSave = async (data: ConsultationFormData) => {
     setSaving(true);
     try {
-      // Note: prescriptionsStructurees is already serialized to JSON string by the validation schema
-      // TODO: Replace with actual API call to save consultation
-      console.log('Saving consultation:', data);
+      // Validate that patientId is not null
+      if (!data.patientId) {
+        throw new Error('Patient ID is required');
+      }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the API to create consultation
+      await createConsultation({
+        patientId: data.patientId,
+        typeConsultation: data.typeConsultation,
+        dateConsultation: data.dateConsultation,
+        heureConsultation: data.heureConsultation,
+        categoriesMaladie: data.categoriesMaladie,
+        prescriptionsStructurees: data.prescriptionsStructurees,
+        notes: data.notes,
+      });
 
       // Clear draft after successful save
       await AsyncStorage.removeItem(DRAFT_STORAGE_KEY);
