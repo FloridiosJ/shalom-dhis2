@@ -2,6 +2,7 @@ import {gql} from '@apollo/client';
 import {apolloClient} from './apollo';
 import {Consultation} from '../types';
 import {PrescriptionItem} from '../constants/medications';
+import {getCategorieByCode, getSubCategorieByCode} from '../constants/categoriesMaladies';
 
 // GraphQL mutation to create a new consultation (DataEntry)
 const CREATE_DATA_ENTRY = gql`
@@ -153,12 +154,36 @@ export async function createConsultation(
   input: CreateConsultationInput,
 ): Promise<Consultation> {
   try {
-    // Parse categoriesMaladie to extract category IDs
+    // Parse categoriesMaladie to extract category IDs and generate diagnostic
     const categorieIds: string[] = [];
+    let diagnosticText = '';
+    
     if (input.categoriesMaladie) {
       const [mainCode, subCode] = input.categoriesMaladie.split(':');
+      
+      // Add category IDs for backend
       if (mainCode) categorieIds.push(mainCode);
       if (subCode) categorieIds.push(subCode);
+      
+      // Generate diagnostic text from category names (matching web implementation)
+      if (subCode) {
+        // If there's a subcategory, use it as the principal diagnostic
+        const subCategorie = getSubCategorieByCode(mainCode, subCode);
+        if (subCategorie) {
+          diagnosticText = subCategorie.nom;
+        } else {
+          // Fallback to main category if subcategory not found
+          const mainCategorie = getCategorieByCode(mainCode);
+          diagnosticText = mainCategorie ? mainCategorie.nom : 'Consultation';
+        }
+      } else {
+        // Only main category selected
+        const mainCategorie = getCategorieByCode(mainCode);
+        diagnosticText = mainCategorie ? mainCategorie.nom : 'Consultation';
+      }
+    } else {
+      // No category selected, use default
+      diagnosticText = 'Consultation générale';
     }
 
     // Combine date and time into a single datetime
@@ -220,7 +245,7 @@ export async function createConsultation(
           dateConsultation: consultationDateTime.toISOString(),
           categorieIds,
           prescriptionItems: prescriptionItemsFormatted,
-          diagnostic: '', // Required field - will be filled by backend or set default
+          diagnostic: diagnosticText, // Generated from category names
           notes: input.notes || '',
           dispensaireId: input.dispensaireId,
         },
