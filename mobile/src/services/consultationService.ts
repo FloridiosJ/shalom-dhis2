@@ -171,11 +171,7 @@ export async function createConsultation(
     );
 
     // Prepare prescription items for GraphQL
-    // prescriptionsStructurees can be:
-    // - An array (PrescriptionItem[])
-    // - A JSON string (from validation transform)
-    // - undefined/null
-    // - An empty string
+    // Following web implementation pattern: filter and validate items
     let prescriptionItems = [];
     
     if (input.prescriptionsStructurees) {
@@ -194,15 +190,25 @@ export async function createConsultation(
       }
     }
     
-    // Map to GraphQL format
-    const prescriptionItemsFormatted = prescriptionItems.map((item, index) => ({
-      medicament: item.medicament,
-      dose: item.dose || '',
-      frequence: item.frequence || '',
-      duree: item.duree || '',
-      notes: item.notes || '',
-      ordre: index,
-    }));
+    // Filter out empty items and map to GraphQL format (matching web implementation)
+    let prescriptionItemsFormatted = [];
+    if (prescriptionItems.length > 0) {
+      // Filter items with medicament and clean the data
+      const validItems = prescriptionItems.filter(
+        item => item && item.medicament && item.medicament.trim()
+      );
+      
+      if (validItems.length > 0) {
+        prescriptionItemsFormatted = validItems.map((item, index) => ({
+          medicament: item.medicament.trim(),
+          dose: item.dose?.trim() || '',
+          frequence: item.frequence?.trim() || '',
+          duree: item.duree?.trim() || '',
+          notes: item.notes?.trim() || '',
+          ordre: index,
+        }));
+      }
+    }
 
     // Call GraphQL mutation
     const {data} = await apolloClient.mutate<CreateDataEntryResponse>({
