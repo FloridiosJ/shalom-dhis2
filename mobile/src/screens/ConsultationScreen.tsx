@@ -11,6 +11,7 @@ import {
   AccessibilityRole,
 } from 'react-native';
 import {Text, FAB} from 'react-native-paper';
+import {useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SearchBar from '../components/SearchBar';
 import ConsultationFilterPills, {
@@ -156,6 +157,18 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
     setHasMore(true);
     loadConsultations(1, true);
   }, [loadConsultations]);
+
+  // Refresh consultations when screen comes into focus
+  // This ensures the list updates after creating a new consultation
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if consultations were already loaded (not on first mount)
+      if (consultations.length > 0 || page > 1) {
+        handleRefresh();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []), // Empty deps - we only want to check on focus, not when state changes
+  );
 
   const handleLoadMore = useCallback(() => {
     if (!loading && hasMore) {

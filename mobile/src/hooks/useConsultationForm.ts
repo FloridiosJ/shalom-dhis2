@@ -6,6 +6,7 @@ import {Alert} from 'react-native';
 import {consultationValidationSchema} from '../utils/consultationValidation';
 import {ConsultationFormData, PatientOption} from '../types/consultation';
 import {createConsultation} from '../services/consultationService';
+import {fetchPatients} from '../services/patientService';
 
 const DRAFT_STORAGE_KEY = '@consultation_draft';
 
@@ -106,28 +107,31 @@ export function useConsultationForm(
   const loadPatients = async () => {
     setLoadingPatients(true);
     try {
-      // TODO: Replace with actual API call
-      const mockPatients: PatientOption[] = [
-        {
-          id: '1',
-          displayName: 'Jean Dupont',
-          numeroPatient: 'PAT-001',
+      // Fetch patients filtered by agent's dispensaire
+      // Using a reasonable limit to avoid performance issues
+      const result = await fetchPatients({
+        pagination: {
+          limit: 100, // Reasonable limit for dropdown performance
         },
-        {
-          id: '2',
-          displayName: 'Marie Martin',
-          numeroPatient: 'PAT-002',
-        },
-        {
-          id: '3',
-          displayName: 'Pierre Bernard',
-          numeroPatient: 'PAT-003',
-        },
-      ];
-      setPatients(mockPatients);
-      setFilteredPatients(mockPatients);
+      });
+      
+      // Transform to PatientOption format
+      const patientOptions: PatientOption[] = result.patients.map(p => ({
+        id: p.id,
+        displayName: p.displayName,
+        numeroPatient: p.numeroPatient,
+      }));
+      
+      setPatients(patientOptions);
+      setFilteredPatients(patientOptions);
     } catch (error) {
       console.error('Error loading patients:', error);
+      // Show error to user but don't prevent form usage
+      Alert.alert(
+        'Erreur',
+        'Impossible de charger la liste des patients. Veuillez vérifier votre connexion.',
+        [{text: 'OK'}],
+      );
     } finally {
       setLoadingPatients(false);
     }

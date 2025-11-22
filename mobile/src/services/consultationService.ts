@@ -2,6 +2,7 @@ import {gql} from '@apollo/client';
 import {apolloClient} from './apollo';
 import {Consultation} from '../types';
 import {PrescriptionItem} from '../constants/medications';
+import {getCategorieByCode, getSubCategorieByCode} from '../constants/categoriesMaladies';
 
 // GraphQL mutation to create a new consultation (DataEntry)
 const CREATE_DATA_ENTRY = gql`
@@ -131,7 +132,7 @@ export interface CreateConsultationInput {
   dateConsultation: Date;
   heureConsultation: Date;
   categoriesMaladie: string; // Format: "mainCode:subCode" or "mainCode"
-  prescriptionsStructurees: PrescriptionItem[];
+  prescriptionsStructurees?: PrescriptionItem[] | string; // Can be array or JSON string
   notes?: string;
   dispensaireId?: string;
 }
@@ -153,12 +154,33 @@ export async function createConsultation(
   input: CreateConsultationInput,
 ): Promise<Consultation> {
   try {
-    // Parse categoriesMaladie to extract category IDs
-    const categorieIds: string[] = [];
+    // Parse categoriesMaladie to generate diagnostic text
+    // Note: We don't send categorieIds because mobile only has codes, not UUIDs
+    // The diagnostic field contains the category name for reference
+    let diagnosticText = '';
+    
     if (input.categoriesMaladie) {
       const [mainCode, subCode] = input.categoriesMaladie.split(':');
-      if (mainCode) categorieIds.push(mainCode);
-      if (subCode) categorieIds.push(subCode);
+      
+      // Generate diagnostic text from category names (matching web implementation)
+      if (subCode) {
+        // If there's a subcategory, use it as the principal diagnostic
+        const subCategorie = getSubCategorieByCode(mainCode, subCode);
+        if (subCategorie) {
+          diagnosticText = subCategorie.nom;
+        } else {
+          // Fallback to main category if subcategory not found
+          const mainCategorie = getCategorieByCode(mainCode);
+          diagnosticText = mainCategorie ? mainCategorie.nom : 'Consultation';
+        }
+      } else {
+        // Only main category selected
+        const mainCategorie = getCategorieByCode(mainCode);
+        diagnosticText = mainCategorie ? mainCategorie.nom : 'Consultation';
+      }
+    } else {
+      // No category selected, use default
+      diagnosticText = 'Consultation générale';
     }
 
     // Combine date and time into a single datetime
@@ -171,14 +193,44 @@ export async function createConsultation(
     );
 
     // Prepare prescription items for GraphQL
-    const prescriptionItems = input.prescriptionsStructurees.map((item, index) => ({
-      medicament: item.medicament,
-      dose: item.dose || '',
-      frequence: item.frequence || '',
-      duree: item.duree || '',
-      notes: item.notes || '',
-      ordre: index,
-    }));
+    // Following web implementation pattern: filter and validate items
+    let prescriptionItems = [];
+    
+    if (input.prescriptionsStructurees) {
+      if (typeof input.prescriptionsStructurees === 'string') {
+        // It's a JSON string, parse it
+        try {
+          const parsed = JSON.parse(input.prescriptionsStructurees);
+          prescriptionItems = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error('Error parsing prescriptionsStructurees:', e);
+          prescriptionItems = [];
+        }
+      } else if (Array.isArray(input.prescriptionsStructurees)) {
+        // It's already an array
+        prescriptionItems = input.prescriptionsStructurees;
+      }
+    }
+    
+    // Filter out empty items and map to GraphQL format (matching web implementation)
+    let prescriptionItemsFormatted = [];
+    if (prescriptionItems.length > 0) {
+      // Filter items with medicament and clean the data
+      const validItems = prescriptionItems.filter(
+        item => item && item.medicament && item.medicament.trim()
+      );
+      
+      if (validItems.length > 0) {
+        prescriptionItemsFormatted = validItems.map((item, index) => ({
+          medicament: item.medicament.trim(),
+          dose: item.dose?.trim() || '',
+          frequence: item.frequence?.trim() || '',
+          duree: item.duree?.trim() || '',
+          notes: item.notes?.trim() || '',
+          ordre: index,
+        }));
+      }
+    }
 
     // Call GraphQL mutation
     const {data} = await apolloClient.mutate<CreateDataEntryResponse>({
@@ -188,11 +240,11 @@ export async function createConsultation(
           patientId: input.patientId,
           typeConsultation: input.typeConsultation,
           dateConsultation: consultationDateTime.toISOString(),
-          categorieIds,
-          prescriptionItems,
-          diagnostic: '', // Required field - will be filled by backend or set default
+          prescriptionItems: prescriptionItemsFormatted,
+          diagnostic: diagnosticText, // Generated from category names
           notes: input.notes || '',
           dispensaireId: input.dispensaireId,
+          // Note: categorieIds not sent - mobile only has codes, not UUIDs
         },
       },
     });

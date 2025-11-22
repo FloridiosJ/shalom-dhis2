@@ -17,6 +17,8 @@ const LOGIN_MUTATION = gql`
         email
         login
         role
+        dispensaireId
+        specialite
       }
     }
   }

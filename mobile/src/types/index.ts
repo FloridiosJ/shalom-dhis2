@@ -63,6 +63,8 @@ export interface User {
   email: string;
   login: string;
   role: string;
+  dispensaireId?: string;
+  specialite?: string;
 }
 
 export interface LoginInput {
