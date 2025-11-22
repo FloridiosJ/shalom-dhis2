@@ -199,6 +199,67 @@ The app includes DEV-only validations to catch common issues:
 
 Check the console in DEV mode for these warnings to identify data integrity issues early.
 
+## Offline-First Architecture
+
+The application is designed with an offline-first approach, allowing field agents to work seamlessly without internet connectivity.
+
+### Key Features
+
+1. **Automatic Network Detection**
+   - Real-time monitoring of network connectivity
+   - Automatic switch between online and offline modes
+   - Visual indicators for connection status
+
+2. **Local Data Storage**
+   - Consultations and patient data stored locally using AsyncStorage
+   - Data persists across app restarts
+   - Secure storage on device
+
+3. **Automatic Synchronization**
+   - Triggered on network reconnection
+   - Triggered when app returns to foreground
+   - Exponential backoff retry logic (2s, 4s, 8s)
+   - Maximum 3 automatic retry attempts
+
+4. **Visual Feedback**
+   - Network status banner on home screen
+   - Sync progress indicators
+   - Pending items counter
+   - Error list with retry options
+
+### Components
+
+- **NetworkContext**: Provides network state across the app
+- **useAutoSync**: Manages automatic sync on reconnection
+- **useOfflineConsultation**: Handles offline consultation creation
+- **NetworkStatusBanner**: Visual indicator for network status
+- **SyncScreen**: Detailed sync management interface
+
+### Usage Example
+
+```typescript
+// Creating a consultation with offline support
+const {createConsultation, isOffline} = useOfflineConsultation();
+
+const handleSubmit = async (data) => {
+  const result = await createConsultation(data);
+  
+  if (result.offline) {
+    alert('Saved offline - will sync when online');
+  } else {
+    alert('Saved successfully');
+  }
+};
+```
+
+### User Documentation
+
+For detailed user instructions, see [GUIDE_UTILISATEUR_OFFLINE.md](./GUIDE_UTILISATEUR_OFFLINE.md)
+
+### Technical Documentation
+
+For API documentation and backend integration, see [OFFLINE_SYNC_GUIDE.md](./OFFLINE_SYNC_GUIDE.md)
+
 # Learn More
 
 To learn more about React Native, take a look at the following resources:
