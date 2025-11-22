@@ -15,6 +15,7 @@ import TimePickerBlue from '../components/consultation/form/TimePickerBlue';
 import ConsultationInput from '../components/consultation/form/ConsultationInput';
 import ConsultationPicker from '../components/form/ConsultationPicker';
 import CategoriePicker from '../components/form/CategoriePicker';
+import PrescriptionInputWithModal from '../components/form/PrescriptionInputWithModal';
 import {styles} from '../styles/NewConsultationScreen.styles';
 
 interface NewConsultationScreenProps {
@@ -138,13 +139,9 @@ export default function NewConsultationScreen({
             control={control}
             name="prescriptionsStructurees"
             render={({field: {onChange, value}}) => (
-              <ConsultationInput
-                label="Prescriptions structurées"
-                value={value}
+              <PrescriptionInputWithModal
+                prescriptions={value || []}
                 onChange={onChange}
-                placeholder="ex: Paracétamol 500mg, 3 fois par jour..."
-                multiline
-                numberOfLines={4}
                 error={errors.prescriptionsStructurees?.message}
               />
             )}

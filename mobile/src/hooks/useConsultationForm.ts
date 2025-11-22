@@ -57,7 +57,7 @@ export function useConsultationForm(
       heureConsultation: new Date(),
       typeConsultation: '',
       categoriesMaladie: '',
-      prescriptionsStructurees: '',
+      prescriptionsStructurees: [],
       notes: '',
     },
   });
