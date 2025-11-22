@@ -131,7 +131,7 @@ export interface CreateConsultationInput {
   dateConsultation: Date;
   heureConsultation: Date;
   categoriesMaladie: string; // Format: "mainCode:subCode" or "mainCode"
-  prescriptionsStructurees?: PrescriptionItem[];
+  prescriptionsStructurees?: PrescriptionItem[] | string; // Can be array or JSON string
   notes?: string;
   dispensaireId?: string;
 }
@@ -171,7 +171,31 @@ export async function createConsultation(
     );
 
     // Prepare prescription items for GraphQL
-    const prescriptionItems = (input.prescriptionsStructurees || []).map((item, index) => ({
+    // prescriptionsStructurees can be:
+    // - An array (PrescriptionItem[])
+    // - A JSON string (from validation transform)
+    // - undefined/null
+    // - An empty string
+    let prescriptionItems = [];
+    
+    if (input.prescriptionsStructurees) {
+      if (typeof input.prescriptionsStructurees === 'string') {
+        // It's a JSON string, parse it
+        try {
+          const parsed = JSON.parse(input.prescriptionsStructurees);
+          prescriptionItems = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error('Error parsing prescriptionsStructurees:', e);
+          prescriptionItems = [];
+        }
+      } else if (Array.isArray(input.prescriptionsStructurees)) {
+        // It's already an array
+        prescriptionItems = input.prescriptionsStructurees;
+      }
+    }
+    
+    // Map to GraphQL format
+    const prescriptionItemsFormatted = prescriptionItems.map((item, index) => ({
       medicament: item.medicament,
       dose: item.dose || '',
       frequence: item.frequence || '',
@@ -189,7 +213,7 @@ export async function createConsultation(
           typeConsultation: input.typeConsultation,
           dateConsultation: consultationDateTime.toISOString(),
           categorieIds,
-          prescriptionItems,
+          prescriptionItems: prescriptionItemsFormatted,
           diagnostic: '', // Required field - will be filled by backend or set default
           notes: input.notes || '',
           dispensaireId: input.dispensaireId,
