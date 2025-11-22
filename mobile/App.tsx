@@ -13,6 +13,18 @@ import {apolloClient} from './src/services/apollo';
 import {isAuthenticated, logout} from './src/services/auth';
 import LoginScreen from './src/screens/LoginScreen';
 import MainNavigator from './src/navigation/MainNavigator';
+import {NetworkProvider} from './src/contexts/NetworkContext';
+import {useAutoSync} from './src/hooks/useAutoSync';
+
+/**
+ * Main app component with auto-sync enabled
+ */
+function AppWithSync({onLogout}: {onLogout: () => void}) {
+  // Enable automatic synchronization on network reconnection
+  useAutoSync();
+
+  return <MainNavigator onLogout={onLogout} />;
+}
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -57,13 +69,15 @@ export default function App() {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <PaperProvider>
-        {authenticated ? (
-          <MainNavigator onLogout={handleLogout} />
-        ) : (
-          <LoginScreen onLoginSuccess={handleLoginSuccess} />
-        )}
-      </PaperProvider>
+      <NetworkProvider>
+        <PaperProvider>
+          {authenticated ? (
+            <AppWithSync onLogout={handleLogout} />
+          ) : (
+            <LoginScreen onLoginSuccess={handleLoginSuccess} />
+          )}
+        </PaperProvider>
+      </NetworkProvider>
     </ApolloProvider>
   );
 }

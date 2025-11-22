@@ -5,8 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Alert} from 'react-native';
 import {consultationValidationSchema} from '../utils/consultationValidation';
 import {ConsultationFormData, PatientOption} from '../types/consultation';
-import {createConsultation} from '../services/consultationService';
 import {fetchPatients} from '../services/patientService';
+import {useOfflineConsultation} from './useOfflineConsultation';
 
 const DRAFT_STORAGE_KEY = '@consultation_draft';
 
@@ -43,6 +43,9 @@ export function useConsultationForm(
   const [loadingPatients, setLoadingPatients] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
+
+  // Use offline consultation hook
+  const {createConsultation} = useOfflineConsultation();
 
   const {
     control,
@@ -167,8 +170,8 @@ export function useConsultationForm(
         throw new Error('Patient ID is required');
       }
 
-      // Call the API to create consultation
-      await createConsultation({
+      // Call the API with offline support
+      const result = await createConsultation({
         patientId: data.patientId,
         typeConsultation: data.typeConsultation,
         dateConsultation: data.dateConsultation,
@@ -182,12 +185,26 @@ export function useConsultationForm(
       await AsyncStorage.removeItem(DRAFT_STORAGE_KEY);
       setIsDraft(false);
 
-      Alert.alert('Succès', 'La consultation a été enregistrée avec succès', [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      // Show appropriate message based on offline/online status
+      if (result.offline) {
+        Alert.alert(
+          'Enregistré hors ligne',
+          'La consultation a été enregistrée localement et sera synchronisée dès que la connexion sera rétablie.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Succès', 'La consultation a été enregistrée avec succès', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      }
     } catch (err) {
       console.error('Error saving consultation:', err);
       
