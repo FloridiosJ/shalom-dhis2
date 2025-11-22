@@ -14,6 +14,11 @@ export interface ConsultationFormData {
   heureConsultation: Date;
   typeConsultation: string;
   categoriesMaladie: string;
+  /**
+   * Structured prescriptions array.
+   * This is stored as an array in the form but will be automatically
+   * serialized to a JSON string during validation and submission.
+   */
   prescriptionsStructurees: PrescriptionItem[];
   notes: string;
 }
