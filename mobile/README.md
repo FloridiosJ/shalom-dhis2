@@ -24,7 +24,57 @@ Before running the app, you need to configure the backend GraphQL endpoint:
 
 4. Make sure the backend server is running on port 4000 before starting the mobile app.
 
-## Step 1: Start Metro
+## Step 1: Install Dependencies and Link Native Modules
+
+After cloning the repository or pulling new changes that include native dependencies, you need to install dependencies and rebuild the app:
+
+### Install Node Dependencies
+
+```sh
+# Using npm
+npm install
+
+# OR using Yarn
+yarn install
+```
+
+### Android Setup
+
+For Android, the native modules are automatically linked with autolinking. You just need to rebuild the app:
+
+```sh
+# Clean the build (recommended after pulling changes with new native dependencies)
+cd android
+./gradlew clean
+cd ..
+
+# Run the app (this will rebuild automatically)
+npm run android
+```
+
+**Important:** If you encounter errors like `NativeModule.RNCNetInfo is null` or similar, you need to:
+1. Stop the Metro bundler
+2. Clean the build: `cd android && ./gradlew clean && cd ..`
+3. Rebuild and run: `npm run android`
+
+### iOS Setup
+
+For iOS, you need to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps):
+
+```sh
+# First time only: Install CocoaPods
+bundle install
+
+# Every time native dependencies change
+cd ios
+bundle exec pod install
+cd ..
+
+# Run the app
+npm run ios
+```
+
+## Step 2: Start Metro
 
 First, you will need to run **Metro**, the JavaScript build tool for React Native.
 
@@ -38,7 +88,21 @@ npm start
 yarn start
 ```
 
-## Step 2: Build and run your app
+## Step 3: Build and run your app
+
+First, you will need to run **Metro**, the JavaScript build tool for React Native.
+
+To start the Metro dev server, run the following command from the root of your React Native project:
+
+```sh
+# Using npm
+npm start
+
+# OR using Yarn
+yarn start
+```
+
+## Step 3: Build and run your app
 
 With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
 
@@ -54,22 +118,6 @@ yarn android
 
 ### iOS
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
 ```sh
 # Using npm
 npm run ios
@@ -82,7 +130,36 @@ If everything is set up correctly, you should see your new app running in the An
 
 This is one way to run your app — you can also build it directly from Android Studio or Xcode.
 
-## Step 3: Modify your app
+## Troubleshooting Native Module Errors
+
+If you see errors like:
+- `NativeModule.RNCNetInfo is null`
+- `Cannot read property 'NetworkProvider' of undefined`
+- Other native module errors
+
+**Solution:**
+1. Make sure you've run `npm install` to install all dependencies
+2. For **Android**:
+   ```sh
+   cd android
+   ./gradlew clean
+   cd ..
+   npm run android
+   ```
+3. For **iOS**:
+   ```sh
+   cd ios
+   bundle exec pod install
+   cd ..
+   npm run ios
+   ```
+4. If the error persists, try:
+   - Stop Metro bundler (Ctrl+C)
+   - Delete `node_modules` and reinstall: `rm -rf node_modules && npm install`
+   - Clear Metro cache: `npm start -- --reset-cache`
+   - Rebuild the app
+
+## Step 4: Modify your app
 
 Now that you have successfully run the app, let's make changes!
 
