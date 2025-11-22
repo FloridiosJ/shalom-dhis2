@@ -57,13 +57,13 @@ describe('useConsultationForm', () => {
       // Simulate hook usage
       await fetchPatients({
         pagination: {
-          limit: 1000,
+          limit: 100,
         },
       });
 
       expect(fetchPatients).toHaveBeenCalledWith({
         pagination: {
-          limit: 1000,
+          limit: 100,
         },
       });
     });

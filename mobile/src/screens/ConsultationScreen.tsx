@@ -152,22 +152,23 @@ export default function ConsultationScreen({navigation}: {navigation: any}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter, searchQuery]);
 
-  // Refresh consultations when screen comes into focus
-  // This ensures the list updates after creating a new consultation
-  useFocusEffect(
-    useCallback(() => {
-      // Only refresh if consultations were already loaded
-      if (consultations.length > 0 || page > 1) {
-        handleRefresh();
-      }
-    }, [handleRefresh, consultations.length, page]),
-  );
-
   const handleRefresh = useCallback(() => {
     setPage(1);
     setHasMore(true);
     loadConsultations(1, true);
   }, [loadConsultations]);
+
+  // Refresh consultations when screen comes into focus
+  // This ensures the list updates after creating a new consultation
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if consultations were already loaded (not on first mount)
+      if (consultations.length > 0 || page > 1) {
+        handleRefresh();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []), // Empty deps - we only want to check on focus, not when state changes
+  );
 
   const handleLoadMore = useCallback(() => {
     if (!loading && hasMore) {

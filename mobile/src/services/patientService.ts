@@ -1,6 +1,7 @@
 import {gql} from '@apollo/client';
 import {apolloClient} from './apollo';
 import {getUser} from './auth';
+import {Patient} from '../types';
 
 export const GET_PATIENTS = gql`
   query GetPatients($filter: PatientFilterInput, $sort: SortInput, $pagination: PaginationInput) {
@@ -71,17 +72,6 @@ interface GetPatientsVariables {
   };
 }
 
-interface Patient {
-  id: string;
-  displayName: string;
-  nom: string;
-  prenom: string;
-  sexe: string;
-  age: number;
-  numeroPatient: string;
-  village: string;
-}
-
 interface GetPatientsResponse {
   patients: {
     patients: Patient[];
@@ -105,11 +95,11 @@ export async function fetchPatients(
     // Get current user to extract dispensaireId
     const user = await getUser();
     
-    // If no filter provided and user has a dispensaireId, filter by it
-    const filter = variables.filter || {};
-    if (!filter.dispensaireId && user?.dispensaireId) {
-      filter.dispensaireId = user.dispensaireId;
-    }
+    // Build filter without mutation, applying user's dispensaireId if needed
+    const finalFilter = {
+      ...variables.filter,
+      dispensaireId: variables.filter?.dispensaireId || user?.dispensaireId,
+    };
 
     const {data} = await apolloClient.query<
       GetPatientsResponse,
@@ -118,7 +108,7 @@ export async function fetchPatients(
       query: GET_PATIENTS,
       variables: {
         ...variables,
-        filter,
+        filter: finalFilter,
         sort: variables.sort || {
           field: 'createdAt',
           direction: 'DESC',

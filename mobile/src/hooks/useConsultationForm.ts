@@ -108,9 +108,10 @@ export function useConsultationForm(
     setLoadingPatients(true);
     try {
       // Fetch patients filtered by agent's dispensaire
+      // Using a reasonable limit to avoid performance issues
       const result = await fetchPatients({
         pagination: {
-          limit: 1000, // Load all patients for the dropdown
+          limit: 100, // Reasonable limit for dropdown performance
         },
       });
       
