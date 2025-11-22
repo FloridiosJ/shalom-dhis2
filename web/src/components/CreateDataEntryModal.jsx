@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { TYPES_CONSULTATION, getConsultationTypesByGender } from "../constants";
 import PatientAutocomplete from './PatientAutocomplete';
 import CategoriesSelector from './CategoriesSelector';
-import PrescriptionInputWithModal from './prescription/PrescriptionInputWithModal';
+import PrescriptionList from './PrescriptionList';
 import styles from "./CreateDataEntryModal.module.css";
 
 const CreateDataEntryModal = ({
@@ -361,10 +361,10 @@ const CreateDataEntryModal = ({
           )}
 
           {/* ✅ Prescriptions structurées */}
-          <PrescriptionInputWithModal
-            prescriptions={prescriptionItems}
+          <PrescriptionList
+            items={prescriptionItems}
             onChange={setPrescriptionItems}
-            disabled={loading}
+            loading={loading}
           />
 
           {/* Notes */}
