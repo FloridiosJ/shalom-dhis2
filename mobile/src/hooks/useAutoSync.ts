@@ -27,7 +27,7 @@ export function useAutoSync() {
   const previousConnectionState = useRef<boolean>(false);
   const retryCount = useRef<number>(0);
   const maxRetries = 3;
-  const appState = useRef(AppState.currentState);
+  const appState = useRef<AppStateStatus>(AppState.currentState || 'active');
 
   // Handle network reconnection
   useEffect(() => {
