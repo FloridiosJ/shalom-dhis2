@@ -157,8 +157,16 @@ export function useConsultationForm(
   const handleSave = async (data: ConsultationFormData) => {
     setSaving(true);
     try {
+      // Serialize prescriptionsStructurees array to JSON string before saving
+      const dataToSave = {
+        ...data,
+        prescriptionsStructurees: Array.isArray(data.prescriptionsStructurees)
+          ? JSON.stringify(data.prescriptionsStructurees)
+          : data.prescriptionsStructurees,
+      };
+      
       // TODO: Replace with actual API call to save consultation
-      console.log('Saving consultation:', data);
+      console.log('Saving consultation:', dataToSave);
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));

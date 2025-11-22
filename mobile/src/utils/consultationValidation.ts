@@ -1,5 +1,12 @@
 import * as yup from 'yup';
 
+/**
+ * Validation schema for consultation forms.
+ * 
+ * Note: prescriptionsStructurees is defined as PrescriptionItem[] in the TypeScript types,
+ * but the API expects it as a JSON string. This schema automatically transforms the array
+ * to a JSON string during validation using yup's transform() method.
+ */
 export const consultationValidationSchema = yup.object().shape({
   patientId: yup
     .string()
@@ -35,6 +42,20 @@ export const consultationValidationSchema = yup.object().shape({
   categoriesMaladie: yup
     .string()
     .required('La catégorie de maladie est requise'),
-  prescriptionsStructurees: yup.string().optional(),
+  prescriptionsStructurees: yup
+    .mixed()
+    .optional()
+    .transform((value) => {
+      // If it's already a string, return it as-is
+      if (typeof value === 'string') {
+        return value;
+      }
+      // If it's an array or object, serialize it to JSON string
+      if (Array.isArray(value) || (value && typeof value === 'object')) {
+        return JSON.stringify(value);
+      }
+      // For empty/null/undefined, return empty string
+      return '';
+    }),
   notes: yup.string().optional(),
 });
