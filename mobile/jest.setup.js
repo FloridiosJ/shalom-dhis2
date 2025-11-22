@@ -1,5 +1,6 @@
 // jest.setup.js
 // Global mocks for Jest tests
+/* eslint-env jest */
 
 // Mock @react-native-community/netinfo
 jest.mock('@react-native-community/netinfo', () => ({

@@ -29,48 +29,6 @@ export function useAutoSync() {
   const maxRetries = 3;
   const appState = useRef<AppStateStatus>(AppState.currentState || 'active');
 
-  // Handle network reconnection
-  useEffect(() => {
-    const isOnline = isConnected && isInternetReachable !== false;
-
-    // Detect transition from offline to online
-    if (isOnline && !previousConnectionState.current && pendingCount > 0) {
-      console.log('🌐 Network reconnected, triggering auto-sync...');
-      handleAutoSync();
-    }
-
-    previousConnectionState.current = isOnline;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, isInternetReachable, pendingCount]);
-
-  // Handle app state changes (foreground/background)
-  useEffect(() => {
-    const subscription = AppState.addEventListener(
-      'change',
-      (nextAppState: AppStateStatus) => {
-        // App comes to foreground
-        if (
-          appState.current.match(/inactive|background/) &&
-          nextAppState === 'active'
-        ) {
-          const isOnline = isConnected && isInternetReachable !== false;
-          
-          if (isOnline && pendingCount > 0) {
-            console.log('📱 App foregrounded with pending items, syncing...');
-            handleAutoSync();
-          }
-        }
-
-        appState.current = nextAppState;
-      }
-    );
-
-    return () => {
-      subscription.remove();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, isInternetReachable, pendingCount]);
-
   /**
    * Handle automatic sync with exponential backoff retry logic
    */
@@ -104,7 +62,47 @@ export function useAutoSync() {
         retryCount.current = 0; // Reset for next reconnection
       }
     }
-  }, [syncNow, isSyncing]);
+  }, [syncNow, isSyncing, maxRetries]);
+
+  // Handle network reconnection
+  useEffect(() => {
+    const isOnline = isConnected && isInternetReachable !== false;
+
+    // Detect transition from offline to online
+    if (isOnline && !previousConnectionState.current && pendingCount > 0) {
+      console.log('🌐 Network reconnected, triggering auto-sync...');
+      handleAutoSync();
+    }
+
+    previousConnectionState.current = isOnline;
+  }, [isConnected, isInternetReachable, pendingCount, handleAutoSync]);
+
+  // Handle app state changes (foreground/background)
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        // App comes to foreground
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === 'active'
+        ) {
+          const isOnline = isConnected && isInternetReachable !== false;
+          
+          if (isOnline && pendingCount > 0) {
+            console.log('📱 App foregrounded with pending items, syncing...');
+            handleAutoSync();
+          }
+        }
+
+        appState.current = nextAppState;
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isConnected, isInternetReachable, pendingCount, handleAutoSync]);
 
   return {
     isAutoSyncEnabled: true,

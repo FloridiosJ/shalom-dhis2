@@ -69,7 +69,7 @@ function TestComponent() {
 
       const res = await createConsultation(input);
       setResult(res.offline ? 'offline' : 'online');
-    } catch (error) {
+    } catch {
       setResult('error');
     }
   };

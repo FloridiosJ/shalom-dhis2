@@ -57,16 +57,20 @@ export function useOfflineConsultation() {
             consultation,
             offline: false,
           };
-        } catch (error: any) {
+        } catch (error: unknown) {
           // If network error, fall back to offline mode
-          if (
-            error.message?.includes('network') ||
-            error.message?.includes('Network') ||
-            error.networkError
-          ) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          const hasNetworkError =
+            errorMessage.toLowerCase().includes('network') ||
+            (typeof error === 'object' &&
+              error !== null &&
+              'networkError' in error);
+
+          if (hasNetworkError) {
             console.log(
               '⚠️ Network error, falling back to offline mode:',
-              error.message
+              errorMessage
             );
             // Continue to offline mode below
           } else {
