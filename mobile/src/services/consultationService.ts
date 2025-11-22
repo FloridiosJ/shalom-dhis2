@@ -154,16 +154,13 @@ export async function createConsultation(
   input: CreateConsultationInput,
 ): Promise<Consultation> {
   try {
-    // Parse categoriesMaladie to extract category IDs and generate diagnostic
-    const categorieIds: string[] = [];
+    // Parse categoriesMaladie to generate diagnostic text
+    // Note: We don't send categorieIds because mobile only has codes, not UUIDs
+    // The diagnostic field contains the category name for reference
     let diagnosticText = '';
     
     if (input.categoriesMaladie) {
       const [mainCode, subCode] = input.categoriesMaladie.split(':');
-      
-      // Add category IDs for backend
-      if (mainCode) categorieIds.push(mainCode);
-      if (subCode) categorieIds.push(subCode);
       
       // Generate diagnostic text from category names (matching web implementation)
       if (subCode) {
@@ -243,11 +240,11 @@ export async function createConsultation(
           patientId: input.patientId,
           typeConsultation: input.typeConsultation,
           dateConsultation: consultationDateTime.toISOString(),
-          categorieIds,
           prescriptionItems: prescriptionItemsFormatted,
           diagnostic: diagnosticText, // Generated from category names
           notes: input.notes || '',
           dispensaireId: input.dispensaireId,
+          // Note: categorieIds not sent - mobile only has codes, not UUIDs
         },
       },
     });
