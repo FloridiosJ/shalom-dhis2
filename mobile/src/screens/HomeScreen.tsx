@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useDashboardStats} from '../hooks/useDashboardStats';
 import {useLocalSync} from '../hooks/useLocalSync';
 import {useNavigation} from '@react-navigation/native';
+import {NetworkStatusBanner} from '../components/NetworkStatusBanner';
 
 interface DashboardCardProps {
   icon: string;
@@ -85,7 +86,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   
   // Fetch real dashboard statistics from API (calendar month data)
-  const {stats, loading, error, refetch} = useDashboardStats();
+  const {stats, loading, refetch} = useDashboardStats();
   
   // Local sync management
   const {pendingCount, syncNow, isSyncing} = useLocalSync();
@@ -127,7 +128,8 @@ export default function HomeScreen() {
         'Toutes les données ont été synchronisées avec le serveur.',
         [{text: 'OK', onPress: () => refetch()}]
       );
-    } catch (error) {
+    } catch (err) {
+      console.error('Sync error:', err);
       Alert.alert(
         'Erreur de synchronisation',
         'Une erreur est survenue lors de la synchronisation. Veuillez réessayer.',
@@ -148,6 +150,9 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Network Status Banner */}
+      <NetworkStatusBanner />
+      
       <ScrollView style={styles.scrollView}>
         {/* Header Section */}
         <View style={styles.header}>
