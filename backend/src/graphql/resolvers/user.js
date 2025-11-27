@@ -342,6 +342,109 @@ const userResolvers = {
       }
     },
 
+    /**
+     * Update the authenticated user's own profile
+     * Allows updating name (nom, prenom) and password
+     */
+    updateProfile: async (_, { input }, { user }) => {
+      try {
+        if (!user) {
+          throw new AuthenticationError('Non authentifié');
+        }
+
+        const { User, Dispensaire } = await import('../../models/index.js');
+
+        const targetUser = await User.findByPk(user.id);
+        if (!targetUser) {
+          return {
+            user: null,
+            success: false,
+            message: 'Utilisateur non trouvé',
+            errors: ['USER_NOT_FOUND']
+          };
+        }
+
+        // Update name fields
+        const updateData = {
+          nom: input.nom,
+          prenom: input.prenom
+        };
+
+        // Handle password change if provided
+        if (input.newPassword) {
+          // Verify current password is provided
+          if (!input.currentPassword) {
+            return {
+              user: null,
+              success: false,
+              message: 'Le mot de passe actuel est requis pour changer le mot de passe',
+              errors: ['CURRENT_PASSWORD_REQUIRED']
+            };
+          }
+
+          // Verify current password is correct
+          const isPasswordValid = await targetUser.comparePassword(input.currentPassword);
+          if (!isPasswordValid) {
+            return {
+              user: null,
+              success: false,
+              message: 'Le mot de passe actuel est incorrect',
+              errors: ['INVALID_CURRENT_PASSWORD']
+            };
+          }
+
+          // Validate new password length
+          if (input.newPassword.length < 8) {
+            return {
+              user: null,
+              success: false,
+              message: 'Le nouveau mot de passe doit contenir au moins 8 caractères',
+              errors: ['PASSWORD_TOO_SHORT']
+            };
+          }
+
+          // Add password to update data (will be hashed by beforeSave hook)
+          updateData.password = input.newPassword;
+        }
+
+        // Update user
+        await targetUser.update(updateData);
+
+        // Fetch updated user with relations
+        const updatedUser = await User.findByPk(user.id, {
+          include: [
+            {
+              model: Dispensaire,
+              as: 'dispensaire',
+              required: false
+            }
+          ]
+        });
+
+        console.log('✅ Profile updated for user:', updatedUser.login);
+
+        return {
+          user: updatedUser,
+          success: true,
+          message: 'Profil mis à jour avec succès',
+          errors: []
+        };
+      } catch (error) {
+        console.error('❌ Erreur mise à jour profil:', error);
+        
+        if (error instanceof AuthenticationError || error instanceof ForbiddenError) {
+          throw error;
+        }
+        
+        return {
+          user: null,
+          success: false,
+          message: error.message,
+          errors: [error.message]
+        };
+      }
+    },
+
     changeUserPassword: async (_, { id, currentPassword, newPassword, generateNew }, { user }) => {
       try {
         if (!user) {

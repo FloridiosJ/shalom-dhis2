@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {gql, ApolloClient, InMemoryCache, createHttpLink} from '@apollo/client';
+import {setContext} from '@apollo/client/link/context';
 import {GRAPHQL_ENDPOINT} from '@env';
 import type {AuthPayload, User} from '../types';
 
@@ -23,6 +24,49 @@ const LOGIN_MUTATION = gql`
     }
   }
 `;
+
+const UPDATE_PROFILE_MUTATION = gql`
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
+      success
+      message
+      errors
+      user {
+        id
+        nom
+        prenom
+        email
+        login
+        role
+        dispensaireId
+        specialite
+      }
+    }
+  }
+`;
+
+/**
+ * Create an authenticated Apollo client for API calls
+ */
+const createAuthenticatedClient = async () => {
+  const token = await getToken();
+  
+  const httpLink = createHttpLink({
+    uri: GRAPHQL_ENDPOINT,
+  });
+
+  const authLink = setContext((_, {headers}) => ({
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
+    },
+  }));
+
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+  });
+};
 
 /**
  * Authenticate user with username and password
@@ -185,6 +229,15 @@ export const removeUser = async (): Promise<void> => {
   }
 };
 
+interface UpdateProfileResponse {
+  updateProfile: {
+    success: boolean;
+    message: string;
+    errors: string[] | null;
+    user: User | null;
+  };
+}
+
 /**
  * Update user profile data
  * @param data Profile data to update (nom, prenom, and optionally password)
@@ -196,28 +249,68 @@ export const updateProfile = async (data: {
   newPassword?: string;
 }): Promise<User> => {
   try {
-    // Get current user
-    const currentUser = await getUser();
-    if (!currentUser) {
-      throw new Error('User not found');
+    // Validate GRAPHQL_ENDPOINT is configured
+    if (!GRAPHQL_ENDPOINT) {
+      throw new Error(
+        'GRAPHQL_ENDPOINT is not configured. Please create a .env file with GRAPHQL_ENDPOINT set.',
+      );
     }
 
-    // TODO: Implement API call to update profile on the backend
-    // For now, we only update local storage with new name data
-    // The password change would require backend implementation
+    // Create authenticated client
+    const client = await createAuthenticatedClient();
 
-    const updatedUser: User = {
-      ...currentUser,
+    // Build input object
+    const input: {
+      nom: string;
+      prenom: string;
+      currentPassword?: string;
+      newPassword?: string;
+    } = {
       nom: data.nom,
       prenom: data.prenom,
     };
 
-    // Update local storage
-    await setUser(updatedUser);
+    // Only include password fields if new password is provided
+    if (data.newPassword) {
+      input.currentPassword = data.currentPassword;
+      input.newPassword = data.newPassword;
+    }
 
-    return updatedUser;
-  } catch (error) {
+    const {data: responseData} = await client.mutate<UpdateProfileResponse>({
+      mutation: UPDATE_PROFILE_MUTATION,
+      variables: {input},
+    });
+
+    if (!responseData?.updateProfile) {
+      throw new Error('Invalid response from server');
+    }
+
+    if (!responseData.updateProfile.success) {
+      throw new Error(
+        responseData.updateProfile.message ||
+          responseData.updateProfile.errors?.join(', ') ||
+          'Erreur lors de la mise à jour du profil',
+      );
+    }
+
+    if (!responseData.updateProfile.user) {
+      throw new Error('User data not returned from server');
+    }
+
+    // Update local storage with new user data
+    await setUser(responseData.updateProfile.user);
+
+    return responseData.updateProfile.user;
+  } catch (error: any) {
     console.error('Error updating profile:', error);
+
+    // Enhance error message for network failures
+    if (error.message?.includes('Network request failed')) {
+      throw new Error(
+        'Network request failed. Please check your internet connection and try again.',
+      );
+    }
+
     throw error;
   }
 };
