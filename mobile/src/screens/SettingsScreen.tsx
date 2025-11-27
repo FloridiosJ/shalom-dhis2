@@ -10,7 +10,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Text, Snackbar} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getUser} from '../services/auth';
+import {getUser, updateProfile} from '../services/auth';
 import {useSyncPreference} from '../hooks/useSyncPreference';
 import {
   ProfileForm,
@@ -79,17 +79,19 @@ export default function SettingsScreen({
     async (data: ProfileFormData) => {
       setSaving(true);
       try {
-        // TODO: Implement API call to update profile
-        // For now, simulate a save operation
-        await new Promise<void>(resolve => setTimeout(resolve, 1000));
+        // Update profile using the auth service
+        const updatedUser = await updateProfile({
+          nom: data.nom,
+          prenom: data.prenom,
+          currentPassword: data.currentPassword || undefined,
+          newPassword: data.newPassword || undefined,
+        });
+
+        // Update local user state
+        setUser(updatedUser);
 
         // Show success message
         showSnackbar('Modifications enregistrées avec succès', 'success');
-
-        // Update local user data if name changed
-        if (user && (data.nom !== user.nom || data.prenom !== user.prenom)) {
-          setUser({...user, nom: data.nom, prenom: data.prenom});
-        }
       } catch (error) {
         console.error('Error saving profile:', error);
         showSnackbar('Erreur lors de l\'enregistrement', 'error');
@@ -97,7 +99,7 @@ export default function SettingsScreen({
         setSaving(false);
       }
     },
-    [user, showSnackbar],
+    [showSnackbar],
   );
 
   const handleLogout = () => {

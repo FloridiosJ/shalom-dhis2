@@ -44,6 +44,14 @@ jest.mock('../src/services/auth', () => ({
     login: 'AG-12345',
     role: 'agent',
   })),
+  updateProfile: jest.fn(() => Promise.resolve({
+    id: '1',
+    nom: 'Dupont',
+    prenom: 'Alexandre',
+    email: 'alexandre@test.com',
+    login: 'AG-12345',
+    role: 'agent',
+  })),
   logout: jest.fn(() => Promise.resolve()),
 }));
 
@@ -72,6 +80,7 @@ jest.mock('yup', () => {
   const mockSchema = {
     required: jest.fn().mockReturnThis(),
     default: jest.fn().mockReturnThis(),
+    defined: jest.fn().mockReturnThis(),
     test: jest.fn().mockReturnThis(),
     oneOf: jest.fn().mockReturnThis(),
     min: jest.fn().mockReturnThis(),

@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {View, StyleSheet, TextInput, TouchableOpacity} from 'react-native';
 import {Text} from 'react-native-paper';
-import {useForm, Controller, SubmitHandler} from 'react-hook-form';
+import {useForm, Controller, SubmitHandler, Resolver} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,13 +21,14 @@ interface ProfileFormProps {
   loading?: boolean;
 }
 
-// Validation schema
-const profileSchema = yup.object({
+// Validation schema with explicit type
+const profileSchema: yup.ObjectSchema<ProfileFormData> = yup.object({
   nom: yup.string().required('Le nom est requis').default(''),
   prenom: yup.string().required('Le prénom est requis').default(''),
-  currentPassword: yup.string().default(''),
+  currentPassword: yup.string().defined().default(''),
   newPassword: yup
     .string()
+    .defined()
     .default('')
     .test(
       'min-length-if-provided',
@@ -36,6 +37,7 @@ const profileSchema = yup.object({
     ),
   confirmPassword: yup
     .string()
+    .defined()
     .default('')
     .oneOf([yup.ref('newPassword')], 'Les mots de passe ne correspondent pas'),
 });
@@ -58,7 +60,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     formState: {errors, isDirty, isValid},
     reset,
   } = useForm<ProfileFormData>({
-    resolver: yupResolver(profileSchema) as any,
+    resolver: yupResolver(profileSchema) as Resolver<ProfileFormData>,
     defaultValues: {
       nom: user?.nom || '',
       prenom: user?.prenom || '',

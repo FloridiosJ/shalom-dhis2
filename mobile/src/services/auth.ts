@@ -184,3 +184,40 @@ export const removeUser = async (): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * Update user profile data
+ * @param data Profile data to update (nom, prenom, and optionally password)
+ */
+export const updateProfile = async (data: {
+  nom: string;
+  prenom: string;
+  currentPassword?: string;
+  newPassword?: string;
+}): Promise<User> => {
+  try {
+    // Get current user
+    const currentUser = await getUser();
+    if (!currentUser) {
+      throw new Error('User not found');
+    }
+
+    // TODO: Implement API call to update profile on the backend
+    // For now, we only update local storage with new name data
+    // The password change would require backend implementation
+
+    const updatedUser: User = {
+      ...currentUser,
+      nom: data.nom,
+      prenom: data.prenom,
+    };
+
+    // Update local storage
+    await setUser(updatedUser);
+
+    return updatedUser;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+};
