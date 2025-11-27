@@ -195,12 +195,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       </View>
     </ScrollView>
     
-    {/* FAB for creating new patient */}
+    {/* FAB for navigating to patient list */}
     <FAB
       style={styles.fab}
       icon="plus"
-      onPress={() => navigation.navigate('NouveauPatient')}
-      accessibilityLabel="Nouveau patient"
+      onPress={() => navigation.navigate('PatientList')}
+      accessibilityLabel="Liste des patients"
     />
   </View>
   );
