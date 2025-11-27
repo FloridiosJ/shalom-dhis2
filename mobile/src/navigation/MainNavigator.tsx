@@ -10,6 +10,7 @@ import NewConsultationScreen from '../screens/NewConsultationScreen';
 import PatientScreen from '../screens/PatientScreen';
 import PatientDetailScreen from '../screens/PatientDetailScreen';
 import ConsultationDetailScreen from '../screens/ConsultationDetailScreen';
+import NouveauPatientScreen from '../screens/NouveauPatientScreen';
 import SyncScreen from '../screens/SyncScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
@@ -96,6 +97,14 @@ function PatientStackNavigator() {
         name="PatientList"
         component={PatientScreen}
         options={{headerShown: false}}
+      />
+      <PatientStack.Screen
+        name="NouveauPatient"
+        component={NouveauPatientScreen}
+        options={{
+          title: 'Nouveau Patient',
+          headerBackTitle: 'Retour',
+        }}
       />
       <PatientStack.Screen
         name="PatientDetail"

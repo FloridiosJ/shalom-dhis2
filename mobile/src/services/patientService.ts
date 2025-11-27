@@ -48,6 +48,45 @@ export const GET_PATIENT_DETAIL = gql`
   }
 `;
 
+export const CREATE_PATIENT_MUTATION = gql`
+  mutation CreatePatient($input: CreatePatientInput!) {
+    createPatient(input: $input) {
+      patient {
+        id
+        nom
+        prenom
+        dateNaissance
+        sexe
+        religion
+        village
+        numeroPatient
+        dispensaireId
+        displayName
+        categorieAge
+        isMineur
+        createdAt
+      }
+    }
+  }
+`;
+
+export interface CreatePatientInput {
+  nom: string;
+  prenom?: string;
+  dateNaissance?: string;
+  sexe: string;
+  religion: 'Kristianina' | 'Musulman' | 'traditionnelle';
+  village: string;
+  dispensaireId: string;
+  numeroPatient?: string;
+}
+
+export interface CreatePatientResponse {
+  createPatient: {
+    patient: Patient | null;
+  };
+}
+
 interface PatientFilterInput {
   dispensaireId?: string;
   religion?: string;

@@ -1,6 +1,8 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {View, StyleSheet, useWindowDimensions} from 'react-native';
 import {useQuery} from '@apollo/client/react';
+import {FAB} from 'react-native-paper';
+import {useFocusEffect} from '@react-navigation/native';
 import {Patient} from '../types';
 import {GET_PATIENTS} from '../services/patientService';
 import PatientList from '../components/PatientList';
@@ -49,6 +51,13 @@ export default function PatientScreen({navigation}: {navigation: any}) {
     }
   }, [error]);
 
+  // ✅ Refresh patient list when screen comes into focus (e.g., after adding a new patient)
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
   // ✅ Auto-select first patient on tablet if none selected
   useEffect(() => {
     if (isTablet && !selectedPatient && filteredPatients.length > 0) {
@@ -87,6 +96,10 @@ export default function PatientScreen({navigation}: {navigation: any}) {
     }
   }, [selectedPatient, navigation]);
 
+  const handleNewPatient = useCallback(() => {
+    navigation.navigate('NouveauPatient');
+  }, [navigation]);
+
   // ✅ RENDU conditionnel uniquement dans le JSX
   if (isTablet) {
     // Split view for tablet
@@ -118,6 +131,13 @@ export default function PatientScreen({navigation}: {navigation: any}) {
             </View>
           )}
         </View>
+        {/* FAB for creating new patient */}
+        <FAB
+          style={styles.fab}
+          icon="plus"
+          onPress={handleNewPatient}
+          accessibilityLabel="Nouveau patient"
+        />
       </View>
     );
   }
@@ -135,6 +155,13 @@ export default function PatientScreen({navigation}: {navigation: any}) {
         loading={loading}
         refreshing={false}
         onRefresh={handleRefresh}
+      />
+      {/* FAB for creating new patient */}
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={handleNewPatient}
+        accessibilityLabel="Nouveau patient"
       />
     </View>
   );
@@ -165,5 +192,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#2196F3',
   },
 });
