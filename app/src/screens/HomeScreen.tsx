@@ -132,6 +132,27 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="titleLarge" style={styles.cardTitle}>
+              Patients
+            </Text>
+            <Text variant="bodyMedium" style={styles.description}>
+              Gérez les patients du dispensaire
+            </Text>
+            
+            <Button
+              mode="contained"
+              onPress={() => navigation.navigate('NouveauPatient')}
+              style={styles.button}
+              icon="account-plus"
+              buttonColor="#4CAF50"
+            >
+              Nouveau Patient
+            </Button>
+          </Card.Content>
+        </Card>
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.cardTitle}>
               Navigation
             </Text>
             <Text variant="bodyMedium" style={styles.description}>

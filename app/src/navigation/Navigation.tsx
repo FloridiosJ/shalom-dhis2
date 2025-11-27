@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import HomeScreen from '../screens/HomeScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
+import NouveauPatientScreen from '../screens/NouveauPatientScreen';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -14,6 +15,7 @@ export type AuthStackParamList = {
 export type MainStackParamList = {
   Home: undefined;
   Details: undefined;
+  NouveauPatient: undefined;
 };
 
 export type RootStackParamList = AuthStackParamList & MainStackParamList;
@@ -69,6 +71,14 @@ export default function Navigation() {
               component={DetailsScreen}
               options={{
                 title: 'Détails',
+              }}
+            />
+            <Stack.Screen
+              name="NouveauPatient"
+              component={NouveauPatientScreen}
+              options={{
+                title: 'Nouveau Patient',
+                headerBackTitle: '',
               }}
             />
           </>
