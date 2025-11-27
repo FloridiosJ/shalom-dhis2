@@ -206,28 +206,6 @@ export default function NouveauPatientScreen({
               Infos démographiques
             </Text>
 
-            {/* Prénom */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Prénom</Text>
-              <Controller
-                control={control}
-                name="prenom"
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    mode="outlined"
-                    placeholder="Entrez le prénom"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    disabled={isSubmitting}
-                    style={styles.input}
-                    outlineStyle={styles.inputOutline}
-                    accessibilityLabel="Prénom du patient"
-                  />
-                )}
-              />
-            </View>
-
             {/* Nom */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Nom</Text>
@@ -261,6 +239,28 @@ export default function NouveauPatientScreen({
                       </HelperText>
                     )}
                   </>
+                )}
+              />
+            </View>
+
+            {/* Prénom */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Prénom</Text>
+              <Controller
+                control={control}
+                name="prenom"
+                render={({field: {onChange, onBlur, value}}) => (
+                  <TextInput
+                    mode="outlined"
+                    placeholder="Entrez le prénom"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    disabled={isSubmitting}
+                    style={styles.input}
+                    outlineStyle={styles.inputOutline}
+                    accessibilityLabel="Prénom du patient"
+                  />
                 )}
               />
             </View>
