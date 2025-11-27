@@ -32,16 +32,18 @@ interface NouveauPatientScreenProps {
   navigation: NavigationProp<any>;
 }
 
+type ReligionValue = 'Kristianina' | 'Musulman' | 'traditionnelle';
+
 interface PatientFormData {
   prenom: string;
   nom: string;
   dateNaissance: string;
   sexe: 'M' | 'F';
   village: string;
-  religion: 'Kristianina' | 'Musulman' | 'traditionnelle';
+  religion: ReligionValue;
 }
 
-const RELIGIONS = [
+const RELIGIONS: { label: string; value: ReligionValue }[] = [
   { label: 'Kristianina', value: 'Kristianina' },
   { label: 'Musulman', value: 'Musulman' },
   { label: 'Traditionnelle', value: 'traditionnelle' },
@@ -50,7 +52,6 @@ const RELIGIONS = [
 export default function NouveauPatientScreen({ navigation }: NouveauPatientScreenProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showReligionPicker, setShowReligionPicker] = useState(false);
 
   const [createPatient] = useMutation<CreatePatientResponse>(CREATE_PATIENT_MUTATION);
@@ -75,7 +76,6 @@ export default function NouveauPatientScreen({ navigation }: NouveauPatientScree
 
   const selectedSexe = watch('sexe');
   const selectedReligion = watch('religion');
-  const dateNaissance = watch('dateNaissance');
 
   const formatDateForDisplay = (dateStr: string): string => {
     if (!dateStr) return '';
@@ -263,9 +263,14 @@ export default function NouveauPatientScreen({ navigation }: NouveauPatientScree
                 control={control}
                 name="dateNaissance"
                 rules={{
-                  pattern: {
-                    value: /^\d{4}-\d{2}-\d{2}$|^\d{2}\/\d{2}\/\d{4}$/,
-                    message: 'Format de date invalide (JJ/MM/AAAA)',
+                  validate: (value) => {
+                    // Allow empty value (optional field)
+                    if (!value) return true;
+                    // Only validate complete dates in YYYY-MM-DD format
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
+                    // Allow partial input during typing (don't show error)
+                    if (value.length < 10) return true;
+                    return 'Format de date invalide (JJ/MM/AAAA)';
                   },
                 }}
                 render={({ field: { onChange, value } }) => (
@@ -455,7 +460,7 @@ export default function NouveauPatientScreen({ navigation }: NouveauPatientScree
                   selectedReligion === religion.value && styles.modalOptionSelected,
                 ]}
                 onPress={() => {
-                  setValue('religion', religion.value as any);
+                  setValue('religion', religion.value);
                   setShowReligionPicker(false);
                 }}
                 accessibilityRole="button"
