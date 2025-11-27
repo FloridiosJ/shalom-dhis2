@@ -18,10 +18,11 @@ jest.mock('react-native/Libraries/Components/ActivityIndicator/ActivityIndicator
 
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
-  const React = require('react');
+  const RN = require('react');
   return {
-    Text: (props: any) => React.createElement('Text', props),
-    Card: ({children, ...props}: any) => React.createElement('Card', props, children),
+    Text: (props: any) => RN.createElement('Text', props),
+    Card: ({children, ...props}: any) => RN.createElement('Card', props, children),
+    Snackbar: ({children, ...props}: any) => RN.createElement('Snackbar', props, children),
   };
 });
 
@@ -53,6 +54,40 @@ jest.mock('../src/hooks/useSyncPreference', () => ({
     setWifiOnly: jest.fn(),
     loading: false,
   })),
+}));
+
+// Mock react-hook-form
+jest.mock('react-hook-form', () => ({
+  useForm: () => ({
+    control: {},
+    handleSubmit: (fn: any) => fn,
+    formState: {errors: {}, isDirty: false, isValid: false},
+    reset: jest.fn(),
+  }),
+  Controller: ({render}: any) => render({field: {onChange: jest.fn(), onBlur: jest.fn(), value: ''}}),
+}));
+
+// Mock yup
+jest.mock('yup', () => {
+  const mockSchema = {
+    required: jest.fn().mockReturnThis(),
+    default: jest.fn().mockReturnThis(),
+    test: jest.fn().mockReturnThis(),
+    oneOf: jest.fn().mockReturnThis(),
+    min: jest.fn().mockReturnThis(),
+    optional: jest.fn().mockReturnThis(),
+    when: jest.fn().mockReturnThis(),
+  };
+  return {
+    object: jest.fn(() => mockSchema),
+    string: jest.fn(() => mockSchema),
+    ref: jest.fn((path: string) => path),
+  };
+});
+
+// Mock @hookform/resolvers/yup
+jest.mock('@hookform/resolvers/yup', () => ({
+  yupResolver: jest.fn(),
 }));
 
 describe('SettingsScreen', () => {
