@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, Alert } from 'react-native';
-import { Text, Button, Card, ActivityIndicator } from 'react-native-paper';
+import { Text, Button, Card, ActivityIndicator, FAB } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
 import { NavigationProp } from '@react-navigation/native';
@@ -73,25 +73,26 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <StatusBar style="auto" />
-      
-      <View style={styles.content}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="headlineMedium" style={styles.title}>
-              Bonjour {user?.fullName || user?.prenom || 'Utilisateur'}! 👋
-            </Text>
-            <Text variant="bodyLarge" style={styles.subtitle}>
-              Bienvenue dans l'application Expo
-            </Text>
-            {user?.dispensaire && (
-              <Text variant="bodyMedium" style={styles.dispensaireText}>
-                📍 {user.dispensaire.name}
+    <View style={styles.wrapper}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <StatusBar style="auto" />
+        
+        <View style={styles.content}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text variant="headlineMedium" style={styles.title}>
+                Bonjour {user?.fullName || user?.prenom || 'Utilisateur'}! 👋
               </Text>
-            )}
-          </Card.Content>
-        </Card>
+              <Text variant="bodyLarge" style={styles.subtitle}>
+                Bienvenue dans l'application Expo
+              </Text>
+              {user?.dispensaire && (
+                <Text variant="bodyMedium" style={styles.dispensaireText}>
+                  📍 {user.dispensaire.name}
+                </Text>
+              )}
+            </Card.Content>
+          </Card>
 
         <Card style={styles.card}>
           <Card.Content>
@@ -193,13 +194,28 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </Card>
       </View>
     </ScrollView>
+    
+    {/* FAB for creating new patient */}
+    <FAB
+      style={styles.fab}
+      icon="plus"
+      onPress={() => navigation.navigate('NouveauPatient')}
+      accessibilityLabel="Nouveau patient"
+    />
+  </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 80, // Space for FAB
   },
   content: {
     padding: 16,
@@ -240,5 +256,12 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 8,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#2196F3',
   },
 });
