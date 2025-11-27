@@ -2,6 +2,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {View, StyleSheet, useWindowDimensions} from 'react-native';
 import {useQuery} from '@apollo/client/react';
 import {FAB} from 'react-native-paper';
+import {useFocusEffect} from '@react-navigation/native';
 import {Patient} from '../types';
 import {GET_PATIENTS} from '../services/patientService';
 import PatientList from '../components/PatientList';
@@ -49,6 +50,13 @@ export default function PatientScreen({navigation}: {navigation: any}) {
       console.error('Error fetching patients:', error);
     }
   }, [error]);
+
+  // ✅ Refresh patient list when screen comes into focus (e.g., after adding a new patient)
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   // ✅ Auto-select first patient on tablet if none selected
   useEffect(() => {
