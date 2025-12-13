@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
+        // buildToolsVersion removed - each AGP version has a default build tools version
         minSdkVersion = 24
         compileSdkVersion = 34
         // targetSdkVersion set to 30 (Android 11) for compatibility with project requirements

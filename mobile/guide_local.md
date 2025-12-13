@@ -222,12 +222,13 @@ Le fichier `android/build.gradle` contient les versions SDK:
 ```gradle
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
+        // buildToolsVersion removed - each AGP version has a default build tools version
         minSdkVersion = 24           // Android 7.0
         compileSdkVersion = 34       // Android 14 (pour compilation)
         targetSdkVersion = 30        // Android 11 (version cible)
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.1.20"
+        androidGradlePluginVersion = "8.7.3"
     }
 }
 ```
@@ -236,6 +237,7 @@ buildscript {
 - `targetSdkVersion = 30`: Application ciblée pour Android 11 (API 30)
 - `compileSdkVersion = 34`: Utilise les APIs d'Android 14 pour compiler
 - `minSdkVersion = 24`: Supporte Android 7.0 minimum
+- `buildToolsVersion` a été supprimé car chaque version d'AGP a une version par défaut des build tools
 
 ### Autolinking
 
@@ -475,6 +477,29 @@ npm install
 # 3. Rebuilder l'app
 npm run android
 ```
+
+### Problème: Incompatibilité Worklets/Reanimated
+
+**Erreur:**
+```
+[Reanimated] Your installed version of Worklets (0.6.1) is not compatible with 
+installed version of Reanimated (4.x.x). Please install Worklets 0.7.x or newer.
+```
+
+**Solution:**
+```bash
+# Mettre à jour react-native-worklets vers 0.7.x
+npm install react-native-worklets@^0.7.1
+
+# Nettoyer et rebuilder
+cd android
+./gradlew clean
+cd ..
+npm run android
+```
+
+**Note:** react-native-reanimated 4.x nécessite react-native-worklets 0.7.x minimum. 
+Si vous voyez cette erreur, mettez à jour worklets dans package.json.
 
 ### Problème: Appareil non détecté (adb)
 

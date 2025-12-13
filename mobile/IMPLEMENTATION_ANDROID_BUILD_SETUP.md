@@ -54,7 +54,7 @@ mobile/android/
 ```gradle
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
+        // buildToolsVersion removed - each AGP version has a default build tools version
         minSdkVersion = 24              // Android 7.0 minimum
         compileSdkVersion = 34          // Compile avec Android 14 APIs
         targetSdkVersion = 30           // 🎯 Cible Android 11 (API 30)
@@ -210,7 +210,7 @@ npm start -- --reset-cache   # Démarrer avec cache vidé
 | minSdkVersion | 24 (Android 7.0) |
 | targetSdkVersion | **30 (Android 11)** ✅ |
 | compileSdkVersion | 34 (Android 14) |
-| Build Tools | 34.0.0 |
+| Build Tools | Default (determined by AGP) |
 
 ### Structure des packages
 
