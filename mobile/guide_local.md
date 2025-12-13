@@ -140,6 +140,7 @@ brew install watchman
 ### 1. Cloner le repository
 
 ```bash
+# Remplacer par l'URL de votre fork si nécessaire
 git clone https://github.com/FloridiosJ/shalom-dhis2.git
 cd shalom-dhis2/mobile
 ```
@@ -314,7 +315,7 @@ npx react-native start
 
 **Metro devrait démarrer avec le message:**
 ```
-Welcome to Metro v0.8x.x
+Welcome to Metro
 Fast - Scalable - Integrated
 
 ...

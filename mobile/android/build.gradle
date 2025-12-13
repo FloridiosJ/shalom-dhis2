@@ -3,6 +3,8 @@ buildscript {
         buildToolsVersion = "34.0.0"
         minSdkVersion = 24
         compileSdkVersion = 34
+        // targetSdkVersion set to 30 (Android 11) for compatibility with project requirements
+        // and to avoid Android 12+ permission constraints (tested on Redmi 10A)
         targetSdkVersion = 30
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.1.20"
