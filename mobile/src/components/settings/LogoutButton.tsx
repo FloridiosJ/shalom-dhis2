@@ -11,6 +11,7 @@ interface LogoutButtonProps {
 /**
  * LogoutButton component with danger styling
  * Handles user logout with appropriate visual feedback
+ * Updated design: white background with red border and text
  */
 export const LogoutButton: React.FC<LogoutButtonProps> = ({
   onPress,
@@ -25,7 +26,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       accessibilityRole="button"
       accessibilityHint="Appuyez pour vous déconnecter de l'application">
       <View style={styles.buttonContent}>
-        <Icon name="logout" size={24} color="#D32F2F" />
+        <Icon name="logout" size={20} color="#D32F2F" />
         <Text variant="bodyLarge" style={styles.buttonText}>
           Déconnexion
         </Text>
@@ -36,23 +37,16 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#FFEBEE',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    minHeight: 56,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    minHeight: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FFCDD2',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    borderWidth: 1.5,
+    borderColor: '#D32F2F',
+    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -65,6 +59,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#D32F2F',
     fontWeight: '600',
-    marginLeft: 12,
+    marginLeft: 8,
+    fontSize: 15,
   },
 });

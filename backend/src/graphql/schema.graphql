@@ -606,6 +606,22 @@ input UpdateUserInput {
   isActive: Boolean
 }
 
+# Input for updating user's own profile (mobile app)
+input UpdateProfileInput {
+  nom: String!
+  prenom: String!
+  currentPassword: String
+  newPassword: String
+}
+
+# Response type for profile updates
+type ProfileResponse {
+  user: User
+  success: Boolean!
+  message: String!
+  errors: [String!]
+}
+
 input CreateDispensaireInput {
   name: String!
   fileovana: String!
@@ -1395,6 +1411,23 @@ type Mutation {
   updateUser(id: ID!, input: UpdateUserInput!): UserResponse!
   deleteUser(id: ID!): UserResponse!
   changeUserPassword(id: ID!, currentPassword: String, newPassword: String, generateNew: Boolean): UserResponse!
+  
+  """
+  Update the authenticated user's own profile.
+  Used by mobile app to allow users to update their name and password.
+  Requires authentication. Users can only update their own profile.
+  
+  If newPassword is provided, currentPassword is required for verification.
+  
+  Example:
+    updateProfile(input: {
+      nom: "Dupont"
+      prenom: "Alexandre"
+      currentPassword: "oldpass123"
+      newPassword: "newpass456"
+    })
+  """
+  updateProfile(input: UpdateProfileInput!): ProfileResponse!
 
   # Dispensaires
   createDispensaire(input: CreateDispensaireInput!): DispensaireResponse!
