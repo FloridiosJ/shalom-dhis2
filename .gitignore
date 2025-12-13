@@ -9,7 +9,7 @@ coverage/
 .expo/
 .expo-shared/
 web-build/
-android/
+# Ignore iOS folder (not needed for this project)
 ios/
 build/
 
