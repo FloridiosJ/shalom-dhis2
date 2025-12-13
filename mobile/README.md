@@ -4,6 +4,8 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
+> **📖 For detailed setup instructions including environment configuration, SDK installation, and troubleshooting, see [guide_local.md](./guide_local.md).**
+
 ## Step 0: Configure Environment
 
 Before running the app, you need to configure the backend GraphQL endpoint:

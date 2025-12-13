@@ -1,0 +1,24 @@
+buildscript {
+    ext {
+        // buildToolsVersion removed - each AGP version has a default build tools version
+        minSdkVersion = 24
+        compileSdkVersion = 34
+        // targetSdkVersion set to 30 (Android 11) for compatibility with project requirements
+        // and to avoid Android 12+ permission constraints (tested on Redmi 10A)
+        targetSdkVersion = 30
+        ndkVersion = "27.1.12297006"
+        kotlinVersion = "2.1.20"
+        androidGradlePluginVersion = "8.7.3"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:$androidGradlePluginVersion")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"
